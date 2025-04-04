@@ -3,18 +3,14 @@
 import { useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { ShoppingBag } from "lucide-react"
+import { useAuth } from "@/components/auth-provider"
 
 export default function LogoutPage() {
   const router = useRouter()
+  const { logout } = useAuth();
 
   useEffect(() => {
-    // Here you would implement actual logout logic
-    // For now, we'll just simulate it
-    const timer = setTimeout(() => {
-      router.push("/login")
-    }, 2000)
-
-    return () => clearTimeout(timer)
+    logout();
   }, [router])
 
   return (

@@ -1,7 +1,5 @@
 "use client"
 
-import type React from "react"
-
 import { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
@@ -10,24 +8,38 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { ShoppingBag } from "lucide-react"
+import { serverLogin } from "@/services/serverApi"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { useAuth } from "@/components/auth-provider"
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("")
+  const { login } = useAuth();
+  const [number, setNumber] = useState("")
   const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
-  const router = useRouter()
+  const [error, setError] = useState<string | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setIsLoading(true)
+    setError(null)
 
-    // Here you would implement actual authentication logic
-    // For now, we'll just simulate a login
-    setTimeout(() => {
+    try {
+      setIsLoading(true)
+      const res = await serverLogin({ number: Number(number), password });
+      console.log("Login response:", res)
+      
+      if (res?.success) {
+        login(res?.user, res?.owner)
+      } else {
+        // Handle server response with error message
+        setError(res?.response?.data?.message || "Invalid credentials. Please try again.")
+      }
       setIsLoading(false)
-      // Redirect to the dashboard
-      router.push("/dashboard")
-    }, 1000)
+    } catch (error: any) {
+      setIsLoading(false)
+      console.error("Login error:", error)
+      setError(error?.response?.data?.message || "An error occurred while logging in. Please try again.")
+    }
   }
 
   return (
@@ -43,14 +55,19 @@ export default function LoginPage() {
         </CardHeader>
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
+            {error && (
+              <Alert variant="destructive" className="border-red-500 bg-red-50 text-red-800">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="number">Number</Label>
               <Input
-                id="email"
-                type="email"
-                placeholder="name@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                id="number"
+                type="tel"
+                placeholder="Enter your number"
+                value={number}
+                onChange={(e) => setNumber(e.target.value)}
                 required
               />
             </div>
