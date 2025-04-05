@@ -1,7 +1,5 @@
 "use client"
 
-import type React from "react"
-
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -12,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox"
 import { ArrowLeft } from "lucide-react"
 
-// Mock user data
+// Move mock data outside component to prevent recreation
 const userData = {
   id: "1",
   name: "Rahul Sharma",
@@ -29,8 +27,53 @@ const userData = {
   },
 }
 
+// Separate interfaces for better type safety
+interface UserPermissions {
+  manageProducts: boolean
+  manageOrders: boolean
+  manageCustomers: boolean
+  viewReports: boolean
+  manageUsers: boolean
+  manageSettings: boolean
+}
+
+interface UserFormData {
+  name: string
+  email: string
+  phone: string
+  role: string
+  permissions: UserPermissions
+}
+
+// Extract permission checkbox into a reusable component
+const PermissionCheckbox = ({ 
+  id, 
+  checked, 
+  onCheckedChange 
+}: { 
+  id: keyof UserPermissions
+  checked: boolean
+  onCheckedChange: (checked: boolean) => void 
+}) => (
+  <div className="flex items-center space-x-2">
+    <Checkbox
+      id={id}
+      checked={checked}
+      onCheckedChange={(checked) => onCheckedChange(checked as boolean)}
+    />
+    <Label htmlFor={id}>{formatPermissionLabel(id)}</Label>
+  </div>
+)
+
+// Helper function to format permission labels
+function formatPermissionLabel(permission: string): string {
+  return permission
+    .replace(/([A-Z])/g, ' $1')
+    .replace(/^./, str => str.toUpperCase())
+}
+
 export default function EditUserPage({ params }: { params: { id: string } }) {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<UserFormData>({
     name: "",
     email: "",
     phone: "",
@@ -46,33 +89,41 @@ export default function EditUserPage({ params }: { params: { id: string } }) {
   })
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
+  const [errors, setErrors] = useState<Partial<Record<keyof UserFormData, string>>>({})
   const router = useRouter()
 
   useEffect(() => {
-    // In a real app, you would fetch the user data from an API
-    // For now, we'll just use the mock data
-    setFormData({
-      name: userData.name,
-      email: userData.email,
-      phone: userData.phone,
-      role: userData.role,
-      permissions: { ...userData.permissions },
-    })
-    setIsLoading(false)
+    // Simulate API call with setTimeout to show loading state
+    const timer = setTimeout(() => {
+      // In a real app, fetch user data based on params.id
+      setFormData({
+        name: userData.name,
+        email: userData.email,
+        phone: userData.phone,
+        role: userData.role,
+        permissions: { ...userData.permissions },
+      })
+      setIsLoading(false)
+    }, 500)
+
+    return () => clearTimeout(timer)
   }, [params.id])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target\
-    setFormData((prev) => (...prev, [name]: value => {
     const { name, value } = e.target
     setFormData((prev) => ({ ...prev, [name]: value }))
+    
+    // Clear error when field is edited
+    if (errors[name as keyof UserFormData]) {
+      setErrors(prev => ({ ...prev, [name]: undefined }))
+    }
   }
 
   const handleSelectChange = (name: string, value: string) => {
     setFormData((prev) => ({ ...prev, [name]: value }))
   }
 
-  const handlePermissionChange = (permission: string, checked: boolean) => {
+  const handlePermissionChange = (permission: keyof UserPermissions, checked: boolean) => {
     setFormData((prev) => ({
       ...prev,
       permissions: {
@@ -82,16 +133,42 @@ export default function EditUserPage({ params }: { params: { id: string } }) {
     }))
   }
 
+  const validateForm = (): boolean => {
+    const newErrors: Partial<Record<keyof UserFormData, string>> = {}
+    
+    if (!formData.name.trim()) newErrors.name = "Name is required"
+    if (!formData.email.trim()) {
+      newErrors.email = "Email is required"
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = "Invalid email format"
+    }
+    if (!formData.phone.trim()) newErrors.phone = "Phone number is required"
+    if (!formData.role) newErrors.role = "Role is required"
+    
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    if (!validateForm()) return
+    
     setIsSaving(true)
 
-    // Here you would implement actual user update logic
-    // For now, we'll just simulate it
-    setTimeout(() => {
-      setIsSaving(false)
+    try {
+      // Here you would implement actual user update logic
+      // For this example, we'll simulate an API call
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      
+      // Show success message or redirect
       router.push("/dashboard/users")
-    }, 1000)
+    } catch (error) {
+      console.error("Error saving user:", error)
+      // Handle error appropriately
+    } finally {
+      setIsSaving(false)
+    }
   }
 
   if (isLoading) {
@@ -129,8 +206,9 @@ export default function EditUserPage({ params }: { params: { id: string } }) {
                 placeholder="John Doe"
                 value={formData.name}
                 onChange={handleChange}
-                required
+                className={errors.name ? "border-red-500" : ""}
               />
+              {errors.name && <p className="text-sm text-red-500">{errors.name}</p>}
             </div>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -143,8 +221,9 @@ export default function EditUserPage({ params }: { params: { id: string } }) {
                   placeholder="john@example.com"
                   value={formData.email}
                   onChange={handleChange}
-                  required
+                  className={errors.email ? "border-red-500" : ""}
                 />
+                {errors.email && <p className="text-sm text-red-500">{errors.email}</p>}
               </div>
 
               <div className="space-y-2">
@@ -155,15 +234,19 @@ export default function EditUserPage({ params }: { params: { id: string } }) {
                   placeholder="+91 9876543210"
                   value={formData.phone}
                   onChange={handleChange}
-                  required
+                  className={errors.phone ? "border-red-500" : ""}
                 />
+                {errors.phone && <p className="text-sm text-red-500">{errors.phone}</p>}
               </div>
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="role">Role</Label>
-              <Select value={formData.role} onValueChange={(value) => handleSelectChange("role", value)}>
-                <SelectTrigger>
+              <Select 
+                value={formData.role} 
+                onValueChange={(value) => handleSelectChange("role", value)}
+              >
+                <SelectTrigger className={errors.role ? "border-red-500" : ""}>
                   <SelectValue placeholder="Select role" />
                 </SelectTrigger>
                 <SelectContent>
@@ -173,59 +256,20 @@ export default function EditUserPage({ params }: { params: { id: string } }) {
                   <SelectItem value="inventory">Inventory Manager</SelectItem>
                 </SelectContent>
               </Select>
+              {errors.role && <p className="text-sm text-red-500">{errors.role}</p>}
             </div>
 
             <div className="space-y-3">
               <Label>Permissions</Label>
               <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="manageProducts"
-                    checked={formData.permissions.manageProducts}
-                    onCheckedChange={(checked) => handlePermissionChange("manageProducts", checked as boolean)}
+                {(Object.keys(formData.permissions) as Array<keyof UserPermissions>).map((permission) => (
+                  <PermissionCheckbox
+                    key={permission}
+                    id={permission}
+                    checked={formData.permissions[permission]}
+                    onCheckedChange={(checked) => handlePermissionChange(permission, checked)}
                   />
-                  <Label htmlFor="manageProducts">Manage Products</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="manageOrders"
-                    checked={formData.permissions.manageOrders}
-                    onCheckedChange={(checked) => handlePermissionChange("manageOrders", checked as boolean)}
-                  />
-                  <Label htmlFor="manageOrders">Manage Orders</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="manageCustomers"
-                    checked={formData.permissions.manageCustomers}
-                    onCheckedChange={(checked) => handlePermissionChange("manageCustomers", checked as boolean)}
-                  />
-                  <Label htmlFor="manageCustomers">Manage Customers</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="viewReports"
-                    checked={formData.permissions.viewReports}
-                    onCheckedChange={(checked) => handlePermissionChange("viewReports", checked as boolean)}
-                  />
-                  <Label htmlFor="viewReports">View Reports</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="manageUsers"
-                    checked={formData.permissions.manageUsers}
-                    onCheckedChange={(checked) => handlePermissionChange("manageUsers", checked as boolean)}
-                  />
-                  <Label htmlFor="manageUsers">Manage Users</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="manageSettings"
-                    checked={formData.permissions.manageSettings}
-                    onCheckedChange={(checked) => handlePermissionChange("manageSettings", checked as boolean)}
-                  />
-                  <Label htmlFor="manageSettings">Manage Settings</Label>
-                </div>
+                ))}
               </div>
             </div>
           </CardContent>

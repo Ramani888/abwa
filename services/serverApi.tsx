@@ -66,11 +66,11 @@ const serverRequest = async (
 
 /// Auth ///
 export const serverLogin = async (data: ILogin) => {
-    return await serverRequest("/login", "POST", data, true);
+  return await serverRequest("/login", "POST", data, true);
 };
 
 export const serverRegister = async (data: IRegister) => {
-    return await serverRequest("/register", "POST", data, true);
+  return await serverRequest("/register", "POST", data, true);
 }
 
 /// User ///
