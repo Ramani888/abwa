@@ -12,12 +12,14 @@ import { Textarea } from "@/components/ui/textarea"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ArrowLeft } from "lucide-react"
+import { set } from "date-fns"
+import { serverAddCustomer } from "@/services/serverApi"
 
 export default function NewCustomerPage() {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
-    phone: "",
+    number: "",
     address: "",
     customerType: "retail", // retail or wholesale
     gstNumber: "",
@@ -38,14 +40,18 @@ export default function NewCustomerPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setIsLoading(true)
-
-    // Here you would implement actual customer creation logic
-    // For now, we'll just simulate it
-    setTimeout(() => {
+    try {
+      setIsLoading(true)
+      const res = await serverAddCustomer({...formData, number: Number(formData.number), creditLimit: Number(formData.creditLimit)});
+      console.log("Customer created successfully:", res)
+      if (res?.success) {
+        router.push("/dashboard/customers")
+      }
       setIsLoading(false)
-      router.push("/dashboard/customers")
-    }, 1000)
+    } catch (error) {
+      console.error("Error creating customer:", error)
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -108,12 +114,13 @@ export default function NewCustomerPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="phone">Phone Number</Label>
+                <Label htmlFor="number">Phone Number</Label>
                 <Input
-                  id="phone"
-                  name="phone"
+                  id="number"
+                  name="number"
+                  type="number"
                   placeholder="+91 9876543210"
-                  value={formData.phone}
+                  value={formData.number}
                   onChange={handleChange}
                   required
                 />

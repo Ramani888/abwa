@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -15,76 +15,77 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
-import { Edit, MoreHorizontal, Search, ShoppingBag, Trash } from "lucide-react"
-
-// Mock data for customers
-const customers = [
-  {
-    id: "1",
-    name: "Rahul Sharma",
-    email: "rahul@example.com",
-    phone: "+91 9876543210",
-    type: "retail",
-    orders: 12,
-    spent: "₹15,200.00",
-    initials: "RS",
-  },
-  {
-    id: "2",
-    name: "Priya Patel",
-    email: "priya@example.com",
-    phone: "+91 9876543211",
-    type: "retail",
-    orders: 8,
-    spent: "₹9,800.00",
-    initials: "PP",
-  },
-  {
-    id: "3",
-    name: "Amit Kumar Enterprises",
-    email: "amit@example.com",
-    phone: "+91 9876543212",
-    type: "wholesale",
-    orders: 25,
-    spent: "₹1,24,500.00",
-    initials: "AK",
-  },
-  {
-    id: "4",
-    name: "Neha Singh",
-    email: "neha@example.com",
-    phone: "+91 9876543213",
-    type: "retail",
-    orders: 15,
-    spent: "₹22,300.00",
-    initials: "NS",
-  },
-  {
-    id: "5",
-    name: "Vikram Reddy Distributors",
-    email: "vikram@example.com",
-    phone: "+91 9876543214",
-    type: "wholesale",
-    orders: 32,
-    spent: "₹2,45,600.00",
-    initials: "VR",
-  },
-]
+import { Edit, MoreHorizontal, Search, ShoppingBag, Trash, Loader2 } from "lucide-react"
+import { serverDeleteCustomer, serverGetCustomers } from "@/services/serverApi"
+import { set } from "date-fns"
+import { ICustomer } from "@/types/customer"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 export function CustomersTable() {
   const [searchQuery, setSearchQuery] = useState("")
   const [customerType, setCustomerType] = useState("all") // all, retail, wholesale
+  const [loading, setLoading] = useState<boolean>(false)
+  const [customers, setCustomers] = useState<ICustomer[]>([])
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [customerToDelete, setCustomerToDelete] = useState<string | null>(null)
 
-  const filteredCustomers = customers.filter((customer) => {
+  const filteredCustomers = customers?.filter((customer) => {
     const matchesSearch =
       customer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      customer.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      customer.phone.includes(searchQuery)
+      customer.email.toLowerCase().includes(searchQuery.toLowerCase())
+      customer.number.toString().includes(searchQuery)
 
-    const matchesType = customerType === "all" || customer.type === customerType
+    const matchesType = customerType === "all" || customer.customerType === customerType
 
     return matchesSearch && matchesType
   })
+
+  const getCustomerData = async () => {
+    try {
+      setLoading(true)
+      const res = await serverGetCustomers();
+      // console.log("Fetched customer data:", data)
+      setCustomers(res?.data)
+      setLoading(false)
+    } catch (error) {
+      setLoading(false)
+      console.error("Error fetching customer data:", error)
+    }
+  }
+
+  const handleDelete = (id: string) => {
+    setCustomerToDelete(id)
+    setDeleteDialogOpen(true)
+  }
+
+  const handleConfirmDelete = async () => {
+    try {
+      setLoading(true)
+      const res = await serverDeleteCustomer(customerToDelete ?? '');
+      if (res?.success) {
+        setDeleteDialogOpen(false)
+        setCustomerToDelete(null)
+        getCustomerData();
+      }
+      setLoading(false)
+    } catch (error) {
+      setLoading(false)
+      console.error("Error deleting customer:", error)    
+    }
+  }
+
+  useEffect(() => {
+    getCustomerData();
+  }, [])
 
   return (
     <div className="space-y-4">
@@ -137,35 +138,44 @@ export function CustomersTable() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredCustomers.length > 0 ? (
+            {loading ? (
+              <TableRow>
+                <TableCell colSpan={6} className="h-24 text-center">
+                  <div className="flex justify-center items-center space-x-2">
+                    <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                    <span>Loading customers...</span>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ) : filteredCustomers.length > 0 ? (
               filteredCustomers.map((customer) => (
-                <TableRow key={customer.id}>
+                <TableRow key={customer?._id?.toString()}>
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <Avatar className="h-9 w-9">
-                        <AvatarFallback>{customer.initials}</AvatarFallback>
+                        <AvatarFallback>{customer?.name?.[0] + customer?.name?.[1]}</AvatarFallback>
                       </Avatar>
                       <div className="font-medium">{customer.name}</div>
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Badge variant={customer.type === "wholesale" ? "default" : "secondary"}>
-                      {customer.type === "wholesale" ? "Wholesale" : "Retail"}
+                    <Badge variant={customer.customerType === "wholesale" ? "default" : "secondary"}>
+                      {customer.customerType === "wholesale" ? "Wholesale" : "Retail"}
                     </Badge>
                   </TableCell>
                   <TableCell>
                     <div className="flex flex-col">
-                      <span className="text-sm">{customer.phone}</span>
+                      <span className="text-sm">{customer.number}</span>
                       <span className="text-xs text-muted-foreground">{customer.email}</span>
                     </div>
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-1">
                       <ShoppingBag className="h-4 w-4 text-muted-foreground" />
-                      {customer.orders}
+                      {'11'}
                     </div>
                   </TableCell>
-                  <TableCell>{customer.spent}</TableCell>
+                  <TableCell>{'12,000'}</TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -178,19 +188,19 @@ export function CustomersTable() {
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem asChild>
-                          <Link href={`/dashboard/customers/${customer.id}`}>
+                          <Link href={`/dashboard/customers/${customer._id?.toString()}/edit`}>
                             <Edit className="mr-2 h-4 w-4" />
                             Edit
                           </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
-                          <Link href={`/dashboard/customers/${customer.id}/orders`}>
+                          <Link href={`/dashboard/customers/${customer._id?.toString()}/orders`}>
                             <ShoppingBag className="mr-2 h-4 w-4" />
                             View Orders
                           </Link>
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem className="text-destructive">
+                        <DropdownMenuItem className="text-destructive" onClick={() => handleDelete(customer?._id)}>
                           <Trash className="mr-2 h-4 w-4" />
                           Delete
                         </DropdownMenuItem>
@@ -209,6 +219,23 @@ export function CustomersTable() {
           </TableBody>
         </Table>
       </div>
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete this customer account. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmDelete} className="bg-destructive text-destructive-foreground">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

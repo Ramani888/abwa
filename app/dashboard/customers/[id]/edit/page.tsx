@@ -12,27 +12,29 @@ import { Textarea } from "@/components/ui/textarea"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ArrowLeft } from "lucide-react"
+import { serverGetCustomers, serverUpdateCustomer } from "@/services/serverApi"
 
 // Mock customer data
-const customerData = {
-  id: "1",
-  name: "Rahul Sharma",
-  email: "rahul@example.com",
-  phone: "+91 9876543210",
-  address: "123 Main St, Agricity",
-  type: "retail",
-  gstNumber: "",
-  creditLimit: "",
-  paymentTerms: "cod",
-}
+// const customerData = {
+//   id: "1",
+//   name: "Rahul Sharma",
+//   email: "rahul@example.com",
+//   phone: "+91 9876543210",
+//   address: "123 Main St, Agricity",
+//   customerType: "retail",
+//   gstNumber: "",
+//   creditLimit: "",
+//   paymentTerms: "cod",
+// }
 
 export default function EditCustomerPage({ params }: { params: { id: string } }) {
   const [formData, setFormData] = useState({
+    _id: "",
     name: "",
     email: "",
-    phone: "",
+    number: "",
     address: "",
-    type: "retail",
+    customerType: "retail",
     gstNumber: "",
     creditLimit: "",
     paymentTerms: "cod",
@@ -42,20 +44,35 @@ export default function EditCustomerPage({ params }: { params: { id: string } })
   const router = useRouter()
 
   useEffect(() => {
-    // In a real app, you would fetch the customer data from an API
-    // For now, we'll just use the mock data
-    setFormData({
-      name: customerData.name,
-      email: customerData.email,
-      phone: customerData.phone,
-      address: customerData.address,
-      type: customerData.type,
-      gstNumber: customerData.gstNumber,
-      creditLimit: customerData.creditLimit,
-      paymentTerms: customerData.paymentTerms,
-    })
-    setIsLoading(false)
-  }, [params.id])
+    const fetchCustomer = async () => {
+      try {
+        const res = await serverGetCustomers();
+        const customerData = res?.data?.find((customer: any) => customer?._id === params?.id);
+
+        console.log('customerData', customerData)
+  
+        setFormData({
+          _id: customerData?._id,
+          name: customerData.name,
+          email: customerData.email,
+          number: customerData.number,
+          address: customerData.address,
+          customerType: customerData.customerType,
+          gstNumber: customerData.gstNumber,
+          creditLimit: customerData.creditLimit,
+          paymentTerms: customerData.paymentTerms,
+        });
+  
+        setIsLoading(false);
+      } catch (error) {
+        console.error("Error fetching customer:", error);
+        setIsLoading(false);
+      }
+    };
+  
+    fetchCustomer();
+  }, [params.id]);
+  
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -63,7 +80,7 @@ export default function EditCustomerPage({ params }: { params: { id: string } })
   }
 
   const handleRadioChange = (value: string) => {
-    setFormData((prev) => ({ ...prev, type: value }))
+    setFormData((prev) => ({ ...prev, customerType: value }))
   }
 
   const handleSelectChange = (name: string, value: string) => {
@@ -74,12 +91,25 @@ export default function EditCustomerPage({ params }: { params: { id: string } })
     e.preventDefault()
     setIsSaving(true)
 
+    try {
+      setIsLoading(true)
+      const res = await serverUpdateCustomer({...formData, number: Number(formData?.number)})
+      if (res?.success) {
+        router.push(`/dashboard/customers`)
+      }
+      setIsSaving(false)
+      setIsLoading(false)
+    } catch (error) {
+      setIsLoading(false)
+      console.error("Error updating customer:", error)
+    }
+
     // Here you would implement actual customer update logic
     // For now, we'll just simulate it
-    setTimeout(() => {
-      setIsSaving(false)
-      router.push(`/dashboard/customers/${params.id}`)
-    }, 1000)
+    // setTimeout(() => {
+    //   setIsSaving(false)
+    //   router.push(`/dashboard/customers/${params.id}`)
+    // }, 1000)
   }
 
   if (isLoading) {
@@ -94,7 +124,7 @@ export default function EditCustomerPage({ params }: { params: { id: string } })
   }
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="w-full">
       <div className="flex items-center mb-6">
         <Button variant="outline" size="icon" onClick={() => router.back()} className="mr-4">
           <ArrowLeft className="h-4 w-4" />
@@ -111,7 +141,7 @@ export default function EditCustomerPage({ params }: { params: { id: string } })
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label>Customer Type</Label>
-              <RadioGroup value={formData.type} onValueChange={handleRadioChange} className="flex flex-col space-y-1">
+              <RadioGroup value={formData?.customerType} onValueChange={handleRadioChange} className="flex flex-col space-y-1">
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="retail" id="retail" />
                   <Label htmlFor="retail">Retail Customer</Label>
@@ -150,12 +180,13 @@ export default function EditCustomerPage({ params }: { params: { id: string } })
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="phone">Phone Number</Label>
+                <Label htmlFor="number">Phone Number</Label>
                 <Input
-                  id="phone"
-                  name="phone"
+                  id="number"
+                  name="number"
+                  type="number"
                   placeholder="+91 9876543210"
-                  value={formData.phone}
+                  value={formData.number}
                   onChange={handleChange}
                   required
                 />
@@ -174,7 +205,7 @@ export default function EditCustomerPage({ params }: { params: { id: string } })
               />
             </div>
 
-            {formData.type === "wholesale" && (
+            {formData?.customerType === "wholesale" && (
               <>
                 <div className="space-y-2">
                   <Label htmlFor="gstNumber">GST Number</Label>
