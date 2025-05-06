@@ -10,9 +10,6 @@ export default function UsersPage() {
       <div className="flex items-center justify-between">
         <h2 className="text-3xl font-bold tracking-tight">Staff Users</h2>
         <div className="flex gap-2">
-          <Link href="/dashboard/users/invite">
-            <Button variant="outline">Invite User</Button>
-          </Link>
           <Link href="/dashboard/users/new">
             <Button>
               <PlusCircle className="mr-2 h-4 w-4" />

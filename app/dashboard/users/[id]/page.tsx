@@ -8,168 +8,166 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
-import { ArrowLeft } from "lucide-react"
+import { ArrowLeft, Loader2 } from "lucide-react"
+import { IRole } from "@/types/user"
+import { serverGetAllPermission, serverGetAllRole, serverGetUser, serverUpdateUser } from "@/services/serverApi"
 
-// Move mock data outside component to prevent recreation
-const userData = {
-  id: "1",
-  name: "Rahul Sharma",
-  email: "rahul@example.com",
-  phone: "+91 9876543210",
-  role: "manager",
-  permissions: {
-    manageProducts: true,
-    manageOrders: true,
-    manageCustomers: true,
-    viewReports: true,
-    manageUsers: false,
-    manageSettings: false,
-  },
-}
-
-// Separate interfaces for better type safety
-interface UserPermissions {
-  manageProducts: boolean
-  manageOrders: boolean
-  manageCustomers: boolean
-  viewReports: boolean
-  manageUsers: boolean
-  manageSettings: boolean
-}
-
-interface UserFormData {
-  name: string
-  email: string
-  phone: string
-  role: string
-  permissions: UserPermissions
-}
-
-// Extract permission checkbox into a reusable component
-const PermissionCheckbox = ({ 
-  id, 
-  checked, 
-  onCheckedChange 
-}: { 
-  id: keyof UserPermissions
-  checked: boolean
-  onCheckedChange: (checked: boolean) => void 
-}) => (
-  <div className="flex items-center space-x-2">
-    <Checkbox
-      id={id}
-      checked={checked}
-      onCheckedChange={(checked) => onCheckedChange(checked as boolean)}
-    />
-    <Label htmlFor={id}>{formatPermissionLabel(id)}</Label>
-  </div>
-)
-
-// Helper function to format permission labels
-function formatPermissionLabel(permission: string): string {
-  return permission
-    .replace(/([A-Z])/g, ' $1')
-    .replace(/^./, str => str.toUpperCase())
+// Define permission type
+type Permission = {
+  _id: string;
+  name: string;
+  selected?: boolean;
 }
 
 export default function EditUserPage({ params }: { params: { id: string } }) {
-  const [formData, setFormData] = useState<UserFormData>({
+  const [loading, setLoading] = useState<boolean>(false);
+  const [permissions, setPermissions] = useState<Permission[]>([]);
+  const [role, setRole] = useState<IRole[]>([]);
+
+  const [formData, setFormData] = useState({
+    _id: "",
     name: "",
     email: "",
-    phone: "",
-    role: "",
-    permissions: {
-      manageProducts: false,
-      manageOrders: false,
-      manageCustomers: false,
-      viewReports: false,
-      manageUsers: false,
-      manageSettings: false,
-    },
+    number: "",
+    role: "salesperson",
+    selectedPermissions: [] as string[] // Store selected permission IDs
   })
   const [isLoading, setIsLoading] = useState(true)
-  const [isSaving, setIsSaving] = useState(false)
-  const [errors, setErrors] = useState<Partial<Record<keyof UserFormData, string>>>({})
   const router = useRouter()
 
   useEffect(() => {
-    // Simulate API call with setTimeout to show loading state
-    const timer = setTimeout(() => {
-      // In a real app, fetch user data based on params.id
-      setFormData({
-        name: userData.name,
-        email: userData.email,
-        phone: userData.phone,
-        role: userData.role,
-        permissions: { ...userData.permissions },
-      })
-      setIsLoading(false)
-    }, 500)
-
-    return () => clearTimeout(timer)
-  }, [params.id])
+    const fetchUser = async () => {
+      try {
+        const res = await serverGetUser();
+        const userData = res?.data?.find((user: any) => user?._id === params?.id);
+  
+        setFormData({
+          _id: userData?._id,
+          name: userData?.name,
+          email: userData?.email,
+          number: userData?.number,
+          role: userData?.roleId,
+          selectedPermissions: userData?.permissionIds,
+        });
+  
+        setIsLoading(false);
+      } catch (error) {
+        console.error("Error fetching user:", error);
+        setIsLoading(false);
+      }
+    };
+  
+    fetchUser();
+  }, [params.id]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
     setFormData((prev) => ({ ...prev, [name]: value }))
-    
-    // Clear error when field is edited
-    if (errors[name as keyof UserFormData]) {
-      setErrors(prev => ({ ...prev, [name]: undefined }))
-    }
   }
 
   const handleSelectChange = (name: string, value: string) => {
     setFormData((prev) => ({ ...prev, [name]: value }))
   }
 
-  const handlePermissionChange = (permission: keyof UserPermissions, checked: boolean) => {
-    setFormData((prev) => ({
-      ...prev,
-      permissions: {
-        ...prev.permissions,
-        [permission]: checked,
-      },
-    }))
-  }
-
-  const validateForm = (): boolean => {
-    const newErrors: Partial<Record<keyof UserFormData, string>> = {}
-    
-    if (!formData.name.trim()) newErrors.name = "Name is required"
-    if (!formData.email.trim()) {
-      newErrors.email = "Email is required"
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = "Invalid email format"
-    }
-    if (!formData.phone.trim()) newErrors.phone = "Phone number is required"
-    if (!formData.role) newErrors.role = "Role is required"
-    
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
+  const handlePermissionChange = (permissionId: string, checked: boolean) => {
+    setFormData((prev) => {
+      if (checked) {
+        return {
+          ...prev,
+          selectedPermissions: [...prev.selectedPermissions, permissionId]
+        }
+      } else {
+        return {
+          ...prev,
+          selectedPermissions: prev.selectedPermissions.filter(id => id !== permissionId)
+        }
+      }
+    })
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
-    if (!validateForm()) return
-    
-    setIsSaving(true)
 
     try {
-      // Here you would implement actual user update logic
-      // For this example, we'll simulate an API call
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
-      // Show success message or redirect
+      setIsLoading(true)
+      const finalData = {
+        ...formData,
+        permissionIds: formData?.selectedPermissions,
+        roleId: formData?.role,
+        number: Number(formData?.number)
+      }
+      await serverUpdateUser(finalData);
+      setIsLoading(false)
       router.push("/dashboard/users")
     } catch (error) {
-      console.error("Error saving user:", error)
-      // Handle error appropriately
-    } finally {
-      setIsSaving(false)
+      console.error("Error update user:", error)
+      setIsLoading(false)
     }
   }
+
+  const getPermissionData = async () => {
+    try {
+      setLoading(true);
+      const res = await serverGetAllPermission();
+      
+      // Initialize permissions state with data from API
+      if (res?.data && Array.isArray(res?.data)) {
+        setPermissions(res?.data?.map((permission: any) => ({
+          ...permission,
+          selected: false
+        })));
+      }
+      
+      setLoading(false);
+    } catch (error) {
+      console.error("Error getting permission data:", error)
+      setLoading(false);
+    }
+  }
+
+  const getRoleData = async () => {
+    try {
+      setLoading(true)
+      const res = await serverGetAllRole();
+      setRole(res?.data)
+      setLoading(false)
+    } catch (err) {
+      console.error("Error getting permission data:", err)
+      setLoading(false);
+      setRole([])
+    }
+  }
+
+  useEffect(() => {
+    getPermissionData();
+    getRoleData();
+  }, [])
+
+  // Group permissions by their type
+  const groupPermissions = () => {
+    const groups: Record<string, Permission[]> = {};
+    
+    permissions.forEach(permission => {
+      // Extract category from permission name (e.g., "add-product" → "product")
+      const nameParts = permission.name.split('-');
+      let category = nameParts.length > 1 ? nameParts[1] : 'general';
+      
+      // Handle plural forms
+      if (category.endsWith('s')) {
+        category = category;
+      }
+      
+      if (!groups[category]) {
+        groups[category] = [];
+      }
+      
+      groups[category].push(permission);
+    });
+    
+    return groups;
+  };
+
+  const permissionGroups = groupPermissions();
 
   if (isLoading) {
     return (
@@ -183,7 +181,7 @@ export default function EditUserPage({ params }: { params: { id: string } }) {
   }
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="w-full">
       <div className="flex items-center mb-6">
         <Button variant="outline" size="icon" onClick={() => router.back()} className="mr-4">
           <ArrowLeft className="h-4 w-4" />
@@ -191,7 +189,7 @@ export default function EditUserPage({ params }: { params: { id: string } }) {
         <h2 className="text-3xl font-bold tracking-tight">Edit User</h2>
       </div>
 
-      <Card>
+      <Card className="w-full">
         <form onSubmit={handleSubmit}>
           <CardHeader>
             <CardTitle>User Information</CardTitle>
@@ -206,9 +204,8 @@ export default function EditUserPage({ params }: { params: { id: string } }) {
                 placeholder="John Doe"
                 value={formData.name}
                 onChange={handleChange}
-                className={errors.name ? "border-red-500" : ""}
+                required
               />
-              {errors.name && <p className="text-sm text-red-500">{errors.name}</p>}
             </div>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -221,22 +218,21 @@ export default function EditUserPage({ params }: { params: { id: string } }) {
                   placeholder="john@example.com"
                   value={formData.email}
                   onChange={handleChange}
-                  className={errors.email ? "border-red-500" : ""}
+                  required
                 />
-                {errors.email && <p className="text-sm text-red-500">{errors.email}</p>}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="phone">Phone Number</Label>
+                <Label htmlFor="number">Phone Number</Label>
                 <Input
-                  id="phone"
-                  name="phone"
+                  id="number"
+                  name="number"
+                  type="number"
                   placeholder="+91 9876543210"
-                  value={formData.phone}
+                  value={formData.number}
                   onChange={handleChange}
-                  className={errors.phone ? "border-red-500" : ""}
+                  required
                 />
-                {errors.phone && <p className="text-sm text-red-500">{errors.phone}</p>}
               </div>
             </div>
 
@@ -246,39 +242,63 @@ export default function EditUserPage({ params }: { params: { id: string } }) {
                 value={formData.role} 
                 onValueChange={(value) => handleSelectChange("role", value)}
               >
-                <SelectTrigger className={errors.role ? "border-red-500" : ""}>
+                <SelectTrigger>
                   <SelectValue placeholder="Select role" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="admin">Administrator</SelectItem>
-                  <SelectItem value="manager">Manager</SelectItem>
-                  <SelectItem value="salesperson">Salesperson</SelectItem>
-                  <SelectItem value="inventory">Inventory Manager</SelectItem>
+                  {role?.map((item) => {
+                    return (
+                      <SelectItem key={item?._id} value={item?._id}>{item?.name}</SelectItem>
+                    )
+                  })}
                 </SelectContent>
               </Select>
-              {errors.role && <p className="text-sm text-red-500">{errors.role}</p>}
             </div>
 
             <div className="space-y-3">
               <Label>Permissions</Label>
-              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                {(Object.keys(formData.permissions) as Array<keyof UserPermissions>).map((permission) => (
-                  <PermissionCheckbox
-                    key={permission}
-                    id={permission}
-                    checked={formData.permissions[permission]}
-                    onCheckedChange={(checked) => handlePermissionChange(permission, checked)}
-                  />
-                ))}
-              </div>
+              
+              {loading ? (
+                <div className="flex justify-center py-4">
+                  <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                </div>
+              ) : (
+                Object.entries(permissionGroups).map(([category, categoryPermissions]) => (
+                  <div className="mb-4" key={category}>
+                    <h3 className="text-sm font-medium mb-2 capitalize">{category}</h3>
+                    <div className="grid grid-cols-2 gap-2 pl-4 sm:grid-cols-2">
+                      {categoryPermissions.map(permission => (
+                        <div key={permission._id} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`permission-${permission._id}`}
+                            checked={formData.selectedPermissions.includes(permission._id)}
+                            onCheckedChange={(checked) => 
+                              handlePermissionChange(permission._id, checked as boolean)
+                            }
+                          />
+                          <Label htmlFor={`permission-${permission._id}`} className="capitalize">
+                            {permission.name.replace(/-/g, ' ')}
+                          </Label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))
+              )}
+              
+              {!loading && permissions.length === 0 && (
+                <div className="text-center py-4 text-muted-foreground">
+                  No permissions found
+                </div>
+              )}
             </div>
           </CardContent>
           <CardFooter className="flex justify-between">
             <Button type="button" variant="outline" onClick={() => router.back()}>
               Cancel
             </Button>
-            <Button type="submit" disabled={isSaving}>
-              {isSaving ? "Saving..." : "Save Changes"}
+            <Button type="submit" disabled={isLoading || loading}>
+              {isLoading ? "Saving..." : "Save Changes"}
             </Button>
           </CardFooter>
         </form>

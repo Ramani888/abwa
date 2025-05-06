@@ -14,19 +14,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ArrowLeft } from "lucide-react"
 import { serverGetCustomers, serverUpdateCustomer } from "@/services/serverApi"
 
-// Mock customer data
-// const customerData = {
-//   id: "1",
-//   name: "Rahul Sharma",
-//   email: "rahul@example.com",
-//   phone: "+91 9876543210",
-//   address: "123 Main St, Agricity",
-//   customerType: "retail",
-//   gstNumber: "",
-//   creditLimit: "",
-//   paymentTerms: "cod",
-// }
-
 export default function EditCustomerPage({ params }: { params: { id: string } }) {
   const [formData, setFormData] = useState({
     _id: "",
@@ -48,8 +35,6 @@ export default function EditCustomerPage({ params }: { params: { id: string } })
       try {
         const res = await serverGetCustomers();
         const customerData = res?.data?.find((customer: any) => customer?._id === params?.id);
-
-        console.log('customerData', customerData)
   
         setFormData({
           _id: customerData?._id,
@@ -93,7 +78,7 @@ export default function EditCustomerPage({ params }: { params: { id: string } })
 
     try {
       setIsLoading(true)
-      const res = await serverUpdateCustomer({...formData, number: Number(formData?.number)})
+      const res = await serverUpdateCustomer({...formData, number: Number(formData?.number), creditLimit: Number(formData?.creditLimit)});
       if (res?.success) {
         router.push(`/dashboard/customers`)
       }
@@ -103,13 +88,6 @@ export default function EditCustomerPage({ params }: { params: { id: string } })
       setIsLoading(false)
       console.error("Error updating customer:", error)
     }
-
-    // Here you would implement actual customer update logic
-    // For now, we'll just simulate it
-    // setTimeout(() => {
-    //   setIsSaving(false)
-    //   router.push(`/dashboard/customers/${params.id}`)
-    // }, 1000)
   }
 
   if (isLoading) {

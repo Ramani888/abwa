@@ -10,13 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { ArrowLeft } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-
-// Mock user data
-const userData = {
-  id: "1",
-  name: "Rahul Sharma",
-  email: "rahul@example.com",
-}
+import { serverGetUser, serverUpdateUserPassword } from "@/services/serverApi"
 
 export default function ResetPasswordPage({ params }: { params: { id: string } }) {
   const [user, setUser] = useState<any>(null)
@@ -25,16 +19,26 @@ export default function ResetPasswordPage({ params }: { params: { id: string } }
     confirmPassword: "",
   })
   const [isLoading, setIsLoading] = useState(true)
-  const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState("")
   const router = useRouter()
 
   useEffect(() => {
-    // In a real app, you would fetch the user data from an API
-    // For now, we'll just use the mock data
-    setUser(userData)
-    setIsLoading(false)
-  }, [params.id])
+    const fetchUser = async () => {
+      try {
+        const res = await serverGetUser();
+        const userData = res?.data?.find((user: any) => user?._id === params?.id);
+
+        setUser(userData);
+  
+        setIsLoading(false);
+      } catch (error) {
+        console.error("Error fetching user:", error);
+        setIsLoading(false);
+      }
+    };
+  
+    fetchUser();
+  }, [params.id]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -55,14 +59,19 @@ export default function ResetPasswordPage({ params }: { params: { id: string } }
       return
     }
 
-    setIsSaving(true)
-
-    // Here you would implement actual password reset logic
-    // For now, we'll just simulate it
-    setTimeout(() => {
-      setIsSaving(false)
+    try {
+      setIsLoading(true)
+      const finalData = {
+        _id: user?._id?.toString(),
+        password: formData?.newPassword,
+      }
+      await serverUpdateUserPassword(finalData);
+      setIsLoading(false)
       router.push("/dashboard/users")
-    }, 1000)
+    } catch (error) {
+      console.error("Error update user:", error)
+      setIsLoading(false)
+    }
   }
 
   if (isLoading) {
@@ -77,7 +86,7 @@ export default function ResetPasswordPage({ params }: { params: { id: string } }
   }
 
   return (
-    <div className="max-w-md mx-auto">
+    <div className="w-full">
       <div className="flex items-center mb-6">
         <Button variant="outline" size="icon" onClick={() => router.back()} className="mr-4">
           <ArrowLeft className="h-4 w-4" />
@@ -85,7 +94,7 @@ export default function ResetPasswordPage({ params }: { params: { id: string } }
         <h2 className="text-3xl font-bold tracking-tight">Reset Password</h2>
       </div>
 
-      <Card>
+      <Card className="w-full">
         <form onSubmit={handleSubmit}>
           <CardHeader>
             <CardTitle>Reset Password for {user.name}</CardTitle>
@@ -126,8 +135,8 @@ export default function ResetPasswordPage({ params }: { params: { id: string } }
             <Button type="button" variant="outline" onClick={() => router.back()}>
               Cancel
             </Button>
-            <Button type="submit" disabled={isSaving}>
-              {isSaving ? "Resetting..." : "Reset Password"}
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? "Resetting..." : "Reset Password"}
             </Button>
           </CardFooter>
         </form>

@@ -1,10 +1,10 @@
 import { StatusCodes } from "http-status-codes";
 import axios, { AxiosError, Method } from "axios";
-import { ILogin, IRegister } from "@/types/user";
+import { ILogin, IRegister, IUser } from "@/types/user";
 import { ICustomer } from "@/types/customer";
 
 const serverUrl = 'https://abb-i6cd.vercel.app/api';
-// const serverUrl = 'http://localhost:3000/api';
+// const serverUrl = 'http://localhost:3010/api';
 const TOKEN = "";
 
 const errorCodes = [
@@ -28,7 +28,6 @@ const serverRequest = async (
     if (token) {
       const user = JSON.parse(localStorage.getItem('user') ?? '{}')
       headers.authorization = `${user?.token}`
-      // headers.authorization = TOKEN;
     }
   
     const params: RequestInit = {
@@ -77,6 +76,29 @@ export const serverRegister = async (data: IRegister) => {
 }
 
 /// User ///
+export const serverGetUser = async () => {
+  return await serverRequest("/user", "GET", null, true);
+}
+
+export const serverInsertUser = async (data: IUser) => {
+  return await serverRequest("/user", "POST", data, true);
+}
+
+export const serverUpdateUser = async (data: IUser) => {
+  return await serverRequest("/user", "PUT", data, true);
+}
+
+export const serverUpdateUserPassword = async (data: { _id: string; password: string }) => {
+  return await serverRequest("/user/password", "PUT", data, true);
+}
+
+export const serverGetAllPermission = async () => {
+  return await serverRequest("/permission", "GET", null, true);
+}
+
+export const serverGetAllRole = async () => {
+  return await serverRequest("/role", "GET", null, true);
+}
 
 /// Customer ///
 export const serverAddCustomer = async (data: ICustomer) => {

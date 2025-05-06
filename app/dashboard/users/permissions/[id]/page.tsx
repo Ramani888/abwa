@@ -8,63 +8,128 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
-import { ArrowLeft } from "lucide-react"
+import { ArrowLeft, Loader2 } from "lucide-react"
+import { serverGetAllPermission, serverGetUser, serverUpdateUser } from "@/services/serverApi"
 
-// Mock user data
-const userData = {
-  id: "1",
-  name: "Rahul Sharma",
-  email: "rahul@example.com",
-  role: "manager",
-  permissions: {
-    manageProducts: true,
-    manageOrders: true,
-    manageCustomers: true,
-    viewReports: true,
-    manageUsers: false,
-    manageSettings: false,
-    manageStock: true,
-    manageCategories: true,
-    viewAnalytics: true,
-    exportData: false,
-    manageInvoices: true,
-    viewDashboard: true,
-  },
+// Define permission type
+type Permission = {
+  _id: string;
+  name: string;
+  selected?: boolean;
 }
 
 export default function UserPermissionsPage({ params }: { params: { id: string } }) {
   const [user, setUser] = useState<any>(null)
-  const [permissions, setPermissions] = useState<Record<string, boolean>>({})
+  const [permissions, setPermissions] = useState<Permission[]>([]);
   const [isLoading, setIsLoading] = useState(true)
-  const [isSaving, setIsSaving] = useState(false)
+  const [formData, setFormData] = useState({
+    selectedPermissions: [] as string[] // Store selected permission IDs
+  })
   const router = useRouter()
 
   useEffect(() => {
-    // In a real app, you would fetch the user data from an API
-    // For now, we'll just use the mock data
-    setUser(userData)
-    setPermissions(userData.permissions)
-    setIsLoading(false)
-  }, [params.id])
+    const fetchUser = async () => {
+      try {
+        const res = await serverGetUser();
+        const userData = res?.data?.find((user: any) => user?._id === params?.id);
+        setUser(userData);
+        setFormData({
+          selectedPermissions: userData?.permissionIds,
+        });
+        setIsLoading(false);
+      } catch (error) {
+        console.error("Error fetching user:", error);
+        setIsLoading(false);
+      }
+    };
+  
+    fetchUser();
+  }, [params.id]);
 
-  const handlePermissionChange = (permission: string, checked: boolean) => {
-    setPermissions((prev) => ({
-      ...prev,
-      [permission]: checked,
-    }))
+  const handlePermissionChange = (permissionId: string, checked: boolean) => {
+    setFormData((prev) => {
+      if (checked) {
+        return {
+          ...prev,
+          selectedPermissions: [...prev.selectedPermissions, permissionId]
+        }
+      } else {
+        return {
+          ...prev,
+          selectedPermissions: prev.selectedPermissions.filter(id => id !== permissionId)
+        }
+      }
+    })
   }
+
+  const getPermissionData = async () => {
+    try {
+      setIsLoading(true);
+      const res = await serverGetAllPermission();
+      
+      // Initialize permissions state with data from API
+      if (res?.data && Array.isArray(res?.data)) {
+        setPermissions(res?.data?.map((permission: any) => ({
+          ...permission,
+          selected: false
+        })));
+      }
+      
+      setIsLoading(false);
+    } catch (error) {
+      console.error("Error getting permission data:", error)
+      setIsLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    getPermissionData();
+  }, [])
+  
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setIsSaving(true)
-
-    // Here you would implement actual permission update logic
-    // For now, we'll just simulate it
-    setTimeout(() => {
-      setIsSaving(false)
+    
+    try {
+      setIsLoading(true)
+      const finalData = {
+        ...user,
+        permissionIds: formData?.selectedPermissions,
+      }
+      await serverUpdateUser(finalData);
+      setIsLoading(false)
       router.push("/dashboard/users")
-    }, 1000)
+    } catch (error) {
+      console.error("Error update user:", error)
+      setIsLoading(false)
+    }
   }
+
+  // Group permissions by their type
+  const groupPermissions = (): Record<string, Permission[]> => {
+    const groups: Record<string, Permission[]> = {};
+    
+    permissions.forEach(permission => {
+      // Extract category from permission name (e.g., "add-product" → "product")
+      const nameParts = permission.name.split('-');
+      let category = nameParts.length > 1 ? nameParts[1] : 'general';
+      
+      // Handle plural forms
+      if (category.endsWith('s')) {
+        category = category;
+      }
+      
+      if (!groups[category]) {
+        groups[category] = [];
+      }
+      
+      groups[category].push(permission);
+    });
+    
+    return groups;
+  };
+
+  const permissionGroups: Record<string, Permission[]> = groupPermissions();
 
   if (isLoading) {
     return (
@@ -78,7 +143,7 @@ export default function UserPermissionsPage({ params }: { params: { id: string }
   }
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="w-full">
       <div className="flex items-center mb-6">
         <Button variant="outline" size="icon" onClick={() => router.back()} className="mr-4">
           <ArrowLeft className="h-4 w-4" />
@@ -86,141 +151,49 @@ export default function UserPermissionsPage({ params }: { params: { id: string }
         <h2 className="text-3xl font-bold tracking-tight">Manage Permissions</h2>
       </div>
 
-      <Card>
+      <Card className="w-full">
         <form onSubmit={handleSubmit}>
           <CardHeader>
-            <CardTitle>{user.name}</CardTitle>
+            <CardTitle>{user?.name}</CardTitle>
             <CardDescription>
-              {user.email} • {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
+              {user?.email} • {user?.roleName?.charAt(0).toUpperCase() + user?.roleName?.slice(1)}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium">Content Management</h3>
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="manageProducts"
-                    checked={permissions.manageProducts}
-                    onCheckedChange={(checked) => handlePermissionChange("manageProducts", checked as boolean)}
-                  />
-                  <Label htmlFor="manageProducts">Manage Products</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="manageCategories"
-                    checked={permissions.manageCategories}
-                    onCheckedChange={(checked) => handlePermissionChange("manageCategories", checked as boolean)}
-                  />
-                  <Label htmlFor="manageCategories">Manage Categories</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="manageStock"
-                    checked={permissions.manageStock}
-                    onCheckedChange={(checked) => handlePermissionChange("manageStock", checked as boolean)}
-                  />
-                  <Label htmlFor="manageStock">Manage Stock</Label>
-                </div>
+            {isLoading ? (
+              <div className="flex justify-center py-4">
+                <Loader2 className="h-6 w-6 animate-spin text-primary" />
               </div>
-            </div>
-
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium">Customer & Orders</h3>
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="manageCustomers"
-                    checked={permissions.manageCustomers}
-                    onCheckedChange={(checked) => handlePermissionChange("manageCustomers", checked as boolean)}
-                  />
-                  <Label htmlFor="manageCustomers">Manage Customers</Label>
+            ) : (
+              Object.entries(permissionGroups).map(([category, categoryPermissions]) => (
+                <div className="mb-4" key={category}>
+                  <h3 className="text-sm font-medium mb-2 capitalize">{category}</h3>
+                  <div className="grid grid-cols-2 gap-2 pl-4 sm:grid-cols-2">
+                    {categoryPermissions.map(permission => (
+                      <div key={permission._id} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`permission-${permission._id}`}
+                          checked={formData.selectedPermissions.includes(permission._id)}
+                          onCheckedChange={(checked) => 
+                            handlePermissionChange(permission._id, checked as boolean)
+                          }
+                        />
+                        <Label htmlFor={`permission-${permission._id}`} className="capitalize">
+                          {permission.name.replace(/-/g, ' ')}
+                        </Label>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="manageOrders"
-                    checked={permissions.manageOrders}
-                    onCheckedChange={(checked) => handlePermissionChange("manageOrders", checked as boolean)}
-                  />
-                  <Label htmlFor="manageOrders">Manage Orders</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="manageInvoices"
-                    checked={permissions.manageInvoices}
-                    onCheckedChange={(checked) => handlePermissionChange("manageInvoices", checked as boolean)}
-                  />
-                  <Label htmlFor="manageInvoices">Manage Invoices</Label>
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium">Reports & Analytics</h3>
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="viewDashboard"
-                    checked={permissions.viewDashboard}
-                    onCheckedChange={(checked) => handlePermissionChange("viewDashboard", checked as boolean)}
-                  />
-                  <Label htmlFor="viewDashboard">View Dashboard</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="viewReports"
-                    checked={permissions.viewReports}
-                    onCheckedChange={(checked) => handlePermissionChange("viewReports", checked as boolean)}
-                  />
-                  <Label htmlFor="viewReports">View Reports</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="viewAnalytics"
-                    checked={permissions.viewAnalytics}
-                    onCheckedChange={(checked) => handlePermissionChange("viewAnalytics", checked as boolean)}
-                  />
-                  <Label htmlFor="viewAnalytics">View Analytics</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="exportData"
-                    checked={permissions.exportData}
-                    onCheckedChange={(checked) => handlePermissionChange("exportData", checked as boolean)}
-                  />
-                  <Label htmlFor="exportData">Export Data</Label>
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium">Administration</h3>
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="manageUsers"
-                    checked={permissions.manageUsers}
-                    onCheckedChange={(checked) => handlePermissionChange("manageUsers", checked as boolean)}
-                  />
-                  <Label htmlFor="manageUsers">Manage Users</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="manageSettings"
-                    checked={permissions.manageSettings}
-                    onCheckedChange={(checked) => handlePermissionChange("manageSettings", checked as boolean)}
-                  />
-                  <Label htmlFor="manageSettings">Manage Settings</Label>
-                </div>
-              </div>
-            </div>
+              ))
+            )}
           </CardContent>
           <CardFooter className="flex justify-between">
             <Button type="button" variant="outline" onClick={() => router.back()}>
               Cancel
             </Button>
-            <Button type="submit" disabled={isSaving}>
-              {isSaving ? "Saving..." : "Save Permissions"}
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? "Saving..." : "Save Permissions"}
             </Button>
           </CardFooter>
         </form>

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
-import { Edit, MoreHorizontal, Search, Shield, Trash, UserCog } from "lucide-react"
+import { Edit, Loader2, MoreHorizontal, Search, Shield, Trash, UserCog } from "lucide-react"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,61 +26,21 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-
-// Mock data for users
-const users = [
-  {
-    id: "1",
-    name: "Rahul Sharma",
-    email: "rahul@example.com",
-    phone: "+91 9876543210",
-    role: "admin",
-    status: "active",
-    lastActive: "2 hours ago",
-    initials: "RS",
-  },
-  {
-    id: "2",
-    name: "Priya Patel",
-    email: "priya@example.com",
-    phone: "+91 9876543211",
-    role: "manager",
-    status: "active",
-    lastActive: "1 day ago",
-    initials: "PP",
-  },
-  {
-    id: "3",
-    name: "Amit Kumar",
-    email: "amit@example.com",
-    phone: "+91 9876543212",
-    role: "salesperson",
-    status: "active",
-    lastActive: "3 hours ago",
-    initials: "AK",
-  },
-  {
-    id: "4",
-    name: "Neha Singh",
-    email: "neha@example.com",
-    phone: "+91 9876543213",
-    role: "inventory",
-    status: "inactive",
-    lastActive: "2 weeks ago",
-    initials: "NS",
-  },
-]
+import { serverGetUser } from "@/services/serverApi"
+import { IUser } from "@/types/user"
 
 export function UsersTable() {
   const [searchQuery, setSearchQuery] = useState("")
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [userToDelete, setUserToDelete] = useState<string | null>(null)
+  const [loading, setLoading] = useState<boolean>(false);
+  const [users, setUsers] = useState<IUser[]>([]);
 
-  const filteredUsers = users.filter(
+  const filteredUsers = users?.filter(
     (user) =>
-      user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.role.toLowerCase().includes(searchQuery.toLowerCase()),
+      user?.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user?.email.toLowerCase().includes(searchQuery.toLowerCase())
+      // user.role.toLowerCase().includes(searchQuery.toLowerCase()),
   )
 
   const getRoleBadgeVariant = (role: string) => {
@@ -111,6 +71,18 @@ export function UsersTable() {
     }
   }
 
+  const getUserData = async () => {
+    try {
+      setLoading(true);
+      const res = await serverGetUser();
+      setUsers(res?.data);
+      setLoading(false);
+    } catch (err) {
+      console.error("Error fetching user data:", err)
+      setLoading(false);
+    }
+  }
+
   const handleDeleteClick = (id: string) => {
     setUserToDelete(id)
     setDeleteDialogOpen(true)
@@ -118,10 +90,13 @@ export function UsersTable() {
 
   const handleConfirmDelete = () => {
     // Here you would implement actual delete logic
-    console.log(`Deleting user with ID: ${userToDelete}`)
     setDeleteDialogOpen(false)
     setUserToDelete(null)
   }
+
+  useEffect(() => {
+    getUserData();
+  }, [])
 
   return (
     <div className="space-y-4">
@@ -145,38 +120,47 @@ export function UsersTable() {
               <TableHead>User</TableHead>
               <TableHead>Role</TableHead>
               <TableHead>Contact</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Last Active</TableHead>
+              {/* <TableHead>Status</TableHead>
+              <TableHead>Last Active</TableHead> */}
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredUsers.length > 0 ? (
+            {loading ? (
+              <TableRow>
+                <TableCell colSpan={6} className="h-24 text-center">
+                  <div className="flex justify-center items-center space-x-2">
+                    <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                    <span>Loading users...</span>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ) : filteredUsers.length > 0 ? (
               filteredUsers.map((user) => (
-                <TableRow key={user.id}>
+                <TableRow key={user?._id}>
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <Avatar className="h-9 w-9">
-                        <AvatarFallback>{user.initials}</AvatarFallback>
+                        <AvatarFallback>{user?.name?.[0]}</AvatarFallback>
                       </Avatar>
-                      <div className="font-medium">{user.name}</div>
+                      <div className="font-medium">{user?.name}</div>
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Badge variant={getRoleBadgeVariant(user.role)}>{getRoleLabel(user.role)}</Badge>
+                    <Badge variant={getRoleBadgeVariant(user.roleName ?? '')}>{getRoleLabel(user.roleName ?? '')}</Badge>
                   </TableCell>
                   <TableCell>
                     <div className="flex flex-col">
                       <span className="text-sm">{user.email}</span>
-                      <span className="text-xs text-muted-foreground">{user.phone}</span>
+                      <span className="text-xs text-muted-foreground">{user?.number}</span>
                     </div>
                   </TableCell>
-                  <TableCell>
-                    <Badge variant={user.status === "active" ? "outline" : "secondary"}>
+                  {/* <TableCell>
+                    <Badge variant={user === "active" ? "outline" : "secondary"}>
                       {user.status === "active" ? "Active" : "Inactive"}
                     </Badge>
-                  </TableCell>
-                  <TableCell>{user.lastActive}</TableCell>
+                  </TableCell> */}
+                  {/* <TableCell>{user.lastActive}</TableCell> */}
                   <TableCell className="text-right">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -189,25 +173,25 @@ export function UsersTable() {
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem asChild>
-                          <Link href={`/dashboard/users/${user.id}`}>
+                          <Link href={`/dashboard/users/${user?._id}`}>
                             <Edit className="mr-2 h-4 w-4" />
                             Edit User
                           </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
-                          <Link href={`/dashboard/users/permissions/${user.id}`}>
+                          <Link href={`/dashboard/users/permissions/${user?._id}`}>
                             <Shield className="mr-2 h-4 w-4" />
                             Manage Permissions
                           </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
-                          <Link href={`/dashboard/users/reset-password/${user.id}`}>
+                          <Link href={`/dashboard/users/reset-password/${user?._id}`}>
                             <UserCog className="mr-2 h-4 w-4" />
                             Reset Password
                           </Link>
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => handleDeleteClick(user.id)} className="text-destructive">
+                        <DropdownMenuItem onClick={() => handleDeleteClick(user?._id)} className="text-destructive">
                           <Trash className="mr-2 h-4 w-4" />
                           Delete User
                         </DropdownMenuItem>

@@ -14,3 +14,19 @@ export interface IRegister {
     shopEmail: string;
     gst: string;
 }
+
+export interface IUser {
+    _id?: ObjectId;
+    name: string;
+    email: string;
+    number: number;
+    roleName?: string;
+    password?: string;
+    createdAt?: Date;
+    updatedAt?: Date;
+}
+
+export interface IRole {
+    _id?: ObjectId;
+    name: string;
+}
