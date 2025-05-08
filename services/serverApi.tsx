@@ -3,6 +3,7 @@ import axios, { AxiosError, Method } from "axios";
 import { ILogin, IRegister, IUser } from "@/types/user";
 import { ICustomer } from "@/types/customer";
 import { ICategory } from "@/types/category";
+import { IProduct } from "@/types/product";
 
 const serverUrl = 'https://abb-i6cd.vercel.app/api';
 // const serverUrl = 'http://localhost:3010/api';
@@ -133,5 +134,22 @@ export const serverUpdateCategory = async (data: ICategory) => {
 
 export const serverDeleteCategory = async (_id: string) => {
   return await serverRequest(`/category?_id=${_id}`, "DELETE", null, true);
+}
+
+/// Product ///
+export const serverGetProduct = async () => {
+  return await serverRequest(`/product`, "GET", null, true);
+}
+
+export const serverAddProduct = async (data: IProduct) => {
+  return await serverRequest(`/product`, "POST", data, true);
+}
+
+export const serverUpdateProduct = async (data: IProduct) => {
+  return await serverRequest(`/product`, "PUT", data, true);
+}
+
+export const serverDeleteProduct = async (_id: string) => {
+  return await serverRequest(`/product?_id=${_id}`, "DELETE", null, true);
 }
 

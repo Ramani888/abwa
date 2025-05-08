@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -14,7 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
-import { Edit, MoreHorizontal, Search, Trash } from "lucide-react"
+import { Edit, Loader2, MoreHorizontal, Search, Trash } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import {
   AlertDialog,
@@ -26,60 +26,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-
-// Mock data for products
-const products = [
-  {
-    id: "1",
-    name: "Organic Fertilizer",
-    category: "Fertilizers",
-    price: "₹850.00",
-    wholesale: "₹750.00",
-    stock: 120,
-    unit: "kg",
-    status: "In Stock",
-  },
-  {
-    id: "2",
-    name: "Wheat Seeds (Premium)",
-    category: "Seeds",
-    price: "₹450.00",
-    wholesale: "₹400.00",
-    stock: 85,
-    unit: "kg",
-    status: "In Stock",
-  },
-  {
-    id: "3",
-    name: "Pesticide Spray",
-    category: "Pesticides",
-    price: "₹350.00",
-    wholesale: "₹300.00",
-    stock: 42,
-    unit: "l",
-    status: "Low Stock",
-  },
-  {
-    id: "4",
-    name: "Garden Tools Set",
-    category: "Tools",
-    price: "₹1,200.00",
-    wholesale: "₹1,050.00",
-    stock: 18,
-    unit: "pcs",
-    status: "Low Stock",
-  },
-  {
-    id: "5",
-    name: "Drip Irrigation Kit",
-    category: "Irrigation",
-    price: "₹2,500.00",
-    wholesale: "₹2,200.00",
-    stock: 0,
-    unit: "set",
-    status: "Out of Stock",
-  },
-]
+import { serverDeleteProduct, serverGetProduct } from "@/services/serverApi"
+import { IProduct } from "@/types/product"
 
 export function ProductsTable() {
   const [searchQuery, setSearchQuery] = useState("")
@@ -87,37 +35,64 @@ export function ProductsTable() {
   const [stockFilter, setStockFilter] = useState("all")
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [productToDelete, setProductToDelete] = useState<string | null>(null)
+  const [loading, setLoading] = useState<boolean>(false);
+  const [productData, setProductData] = useState<IProduct[]>([]);
 
-  const filteredProducts = products.filter((product) => {
+  const filteredProducts = productData?.filter((product) => {
     const matchesSearch =
-      product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.category.toLowerCase().includes(searchQuery.toLowerCase())
+      product?.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (product?.categoryName || '').toLowerCase().includes(searchQuery.toLowerCase())
 
-    const matchesCategory = categoryFilter === "all" || product.category.toLowerCase() === categoryFilter.toLowerCase()
+    const matchesCategory = categoryFilter === "all" || (product?.categoryName || '').toLowerCase() === categoryFilter.toLowerCase()
 
     const matchesStock =
       stockFilter === "all" ||
-      (stockFilter === "in-stock" && product.status === "In Stock") ||
-      (stockFilter === "low-stock" && product.status === "Low Stock") ||
-      (stockFilter === "out-of-stock" && product.status === "Out of Stock")
+      (stockFilter === "in-stock" && product?.status === "In Stock") ||
+      (stockFilter === "low-stock" && product?.status === "Low Stock") ||
+      (stockFilter === "out-of-stock" && product?.status === "Out of Stock")
 
     return matchesSearch && matchesCategory && matchesStock
   })
 
   // Get unique categories
-  const categories = ["all", ...new Set(products.map((product) => product.category.toLowerCase()))]
+  const categories = ["all", ...new Set(productData?.map((product) => (product?.categoryName || '').toLowerCase()))]
 
-  const handleDeleteClick = (id: string) => {
-    setProductToDelete(id)
+  const handleDeleteClick = (id?: string) => {
+    setProductToDelete(id ?? null)
     setDeleteDialogOpen(true)
   }
 
-  const handleConfirmDelete = () => {
-    // Here you would implement actual delete logic
-    console.log(`Deleting product with ID: ${productToDelete}`)
-    setDeleteDialogOpen(false)
-    setProductToDelete(null)
+  const handleConfirmDelete = async () => {
+    if (!productToDelete) return;
+    try {
+      setLoading(true);
+      const res = await serverDeleteProduct(productToDelete ?? '');
+      if (res?.success) {
+        setDeleteDialogOpen(false)
+        setProductToDelete(null)
+        getProductData();
+      }
+    } catch (error) {
+      console.error("Error deleting product:", error)
+      setLoading(false);
+    }
   }
+
+  const getProductData = async () => {
+    try {
+      setLoading(true)
+      const res = await serverGetProduct();
+      setProductData(res?.data)
+      setLoading(false)
+    } catch (error) {
+      setLoading(false)
+      console.error("Error fetching category data:", error)
+    }
+  }
+
+  useEffect(() => {
+    getProductData();
+  }, [])
 
   return (
     <div className="space-y-4">
@@ -177,27 +152,37 @@ export function ProductsTable() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredProducts.length > 0 ? (
+            {loading ? (
+              <TableRow>
+                <TableCell colSpan={6} className="h-24 text-center">
+                  <div className="flex justify-center items-center space-x-2">
+                    <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                    <span>Loading Category...</span>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ) : 
+            filteredProducts.length > 0 ? (
               filteredProducts.map((product) => (
-                <TableRow key={product.id}>
-                  <TableCell className="font-medium">{product.name}</TableCell>
-                  <TableCell>{product.category}</TableCell>
-                  <TableCell>{product.price}</TableCell>
-                  <TableCell>{product.wholesale}</TableCell>
+                <TableRow key={product?._id}>
+                  <TableCell className="font-medium">{product?.name}</TableCell>
+                  <TableCell>{product?.categoryName}</TableCell>
+                  <TableCell>₹{product?.retailPrice}</TableCell>
+                  <TableCell>₹{product?.wholesalePrice}</TableCell>
                   <TableCell>
-                    {product.stock} {product.unit}
+                    {product?.quantity} {product?.unit}
                   </TableCell>
                   <TableCell>
                     <Badge
                       variant={
-                        product.status === "In Stock"
+                        product?.status === "In Stock"
                           ? "default"
-                          : product.status === "Low Stock"
+                          : product?.status === "Low Stock"
                             ? "outline"
                             : "destructive"
                       }
                     >
-                      {product.status}
+                      {product?.status}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">
@@ -212,12 +197,12 @@ export function ProductsTable() {
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem asChild>
-                          <Link href={`/dashboard/products/${product.id}`}>
+                          <Link href={`/dashboard/products/${product?._id}`}>
                             <Edit className="mr-2 h-4 w-4" />
                             Edit
                           </Link>
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleDeleteClick(product.id)}>
+                        <DropdownMenuItem onClick={() => handleDeleteClick(product?._id)}>
                           <Trash className="mr-2 h-4 w-4" />
                           Delete
                         </DropdownMenuItem>

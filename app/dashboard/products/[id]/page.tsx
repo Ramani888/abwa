@@ -11,49 +11,62 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ArrowLeft } from "lucide-react"
-
-// Mock product data
-const productData = {
-  id: "1",
-  name: "Organic Fertilizer",
-  category: "fertilizers",
-  description: "High-quality organic fertilizer for all types of crops",
-  sku: "FERT-ORG-001",
-  barcode: "8901234567890",
-  retailPrice: "850",
-  wholesalePrice: "750",
-  purchasePrice: "650",
-  stockQuantity: "120",
-  minStockLevel: "20",
-  taxRate: "5",
-  unit: "kg",
-}
+import { serverGetCategory, serverGetProduct, serverUpdateProduct } from "@/services/serverApi"
+import { ICategory } from "@/types/category"
 
 export default function EditProductPage({ params }: { params: { id: string } }) {
   const [formData, setFormData] = useState({
+    _id: "",
     name: "",
-    category: "",
+    categoryId: "",
     description: "",
     sku: "",
     barcode: "",
     retailPrice: "",
     wholesalePrice: "",
     purchasePrice: "",
-    stockQuantity: "",
+    quantity: "",
     minStockLevel: "",
     taxRate: "5",
     unit: "kg",
   })
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
+  const [categoryData, setCategoryData] = useState<ICategory[]>([])
+
   const router = useRouter()
 
   useEffect(() => {
-    // In a real app, you would fetch the product data from an API
-    // For now, we'll just use the mock data
-    setFormData(productData)
-    setIsLoading(false)
-  }, [params.id])
+    const fetchProduct = async () => {
+      try {
+        const res = await serverGetProduct();
+        const productData = res?.data?.find((product: any) => product?._id === params?.id);
+  
+        setFormData({
+          _id: productData?._id,
+          name: productData?.name,
+          categoryId: productData?.categoryId,
+          unit: productData?.unit,
+          description: productData?.description,
+          sku: productData?.sku,
+          barcode: productData?.barcode,
+          retailPrice: productData?.retailPrice,
+          wholesalePrice: productData?.wholesalePrice,
+          purchasePrice: productData?.purchasePrice,
+          quantity: productData?.quantity,
+          minStockLevel: productData?.minStockLevel,
+          taxRate: productData?.taxRate
+        })
+  
+        setIsLoading(false);
+      } catch (error) {
+        console.error("Error fetching product:", error);
+        setIsLoading(false);
+      }
+    };
+  
+    fetchProduct();
+  }, [params.id]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -66,15 +79,35 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setIsSaving(true)
 
-    // Here you would implement actual product update logic
-    // For now, we'll just simulate it
-    setTimeout(() => {
+    try {
+      setIsSaving(true)
+      const res = await serverUpdateProduct({...formData, retailPrice: Number(formData.retailPrice), wholesalePrice: Number(formData.wholesalePrice), purchasePrice: Number(formData.purchasePrice), quantity: Number(formData.quantity), minStockLevel: Number(formData.minStockLevel), taxRate: Number(formData.taxRate)});
+      if (res?.success) {
+        router.push(`/dashboard/products`)
+      }
       setIsSaving(false)
-      router.push("/dashboard/products")
-    }, 1000)
+    } catch (error) {
+      setIsSaving(false)
+      console.error("Error updating product:", error)
+    }
   }
+
+  const getCustomerData = async () => {
+    try {
+      setIsLoading(true)
+      const res = await serverGetCategory();
+      setCategoryData(res?.data)
+      setIsLoading(false)
+    } catch (error) {
+      setIsLoading(false)
+      console.error("Error fetching category data:", error)
+    }
+  }
+
+  useEffect(() => {
+    getCustomerData();
+  }, [])
 
   if (isLoading) {
     return (
@@ -118,16 +151,16 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="category">Category</Label>
-                <Select value={formData.category} onValueChange={(value) => handleSelectChange("category", value)}>
+                <Select value={formData.categoryId} onValueChange={(value) => handleSelectChange("category", value)}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select category" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="fertilizers">Fertilizers</SelectItem>
-                    <SelectItem value="seeds">Seeds</SelectItem>
-                    <SelectItem value="pesticides">Pesticides</SelectItem>
-                    <SelectItem value="tools">Tools & Equipment</SelectItem>
-                    <SelectItem value="irrigation">Irrigation</SelectItem>
+                    {categoryData?.map((category) => (
+                      <SelectItem key={category?._id} value={category?._id}>
+                        {category?.name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -224,13 +257,13 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
               <div className="space-y-2">
-                <Label htmlFor="stockQuantity">Stock Quantity</Label>
+                <Label htmlFor="quantity">Stock Quantity</Label>
                 <Input
-                  id="stockQuantity"
-                  name="stockQuantity"
+                  id="quantity"
+                  name="quantity"
                   type="number"
                   placeholder="100"
-                  value={formData.stockQuantity}
+                  value={formData.quantity}
                   onChange={handleChange}
                   required
                 />

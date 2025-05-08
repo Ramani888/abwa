@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -11,23 +11,26 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ArrowLeft } from "lucide-react"
+import { serverAddProduct, serverGetCategory } from "@/services/serverApi"
+import { ICategory } from "@/types/category"
 
 export default function NewProductPage() {
   const [formData, setFormData] = useState({
     name: "",
-    category: "",
+    categoryId: "",
     description: "",
     sku: "",
     barcode: "",
     retailPrice: "",
     wholesalePrice: "",
     purchasePrice: "",
-    stockQuantity: "",
+    quantity: "",
     minStockLevel: "",
     taxRate: "5",
     unit: "kg",
   })
   const [isLoading, setIsLoading] = useState(false)
+  const [categoryData, setCategoryData] = useState<ICategory[]>([])
   const router = useRouter()
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -41,15 +44,34 @@ export default function NewProductPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setIsLoading(true)
-
-    // Here you would implement actual product creation logic
-    // For now, we'll just simulate it
-    setTimeout(() => {
+    try {
+      setIsLoading(true)
+      const res = await serverAddProduct({...formData, retailPrice: Number(formData.retailPrice), wholesalePrice: Number(formData.wholesalePrice), purchasePrice: Number(formData.purchasePrice), quantity: Number(formData.quantity), minStockLevel: Number(formData.minStockLevel), taxRate: Number(formData.taxRate)});
+      if (res?.success) {
+        router.push("/dashboard/products")
+      }
       setIsLoading(false)
-      router.push("/dashboard/products")
-    }, 1000)
+    } catch (error) {
+      console.error("Error creating product:", error)
+      setIsLoading(false)
+    }
   }
+
+  const getCustomerData = async () => {
+    try {
+      setIsLoading(true)
+      const res = await serverGetCategory();
+      setCategoryData(res?.data)
+      setIsLoading(false)
+    } catch (error) {
+      setIsLoading(false)
+      console.error("Error fetching category data:", error)
+    }
+  }
+
+  useEffect(() => {
+    getCustomerData();
+  }, [])
 
   return (
     <div className="w-full">
@@ -82,16 +104,16 @@ export default function NewProductPage() {
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="category">Category</Label>
-                <Select value={formData.category} onValueChange={(value) => handleSelectChange("category", value)}>
+                <Select value={formData?.categoryId} onValueChange={(value) => handleSelectChange("categoryId", value)}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select category" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="fertilizers">Fertilizers</SelectItem>
-                    <SelectItem value="seeds">Seeds</SelectItem>
-                    <SelectItem value="pesticides">Pesticides</SelectItem>
-                    <SelectItem value="tools">Tools & Equipment</SelectItem>
-                    <SelectItem value="irrigation">Irrigation</SelectItem>
+                    {categoryData?.map((category) => (
+                      <SelectItem key={category?._id} value={category?._id}>
+                        {category?.name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -188,13 +210,13 @@ export default function NewProductPage() {
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
               <div className="space-y-2">
-                <Label htmlFor="stockQuantity">Stock Quantity</Label>
+                <Label htmlFor="quantity">Stock Quantity</Label>
                 <Input
-                  id="stockQuantity"
-                  name="stockQuantity"
+                  id="quantity"
+                  name="quantity"
                   type="number"
                   placeholder="100"
-                  value={formData.stockQuantity}
+                  value={formData.quantity}
                   onChange={handleChange}
                   required
                 />

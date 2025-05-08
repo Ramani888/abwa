@@ -122,7 +122,7 @@ export function CategoriesTable() {
                 <TableRow key={category?._id}>
                   <TableCell className="font-medium">{category?.name}</TableCell>
                   <TableCell>{category?.description}</TableCell>
-                  <TableCell>{11}</TableCell>
+                  <TableCell>{category?.productCount}</TableCell>
                   <TableCell>
                     <Badge variant="outline">{category?.isActive ? 'Active' : 'InActive'}</Badge>
                   </TableCell>
