@@ -157,7 +157,7 @@ export function ProductsTable() {
                 <TableCell colSpan={6} className="h-24 text-center">
                   <div className="flex justify-center items-center space-x-2">
                     <Loader2 className="h-5 w-5 animate-spin text-primary" />
-                    <span>Loading Category...</span>
+                    <span>Loading Product...</span>
                   </div>
                 </TableCell>
               </TableRow>
