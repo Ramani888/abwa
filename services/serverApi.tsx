@@ -2,6 +2,7 @@ import { StatusCodes } from "http-status-codes";
 import axios, { AxiosError, Method } from "axios";
 import { ILogin, IRegister, IUser } from "@/types/user";
 import { ICustomer } from "@/types/customer";
+import { ICategory } from "@/types/category";
 
 const serverUrl = 'https://abb-i6cd.vercel.app/api';
 // const serverUrl = 'http://localhost:3010/api';
@@ -118,4 +119,19 @@ export const serverDeleteCustomer = async (_id: string) => {
 }
 
 /// Category ///
+export const serverGetCategory = async () => {
+  return await serverRequest(`/category`, "GET", null, true);
+};
+ 
+export const serverAddCategory = async (data: ICategory) => {
+  return await serverRequest(`/category`, "POST", data, true);
+} 
+
+export const serverUpdateCategory = async (data: ICategory) => {
+  return await serverRequest(`/category`, "PUT", data, true);
+}
+
+export const serverDeleteCategory = async (_id: string) => {
+  return await serverRequest(`/category?_id=${_id}`, "DELETE", null, true);
+}
 

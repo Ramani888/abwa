@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -14,7 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
-import { Edit, MoreHorizontal, Search, Trash } from "lucide-react"
+import { Edit, Loader2, MoreHorizontal, Search, Trash } from "lucide-react"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,70 +25,60 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-
-// Mock data for categories
-const categories = [
-  {
-    id: "1",
-    name: "Fertilizers",
-    description: "All types of fertilizers for crops",
-    productCount: 45,
-    status: "Active",
-  },
-  {
-    id: "2",
-    name: "Seeds",
-    description: "Various seeds for different crops",
-    productCount: 32,
-    status: "Active",
-  },
-  {
-    id: "3",
-    name: "Pesticides",
-    description: "Pest control products for crops",
-    productCount: 28,
-    status: "Active",
-  },
-  {
-    id: "4",
-    name: "Tools",
-    description: "Farming tools and equipment",
-    productCount: 18,
-    status: "Active",
-  },
-  {
-    id: "5",
-    name: "Irrigation",
-    description: "Irrigation systems and accessories",
-    productCount: 15,
-    status: "Active",
-  },
-]
+import { ICategory } from "@/types/category"
+import { serverDeleteCategory, serverGetCategory } from "@/services/serverApi"
 
 export function CategoriesTable() {
   const [searchQuery, setSearchQuery] = useState("")
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [categoryToDelete, setCategoryToDelete] = useState<string | null>(null)
+  const [loading, setLoading] = useState<boolean>(false);
+  const [categoryData, setCategoryData] = useState<ICategory[]>([])
 
-  const filteredCategories = categories.filter((category) => {
-    const matchesSearch =
-      category.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      category.description.toLowerCase().includes(searchQuery.toLowerCase())
-
-    return matchesSearch
-  })
+  const filteredCategories = categoryData?.filter((category) => {
+    const name = category?.name?.toLowerCase() || '';
+    const description = category?.description?.toLowerCase() || '';
+    const query = searchQuery?.toLowerCase() || '';
+  
+    return name.includes(query) || description.includes(query);
+  }); 
 
   const handleDeleteClick = (id: string) => {
     setCategoryToDelete(id)
     setDeleteDialogOpen(true)
   }
 
-  const handleConfirmDelete = () => {
-    // Here you would implement actual delete logic
-    console.log(`Deleting category with ID: ${categoryToDelete}`)
-    setDeleteDialogOpen(false)
-    setCategoryToDelete(null)
+  const handleConfirmDelete = async () => {
+    if (!categoryToDelete) return;
+    try {
+      setLoading(true);
+      const res = await serverDeleteCategory(categoryToDelete ?? '');
+      if (res?.success) {
+        setDeleteDialogOpen(false)
+        setCategoryToDelete(null)
+        getCategoryData();
+      }
+    } catch (error) {
+      console.error("Error deleting category:", error)
+      setLoading(false);
+    }
   }
+
+  const getCategoryData = async () => {
+    try {
+      setLoading(true)
+      const res = await serverGetCategory();
+      setCategoryData(res?.data)
+      setLoading(false)
+    } catch (error) {
+      setLoading(false)
+      console.error("Error fetching category data:", error)
+    }
+  }
+
+  useEffect(() => {
+    getCategoryData();
+  }, [])
 
   return (
     <div className="space-y-4">
@@ -117,14 +107,24 @@ export function CategoriesTable() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredCategories.length > 0 ? (
-              filteredCategories.map((category) => (
-                <TableRow key={category.id}>
-                  <TableCell className="font-medium">{category.name}</TableCell>
-                  <TableCell>{category.description}</TableCell>
-                  <TableCell>{category.productCount}</TableCell>
+            {loading ? (
+              <TableRow>
+                <TableCell colSpan={6} className="h-24 text-center">
+                  <div className="flex justify-center items-center space-x-2">
+                    <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                    <span>Loading Category...</span>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ) : 
+            filteredCategories?.length > 0 ? (
+              filteredCategories?.map((category) => (
+                <TableRow key={category?._id}>
+                  <TableCell className="font-medium">{category?.name}</TableCell>
+                  <TableCell>{category?.description}</TableCell>
+                  <TableCell>{11}</TableCell>
                   <TableCell>
-                    <Badge variant="outline">{category.status}</Badge>
+                    <Badge variant="outline">{category?.isActive ? 'Active' : 'InActive'}</Badge>
                   </TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>
@@ -138,12 +138,12 @@ export function CategoriesTable() {
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem asChild>
-                          <Link href={`/dashboard/categories/${category.id}`}>
+                          <Link href={`/dashboard/categories/${category?._id}`}>
                             <Edit className="mr-2 h-4 w-4" />
                             Edit
                           </Link>
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleDeleteClick(category.id)}>
+                        <DropdownMenuItem onClick={() => handleDeleteClick(category?._id)}>
                           <Trash className="mr-2 h-4 w-4" />
                           Delete
                         </DropdownMenuItem>

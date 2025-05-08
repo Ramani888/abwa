@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { ArrowLeft } from "lucide-react"
 import { Switch } from "@/components/ui/switch"
+import { serverAddCategory } from "@/services/serverApi"
 
 export default function NewCategoryPage() {
   const [formData, setFormData] = useState({
@@ -32,14 +33,17 @@ export default function NewCategoryPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setIsLoading(true)
-
-    // Here you would implement actual category creation logic
-    // For now, we'll just simulate it
-    setTimeout(() => {
+    try {
+      setIsLoading(true)
+      const res = await serverAddCategory(formData)
+      if (res?.success) {
+        router.push("/dashboard/categories")
+      }
       setIsLoading(false)
-      router.push("/dashboard/categories")
-    }, 1000)
+    } catch (error) {
+      console.error("Error creating category:", error)
+      setIsLoading(false)
+    }
   }
 
   return (

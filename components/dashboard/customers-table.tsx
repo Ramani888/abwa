@@ -17,7 +17,6 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Edit, MoreHorizontal, Search, ShoppingBag, Trash, Loader2 } from "lucide-react"
 import { serverDeleteCustomer, serverGetCustomers } from "@/services/serverApi"
-import { set } from "date-fns"
 import { ICustomer } from "@/types/customer"
 import {
   AlertDialog,
@@ -53,7 +52,6 @@ export function CustomersTable() {
     try {
       setLoading(true)
       const res = await serverGetCustomers();
-      // console.log("Fetched customer data:", data)
       setCustomers(res?.data)
       setLoading(false)
     } catch (error) {

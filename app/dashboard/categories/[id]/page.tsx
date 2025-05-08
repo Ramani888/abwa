@@ -11,17 +11,11 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { ArrowLeft } from "lucide-react"
 import { Switch } from "@/components/ui/switch"
-
-// Mock category data
-const categoryData = {
-  id: "1",
-  name: "Fertilizers",
-  description: "All types of fertilizers for crops",
-  isActive: true,
-}
+import { serverGetCategory, serverUpdateCategory } from "@/services/serverApi"
 
 export default function EditCategoryPage({ params }: { params: { id: string } }) {
   const [formData, setFormData] = useState({
+    _id: "",
     name: "",
     description: "",
     isActive: true,
@@ -31,15 +25,27 @@ export default function EditCategoryPage({ params }: { params: { id: string } })
   const router = useRouter()
 
   useEffect(() => {
-    // In a real app, you would fetch the category data from an API
-    // For now, we'll just use the mock data
-    setFormData({
-      name: categoryData.name,
-      description: categoryData.description,
-      isActive: categoryData.isActive,
-    })
-    setIsLoading(false)
-  }, [params.id])
+    const fetchCategory = async () => {
+      try {
+        const res = await serverGetCategory();
+        const categoryData = res?.data?.find((category: any) => category?._id === params?.id);
+  
+        setFormData({
+          _id: categoryData?._id,
+          name: categoryData.name,
+          description: categoryData.description,
+          isActive: categoryData.isActive,
+        })
+  
+        setIsLoading(false);
+      } catch (error) {
+        console.error("Error fetching category:", error);
+        setIsLoading(false);
+      }
+    };
+  
+    fetchCategory();
+  }, [params.id]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -52,14 +58,18 @@ export default function EditCategoryPage({ params }: { params: { id: string } })
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setIsSaving(true)
-
-    // Here you would implement actual category update logic
-    // For now, we'll just simulate it
-    setTimeout(() => {
+    
+    try {
+      setIsSaving(true)
+      const res = await serverUpdateCategory({...formData});
+      if (res?.success) {
+        router.push(`/dashboard/categories`)
+      }
       setIsSaving(false)
-      router.push("/dashboard/categories")
-    }, 1000)
+    } catch (error) {
+      setIsSaving(false)
+      console.error("Error updating category:", error)
+    }
   }
 
   if (isLoading) {
