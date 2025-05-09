@@ -29,7 +29,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 
-export function CustomersTable() {
+export function CustomersTable({ setRefreshFunction }: { setRefreshFunction?: (fn: () => Promise<void>) => void }) {
   const [searchQuery, setSearchQuery] = useState("")
   const [customerType, setCustomerType] = useState("all") // all, retail, wholesale
   const [loading, setLoading] = useState<boolean>(false)
@@ -80,6 +80,12 @@ export function CustomersTable() {
       console.error("Error deleting customer:", error)    
     }
   }
+
+  useEffect(() => {
+    if (setRefreshFunction) {
+      setRefreshFunction(getCustomerData);
+    }
+  }, [setRefreshFunction]);
 
   useEffect(() => {
     getCustomerData();

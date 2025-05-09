@@ -29,7 +29,7 @@ import {
 import { serverDeleteProduct, serverGetProduct } from "@/services/serverApi"
 import { IProduct } from "@/types/product"
 
-export function ProductsTable() {
+export function ProductsTable({ setRefreshFunction }: { setRefreshFunction?: (fn: () => Promise<void>) => void }) {
   const [searchQuery, setSearchQuery] = useState("")
   const [categoryFilter, setCategoryFilter] = useState("all")
   const [stockFilter, setStockFilter] = useState("all")
@@ -89,6 +89,12 @@ export function ProductsTable() {
       console.error("Error fetching category data:", error)
     }
   }
+
+  useEffect(() => {
+    if (setRefreshFunction) {
+      setRefreshFunction(getProductData);
+    }
+  }, [setRefreshFunction]);
 
   useEffect(() => {
     getProductData();

@@ -29,7 +29,7 @@ import {
 import { serverGetUser } from "@/services/serverApi"
 import { IUser } from "@/types/user"
 
-export function UsersTable() {
+export function UsersTable({ setRefreshFunction }: { setRefreshFunction?: (fn: () => Promise<void>) => void }) {
   const [searchQuery, setSearchQuery] = useState("")
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [userToDelete, setUserToDelete] = useState<string | null>(null)
@@ -93,6 +93,12 @@ export function UsersTable() {
     setDeleteDialogOpen(false)
     setUserToDelete(null)
   }
+
+  useEffect(() => {
+    if (setRefreshFunction) {
+      setRefreshFunction(getUserData);
+    }
+  }, [setRefreshFunction]);
 
   useEffect(() => {
     getUserData();

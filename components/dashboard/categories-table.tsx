@@ -28,7 +28,7 @@ import {
 import { ICategory } from "@/types/category"
 import { serverDeleteCategory, serverGetCategory } from "@/services/serverApi"
 
-export function CategoriesTable() {
+export function CategoriesTable({ setRefreshFunction }: { setRefreshFunction?: (fn: () => Promise<void>) => void }) {
   const [searchQuery, setSearchQuery] = useState("")
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [categoryToDelete, setCategoryToDelete] = useState<string | null>(null)
@@ -75,6 +75,12 @@ export function CategoriesTable() {
       console.error("Error fetching category data:", error)
     }
   }
+
+  useEffect(() => {
+    if (setRefreshFunction) {
+      setRefreshFunction(getCategoryData);
+    }
+  }, [setRefreshFunction]);
 
   useEffect(() => {
     getCategoryData();
