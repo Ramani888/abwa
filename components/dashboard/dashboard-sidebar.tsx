@@ -21,6 +21,7 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { PlanBadge } from "./plan-badge"
 import { usePlan } from "./plan-context"
+import { useAuth } from "../auth-provider"
 
 interface DashboardSidebarProps {
   isMobile?: boolean
@@ -30,6 +31,7 @@ interface DashboardSidebarProps {
 export function DashboardSidebar({ isMobile = false, closeMobileMenu }: DashboardSidebarProps) {
   const pathname = usePathname()
   const { currentPlan } = usePlan()
+  const { owner } = useAuth();
 
   const navItems = [
     {
@@ -124,10 +126,12 @@ export function DashboardSidebar({ isMobile = false, closeMobileMenu }: Dashboar
       <div className="p-4 border-t bg-muted/30">
         <div className="flex items-center gap-3 mb-2">
           <Avatar className="h-9 w-9">
-            <AvatarFallback className="bg-primary text-primary-foreground">GH</AvatarFallback>
+            <AvatarFallback className="bg-primary text-primary-foreground uppercase">
+              {(owner?.shop?.name?.[0] ?? '') + (owner?.shop?.name?.[1] ?? '')}
+            </AvatarFallback>
           </Avatar>
           <div>
-            <h4 className="text-sm font-medium">Green Harvest Agro Shop</h4>
+            <h4 className="text-sm font-medium capitalize">{owner?.shop?.name}</h4>
             <div className="flex items-center gap-1">
               <p className="text-xs text-muted-foreground truncate">Manage your shop</p>
               <PlanBadge className="ml-1 text-[10px] py-0 h-4" plan={currentPlan} />
@@ -137,11 +141,11 @@ export function DashboardSidebar({ isMobile = false, closeMobileMenu }: Dashboar
         <div className="text-xs text-muted-foreground mt-2">
           <div className="flex items-center gap-2 mb-1">
             <Store className="h-3 w-3" />
-            <span className="truncate">123 Farm Road, Agricity</span>
+            <span className="truncate">{owner?.shop?.address}</span>
           </div>
           <div className="flex items-center gap-2">
             <FileText className="h-3 w-3" />
-            <span>GST: 22AAAAA0000A1Z5</span>
+            <span>GST: {owner?.shop?.gst}</span>
           </div>
         </div>
       </div>

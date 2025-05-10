@@ -4,6 +4,7 @@ import { ILogin, IRegister, IUser } from "@/types/user";
 import { ICustomer } from "@/types/customer";
 import { ICategory } from "@/types/category";
 import { IProduct } from "@/types/product";
+import { toast } from "sonner";
 
 const serverUrl = 'https://abb-i6cd.vercel.app/api';
 // const serverUrl = 'http://localhost:3010/api';
@@ -57,13 +58,18 @@ const serverRequest = async (
       const response = await axios(config);
   
       let res = await response.data;
+
+      if ((command === "DELETE" || command === "POST" || command === "PUT") && '/login' !== url) {
+        toast.success(response?.data?.message ?? response?.data?.error);
+      }
   
       if (errorCodes.includes(response.status)) {
         throw res;
       }
   
       return res;
-    } catch (e) {
+    } catch (e: any) {
+      toast.error(e?.response?.data?.message ?? e?.response?.data?.errors?.[0] ?? "something went wrong");
       throw e;
     }
 };
@@ -92,6 +98,10 @@ export const serverUpdateUser = async (data: IUser) => {
 
 export const serverUpdateUserPassword = async (data: { _id: string; password: string }) => {
   return await serverRequest("/user/password", "PUT", data, true);
+}
+
+export const serverUpdateUserPasswordByCurrent = async (data: { _id: string; currentPassword: string, newPassword: string }) => {
+  return await serverRequest("/user/password/current", "PUT", data, true);
 }
 
 export const serverGetAllPermission = async () => {

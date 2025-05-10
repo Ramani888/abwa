@@ -31,7 +31,7 @@ export default function UserPermissionsPage({ params }: { params: { id: string }
     const fetchUser = async () => {
       try {
         const res = await serverGetUser();
-        const userData = res?.data?.find((user: any) => user?._id === params?.id);
+        const userData = res?.data?.find((item: any) => item?._id === params?.id);
         setUser(userData);
         setFormData({
           selectedPermissions: userData?.permissionIds,

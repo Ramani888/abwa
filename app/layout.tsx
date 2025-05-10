@@ -3,6 +3,9 @@ import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
+import './globals.css'
+import { AuthProvider } from "@/components/auth-provider"
+import { Toaster } from "sonner"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -23,6 +26,7 @@ export default function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <AuthProvider>
             {children}
+            <Toaster richColors position="bottom-right" /> {/* You can customize position */}
           </AuthProvider>
         </ThemeProvider>
       </body>
@@ -30,7 +34,3 @@ export default function RootLayout({
   )
 }
 
-
-
-import './globals.css'
-import { AuthProvider } from "@/components/auth-provider"

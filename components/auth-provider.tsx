@@ -47,6 +47,8 @@ type AuthContextType = {
   owner: Owner
   login: (userData: User, ownerData: Owner) => void
   logout: () => void,
+  updateUser: (updatedUserData: Partial<Omit<User, 'token'>>) => void,
+  updateOwner: (updatedOwnerData: Partial<Owner>) => void,
   isAuthenticated: boolean
 }
 
@@ -97,8 +99,50 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     router.push("/login")
   }
 
+  const updateUser = (updatedUserData: Partial<Omit<User, 'token'>>) => {
+    if (!user) return;
+    
+    // Create the updated user by merging existing data with new data
+    const newUserData = { 
+      ...user, 
+      ...updatedUserData,
+      // Preserve the original token
+      token: user.token
+    };
+    
+    // Update state
+    setUser(newUserData);
+    
+    // Update localStorage
+    localStorage.setItem("user", JSON.stringify(newUserData));
+  }
+
+  const updateOwner = (updatedOwnerData: Partial<Owner>) => {
+    if (!owner) return;
+    
+    // Create the updated owner by merging existing data with new data
+    const newOwnerData = { 
+      ...owner, 
+      ...updatedOwnerData
+    };
+    
+    // Update state
+    setOwner(newOwnerData);
+    
+    // Update localStorage
+    localStorage.setItem("owner", JSON.stringify(newOwnerData));
+  }
+
   return (
-    <AuthContext.Provider value={{ user, owner, login, logout, isAuthenticated: !!user, }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      owner, 
+      login, 
+      logout, 
+      updateUser,
+      updateOwner,
+      isAuthenticated: !!user, 
+    }}>
       {children}
     </AuthContext.Provider>
   )
