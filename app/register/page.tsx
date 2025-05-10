@@ -251,3 +251,398 @@ export default function RegisterPage() {
   )
 }
 
+
+
+
+// "use client"
+
+// import { useState } from "react"
+// import Link from "next/link"
+// import Image from "next/image"
+// import { useRouter } from "next/navigation"
+// import { Button } from "@/components/ui/button"
+// import { Input } from "@/components/ui/input"
+// import { Label } from "@/components/ui/label"
+// import { Textarea } from "@/components/ui/textarea"
+// import { ShoppingBag, ArrowRight, User, Mail, Phone, Lock, Building, MapPin } from "lucide-react"
+// import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+// import { Alert, AlertDescription } from "@/components/ui/alert"
+// import RegisterImage from "@/assets/images/Galcon_Login_Image.png"
+// import { serverRegister } from "@/services/serverApi"
+
+// export default function RegisterPage() {
+//   const [activeTab, setActiveTab] = useState("owner")
+//   const [ownerData, setOwnerData] = useState({
+//     name: "",
+//     email: "",
+//     phone: "",
+//     password: "",
+//     confirmPassword: "",
+//   })
+//   const [shopData, setShopData] = useState({
+//     shopName: "",
+//     address: "",
+//     shopPhone: "",
+//     shopEmail: "",
+//     gstNumber: "",
+//   })
+//   const [isLoading, setIsLoading] = useState(false)
+//   const [error, setError] = useState<string | null>(null)
+//   const router = useRouter()
+
+//   const handleOwnerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+//     const { name, value } = e.target
+//     setOwnerData((prev) => ({ ...prev, [name]: value }))
+//     if (error) setError(null)
+//   }
+
+//   const handleShopChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+//     const { name, value } = e.target
+//     setShopData((prev) => ({ ...prev, [name]: value }))
+//     if (error) setError(null)
+//   }
+
+//   const validateForm = () => {
+//     // Password validation
+//     if (ownerData.password !== ownerData.confirmPassword) {
+//       setError("Passwords don't match")
+//       return false
+//     }
+    
+//     if (ownerData.password.length < 8) {
+//       setError("Password must be at least 8 characters")
+//       return false
+//     }
+    
+//     return true
+//   }
+
+//   const nextStep = () => {
+//     if (validateForm()) {
+//       setActiveTab("shop")
+//     }
+//   }
+
+//   const handleSubmit = async (e: React.FormEvent) => {
+//     e.preventDefault()
+//     if (!validateForm()) return
+    
+//     setIsLoading(true)
+//     setError(null)
+
+//     try {
+//       // Uncomment and adjust when API is ready
+//       // const response = await serverRegister({
+//       //   ...ownerData, 
+//       //   ...shopData,
+//       //   number: Number(ownerData.phone),
+//       //   shopNumber: Number(shopData.shopPhone)
+//       // })
+      
+//       // if (response?.success) {
+//       //   router.push("/dashboard/my-shop")
+//       // } else {
+//       //   throw new Error(response?.message || "Registration failed")
+//       // }
+      
+//       // Simulating successful registration
+//       setTimeout(() => {
+//         setIsLoading(false)
+//         router.push("/dashboard/my-shop")
+//       }, 1500)
+//     } catch (error: any) {
+//       setIsLoading(false)
+//       setError(error?.response?.data?.message || "Registration failed. Please try again.")
+//       console.error("Registration error:", error)
+//     }
+//   }
+
+//   return (
+//     <div className="flex min-h-screen bg-slate-50">
+//       {/* Left Side - Image Only */}
+//       <div className="hidden lg:block lg:w-2/3 relative">
+//         <Image 
+//           src={RegisterImage} 
+//           alt="Agro Shop Registration" 
+//           fill
+//           priority
+//           className="object-cover"
+//         />
+//         <div className="absolute inset-0 bg-gradient-to-br from-green-800/30 to-transparent"></div>
+//       </div>
+
+//       {/* Right Side - Registration Form */}
+//       <div className="w-full lg:w-1/3 relative flex flex-col justify-center px-8 py-12 lg:px-16 bg-white shadow-2xl shadow-slate-200/50">
+//         <Link href="/" className="absolute left-8 top-8 flex items-center gap-2">
+//           <div className="bg-green-500 p-2 rounded-lg">
+//             <ShoppingBag className="h-5 w-5 text-white" />
+//           </div>
+//           <span className="font-bold text-xl">AgroBill</span>
+//         </Link>
+        
+//         <div className="w-full max-w-md mx-auto mt-12">
+//           <div className="mb-8">
+//             <h1 className="text-3xl font-bold mb-3">Create Your Shop</h1>
+//             <div className="h-1 w-12 bg-green-500 rounded-full mb-3"></div>
+//             <p className="text-slate-500">Register as a shop owner and start managing your agro business</p>
+//           </div>
+          
+//           <form onSubmit={handleSubmit} className="space-y-6">
+//             {error && (
+//               <Alert variant="destructive" className="bg-red-50 text-red-800 border-l-4 border-red-500">
+//                 <AlertDescription>{error}</AlertDescription>
+//               </Alert>
+//             )}
+            
+//             <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+//               <TabsList className="grid w-full grid-cols-2 bg-slate-100 p-1 rounded-lg">
+//                 <TabsTrigger 
+//                   value="owner"
+//                   className="rounded-md data-[state=active]:bg-white data-[state=active]:text-green-600 data-[state=active]:shadow-sm py-2"
+//                 >
+//                   Owner Details
+//                 </TabsTrigger>
+//                 <TabsTrigger 
+//                   value="shop"
+//                   className="rounded-md data-[state=active]:bg-white data-[state=active]:text-green-600 data-[state=active]:shadow-sm py-2"
+//                 >
+//                   Shop Details
+//                 </TabsTrigger>
+//               </TabsList>
+              
+//               <TabsContent value="owner" className="space-y-5 pt-2">
+//                 <div className="space-y-1.5">
+//                   <Label htmlFor="name" className="text-sm font-medium text-slate-700">
+//                     Full Name
+//                   </Label>
+//                   <div className="relative">
+//                     <User className="absolute left-3 top-3.5 h-5 w-5 text-slate-400" />
+//                     <Input
+//                       id="name"
+//                       name="name"
+//                       placeholder="John Doe"
+//                       value={ownerData.name}
+//                       onChange={handleOwnerChange}
+//                       className="pl-12 h-12 rounded-lg border-slate-200 bg-white focus:border-green-500 focus:ring-1 focus:ring-green-500"
+//                       required
+//                     />
+//                   </div>
+//                 </div>
+                
+//                 <div className="space-y-1.5">
+//                   <Label htmlFor="email" className="text-sm font-medium text-slate-700">
+//                     Email
+//                   </Label>
+//                   <div className="relative">
+//                     <Mail className="absolute left-3 top-3.5 h-5 w-5 text-slate-400" />
+//                     <Input
+//                       id="email"
+//                       name="email"
+//                       type="email"
+//                       placeholder="name@example.com"
+//                       value={ownerData.email}
+//                       onChange={handleOwnerChange}
+//                       className="pl-12 h-12 rounded-lg border-slate-200 bg-white focus:border-green-500 focus:ring-1 focus:ring-green-500"
+//                       required
+//                     />
+//                   </div>
+//                 </div>
+                
+//                 <div className="space-y-1.5">
+//                   <Label htmlFor="phone" className="text-sm font-medium text-slate-700">
+//                     Phone Number
+//                   </Label>
+//                   <div className="relative">
+//                     <Phone className="absolute left-3 top-3.5 h-5 w-5 text-slate-400" />
+//                     <Input
+//                       id="phone"
+//                       name="phone"
+//                       placeholder="Enter your phone number"
+//                       value={ownerData.phone}
+//                       onChange={handleOwnerChange}
+//                       className="pl-12 h-12 rounded-lg border-slate-200 bg-white focus:border-green-500 focus:ring-1 focus:ring-green-500"
+//                       required
+//                     />
+//                   </div>
+//                 </div>
+                
+//                 <div className="space-y-1.5">
+//                   <Label htmlFor="password" className="text-sm font-medium text-slate-700">
+//                     Password
+//                   </Label>
+//                   <div className="relative">
+//                     <Lock className="absolute left-3 top-3.5 h-5 w-5 text-slate-400" />
+//                     <Input
+//                       id="password"
+//                       name="password"
+//                       type="password"
+//                       placeholder="Create a strong password"
+//                       value={ownerData.password}
+//                       onChange={handleOwnerChange}
+//                       className="pl-12 h-12 rounded-lg border-slate-200 bg-white focus:border-green-500 focus:ring-1 focus:ring-green-500"
+//                       required
+//                     />
+//                   </div>
+//                 </div>
+                
+//                 <div className="space-y-1.5">
+//                   <Label htmlFor="confirmPassword" className="text-sm font-medium text-slate-700">
+//                     Confirm Password
+//                   </Label>
+//                   <div className="relative">
+//                     <Lock className="absolute left-3 top-3.5 h-5 w-5 text-slate-400" />
+//                     <Input
+//                       id="confirmPassword"
+//                       name="confirmPassword"
+//                       type="password"
+//                       placeholder="Confirm your password"
+//                       value={ownerData.confirmPassword}
+//                       onChange={handleOwnerChange}
+//                       className="pl-12 h-12 rounded-lg border-slate-200 bg-white focus:border-green-500 focus:ring-1 focus:ring-green-500"
+//                       required
+//                     />
+//                   </div>
+//                 </div>
+                
+//                 <Button 
+//                   type="button" 
+//                   onClick={nextStep}
+//                   className="w-full h-12 mt-2 rounded-lg font-medium text-white bg-green-600 hover:bg-green-700 transition-all shadow-lg shadow-green-600/30"
+//                 >
+//                   <div className="flex items-center justify-center gap-2">
+//                     <span>Continue</span>
+//                     <ArrowRight className="h-4 w-4" />
+//                   </div>
+//                 </Button>
+//               </TabsContent>
+              
+//               <TabsContent value="shop" className="space-y-5 pt-2">
+//                 <div className="space-y-1.5">
+//                   <Label htmlFor="shopName" className="text-sm font-medium text-slate-700">
+//                     Shop Name
+//                   </Label>
+//                   <div className="relative">
+//                     <Building className="absolute left-3 top-3.5 h-5 w-5 text-slate-400" />
+//                     <Input
+//                       id="shopName"
+//                       name="shopName"
+//                       placeholder="Green Harvest Agro Shop"
+//                       value={shopData.shopName}
+//                       onChange={handleShopChange}
+//                       className="pl-12 h-12 rounded-lg border-slate-200 bg-white focus:border-green-500 focus:ring-1 focus:ring-green-500"
+//                       required
+//                     />
+//                   </div>
+//                 </div>
+                
+//                 <div className="space-y-1.5">
+//                   <Label htmlFor="address" className="text-sm font-medium text-slate-700">
+//                     Shop Address
+//                   </Label>
+//                   <div className="relative">
+//                     <MapPin className="absolute left-3 top-3.5 h-5 w-5 text-slate-400" />
+//                     <Textarea
+//                       id="address"
+//                       name="address"
+//                       placeholder="123 Farm Road, Agricity"
+//                       value={shopData.address}
+//                       onChange={handleShopChange}
+//                       className="pl-12 pt-3 min-h-[80px] rounded-lg border-slate-200 bg-white focus:border-green-500 focus:ring-1 focus:ring-green-500"
+//                       required
+//                     />
+//                   </div>
+//                 </div>
+                
+//                 <div className="space-y-1.5">
+//                   <Label htmlFor="shopPhone" className="text-sm font-medium text-slate-700">
+//                     Shop Phone Number
+//                   </Label>
+//                   <div className="relative">
+//                     <Phone className="absolute left-3 top-3.5 h-5 w-5 text-slate-400" />
+//                     <Input
+//                       id="shopPhone"
+//                       name="shopPhone"
+//                       placeholder="Enter shop phone number"
+//                       value={shopData.shopPhone}
+//                       onChange={handleShopChange}
+//                       className="pl-12 h-12 rounded-lg border-slate-200 bg-white focus:border-green-500 focus:ring-1 focus:ring-green-500"
+//                       required
+//                     />
+//                   </div>
+//                 </div>
+                
+//                 <div className="space-y-1.5">
+//                   <Label htmlFor="shopEmail" className="text-sm font-medium text-slate-700">
+//                     Shop Email
+//                   </Label>
+//                   <div className="relative">
+//                     <Mail className="absolute left-3 top-3.5 h-5 w-5 text-slate-400" />
+//                     <Input
+//                       id="shopEmail"
+//                       name="shopEmail"
+//                       type="email"
+//                       placeholder="shop@example.com"
+//                       value={shopData.shopEmail}
+//                       onChange={handleShopChange}
+//                       className="pl-12 h-12 rounded-lg border-slate-200 bg-white focus:border-green-500 focus:ring-1 focus:ring-green-500"
+//                       required
+//                     />
+//                   </div>
+//                 </div>
+                
+//                 <div className="space-y-1.5">
+//                   <Label htmlFor="gstNumber" className="text-sm font-medium text-slate-700">
+//                     GST Number (Optional)
+//                   </Label>
+//                   <Input
+//                     id="gstNumber"
+//                     name="gstNumber"
+//                     placeholder="22AAAAA0000A1Z5"
+//                     value={shopData.gstNumber}
+//                     onChange={handleShopChange}
+//                     className="h-12 rounded-lg border-slate-200 bg-white focus:border-green-500 focus:ring-1 focus:ring-green-500"
+//                   />
+//                 </div>
+                
+//                 <Button 
+//                   type="submit" 
+//                   className="w-full h-12 mt-3 rounded-lg font-medium text-white bg-green-600 hover:bg-green-700 transition-all shadow-lg shadow-green-600/30" 
+//                   disabled={isLoading}
+//                 >
+//                   {isLoading ? (
+//                     <div className="flex items-center justify-center gap-2">
+//                       <div className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+//                       <span>Creating Shop...</span>
+//                     </div>
+//                   ) : (
+//                     <div className="flex items-center justify-center gap-2">
+//                       <span>Create Your Shop</span>
+//                       <ArrowRight className="h-4 w-4" />
+//                     </div>
+//                   )}
+//                 </Button>
+                
+//                 <div className="pt-4">
+//                   <div className="relative flex items-center">
+//                     <div className="flex-grow border-t border-slate-200"></div>
+//                     <span className="flex-shrink mx-3 text-slate-400 text-sm">Already have an account?</span>
+//                     <div className="flex-grow border-t border-slate-200"></div>
+//                   </div>
+                  
+//                   <div className="mt-4 text-center">
+//                     <Link 
+//                       href="/login" 
+//                       className="inline-flex items-center justify-center gap-2 px-5 py-2.5 border border-green-600 rounded-lg text-green-600 font-medium hover:bg-green-50 transition-colors"
+//                     >
+//                       Sign In Instead
+//                     </Link>
+//                   </div>
+//                 </div>
+//               </TabsContent>
+//             </Tabs>
+//           </form>
+//         </div>
+//       </div>
+//     </div>
+//   )
+// }
