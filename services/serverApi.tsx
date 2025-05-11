@@ -59,7 +59,7 @@ const serverRequest = async (
   
       let res = await response.data;
 
-      if ((command === "DELETE" || command === "POST" || command === "PUT") && '/login' !== url) {
+      if ((command === "DELETE" || command === "POST" || command === "PUT")) {
         toast.success(response?.data?.message ?? response?.data?.error);
       }
   

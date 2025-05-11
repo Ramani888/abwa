@@ -149,18 +149,68 @@ import LoginImage from "@/assets/images/Galcon_Login_Image.png"
 
 export default function LoginPage() {
   const { login } = useAuth();
-  const [number, setNumber] = useState("")
-  const [password, setPassword] = useState("")
+  const [formData, setFormData] = useState({
+    number: "",
+    password: ""
+  })
+  const [formErrors, setFormErrors] = useState({
+    number: "",
+    password: ""
+  })
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target
+    setFormData(prev => ({ ...prev, [name]: value }))
+    
+    // Clear error when user types
+    if (formErrors[name as keyof typeof formErrors]) {
+      setFormErrors(prev => ({ ...prev, [name]: "" }))
+    }
+    if (error) setError(null)
+  }
+
+  const validateForm = () => {
+    let valid = true
+    const errors = { number: "", password: "" }
+    
+    // Validate phone number
+    if (!formData.number) {
+      errors.number = "Phone number is required"
+      valid = false
+    } else if (!/^\d{10}$/.test(formData.number)) {
+      errors.number = "Phone number must be exactly 10 digits"
+      valid = false
+    }
+    
+    // Validate password
+    if (!formData.password) {
+      errors.password = "Password is required"
+      valid = false
+    } else if (formData.password.length < 6) {
+      errors.password = "Password must be at least 6 characters"
+      valid = false
+    }
+    
+    setFormErrors(errors)
+    return valid
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    // Validate form before submission
+    if (!validateForm()) return
+    
     setError(null)
 
     try {
       setIsLoading(true)
-      const res = await serverLogin({ number: Number(number), password });
+      const res = await serverLogin({ 
+        number: Number(formData.number), 
+        password: formData.password 
+      });
       console.log("Login response:", res)
       
       if (res?.success) {
@@ -221,14 +271,17 @@ export default function LoginPage() {
                 <Phone className="absolute left-3 top-3.5 h-5 w-5 text-slate-400" />
                 <Input
                   id="number"
+                  name="number"
                   type="tel"
                   placeholder="Enter your phone number"
-                  value={number}
-                  onChange={(e) => setNumber(e.target.value)}
-                  className="pl-12 h-12 rounded-lg border-slate-200 bg-white focus:border-green-500 focus:ring-1 focus:ring-green-500"
-                  required
+                  value={formData.number}
+                  onChange={handleChange}
+                  className={`pl-12 h-12 rounded-lg border-slate-200 bg-white focus:border-green-500 focus:ring-1 focus:ring-green-500 ${formErrors.number ? "border-red-500 focus:border-red-500 focus:ring-red-500" : ""}`}
                 />
               </div>
+              {formErrors.number && (
+                <p className="text-sm text-red-500 mt-1">{formErrors.number}</p>
+              )}
             </div>
             
             <div className="space-y-1.5">
@@ -244,14 +297,17 @@ export default function LoginPage() {
                 <Lock className="absolute left-3 top-3.5 h-5 w-5 text-slate-400" />
                 <Input
                   id="password"
+                  name="password"
                   type="password"
                   placeholder="Enter your password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="pl-12 h-12 rounded-lg border-slate-200 bg-white focus:border-green-500 focus:ring-1 focus:ring-green-500"
-                  required
+                  value={formData.password}
+                  onChange={handleChange}
+                  className={`pl-12 h-12 rounded-lg border-slate-200 bg-white focus:border-green-500 focus:ring-1 focus:ring-green-500 ${formErrors.password ? "border-red-500 focus:border-red-500 focus:ring-red-500" : ""}`}
                 />
               </div>
+              {formErrors.password && (
+                <p className="text-sm text-red-500 mt-1">{formErrors.password}</p>
+              )}
             </div>
             
             <Button 
