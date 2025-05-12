@@ -139,90 +139,100 @@ import { useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { ShoppingBag, ArrowRight, Lock, Phone } from "lucide-react"
+import { ShoppingBag, ArrowRight, Lock, Phone, EyeOff, Eye } from "lucide-react"
 import { serverLogin } from "@/services/serverApi"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useAuth } from "@/components/auth-provider"
 import LoginImage from "@/assets/images/Galcon_Login_Image.png"
+import { Formik, Form, Field, ErrorMessage } from "formik"
+import * as Yup from "yup"
+
+// Validation schema using Yup
+const loginSchema = Yup.object().shape({
+  number: Yup.string()
+    .required("Phone number is required")
+    .matches(/^\d{10}$/, "Phone number must be exactly 10 digits"),
+  password: Yup.string()
+    .required("Password is required")
+    .min(6, "Password must be at least 6 characters"),
+})
+
+// Reusable TextInput Component
+const TextInput = ({ id, name, type, placeholder, icon: Icon }: any) => (
+  <div className="space-y-1.5">
+    <Label htmlFor={id} className="text-sm font-medium text-slate-700">
+      {name === "number" ? "Phone Number" : "Password"}
+    </Label>
+    <div className="relative">
+      {Icon && <Icon className="absolute left-3 top-3.5 h-5 w-5 text-slate-400" />}
+      <Field
+        id={id}
+        name={name}
+        type={type}
+        placeholder={placeholder}
+        className="w-full pl-12 h-12 rounded-lg border border-slate-300 bg-white focus:border-green-500 focus:ring-1 focus:ring-green-500"
+      />
+    </div>
+    <ErrorMessage name={name} component="p" className="text-sm text-red-500 mt-1" />
+  </div>
+)
+
+// Reusable PasswordInput Component
+const PasswordInput = ({ id, name, placeholder, isPasswordVisible, toggleVisibility }: any) => (
+  <div className="space-y-1.5">
+    <div className="flex items-center justify-between">
+      <Label htmlFor={id} className="text-sm font-medium text-slate-700">
+        Password
+      </Label>
+      <Link href="/forgot-password" className="text-sm text-green-600 font-medium hover:text-green-700">
+        Forgot password?
+      </Link>
+    </div>
+    <div className="relative">
+      <Lock className="absolute left-3 top-3.5 h-5 w-5 text-slate-400" />
+      <Field
+        id={id}
+        name={name}
+        type={isPasswordVisible ? "text" : "password"}
+        placeholder={placeholder}
+        className="w-full pl-12 h-12 rounded-lg border border-slate-300 bg-white focus:border-green-500 focus:ring-1 focus:ring-green-500"
+      />
+      <button
+        type="button"
+        onClick={toggleVisibility}
+        className="absolute right-3 top-3.5 text-slate-400 hover:text-slate-600"
+      >
+        {isPasswordVisible ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+      </button>
+    </div>
+    <ErrorMessage name={name} component="p" className="text-sm text-red-500 mt-1" />
+  </div>
+)
 
 export default function LoginPage() {
-  const { login } = useAuth();
-  const [formData, setFormData] = useState({
-    number: "",
-    password: ""
-  })
-  const [formErrors, setFormErrors] = useState({
-    number: "",
-    password: ""
-  })
+  const { login } = useAuth()
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setFormData(prev => ({ ...prev, [name]: value }))
-    
-    // Clear error when user types
-    if (formErrors[name as keyof typeof formErrors]) {
-      setFormErrors(prev => ({ ...prev, [name]: "" }))
-    }
-    if (error) setError(null)
-  }
-
-  const validateForm = () => {
-    let valid = true
-    const errors = { number: "", password: "" }
-    
-    // Validate phone number
-    if (!formData.number) {
-      errors.number = "Phone number is required"
-      valid = false
-    } else if (!/^\d{10}$/.test(formData.number)) {
-      errors.number = "Phone number must be exactly 10 digits"
-      valid = false
-    }
-    
-    // Validate password
-    if (!formData.password) {
-      errors.password = "Password is required"
-      valid = false
-    } else if (formData.password.length < 6) {
-      errors.password = "Password must be at least 6 characters"
-      valid = false
-    }
-    
-    setFormErrors(errors)
-    return valid
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
-    // Validate form before submission
-    if (!validateForm()) return
-    
+  const handleSubmit = async (values: { number: string; password: string }) => {
     setError(null)
-
     try {
       setIsLoading(true)
-      const res = await serverLogin({ 
-        number: Number(formData.number), 
-        password: formData.password 
-      });
-      console.log("Login response:", res)
-      
+      const res = await serverLogin({
+        number: Number(values.number),
+        password: values.password,
+      })
       if (res?.success) {
         login(res?.user, res?.owner)
       } else {
         setError(res?.response?.data?.message || "Invalid credentials. Please try again.")
       }
-      setIsLoading(false)
     } catch (error: any) {
-      setIsLoading(false)
-      console.error("Login error:", error)
       setError(error?.response?.data?.message || "An error occurred while logging in. Please try again.")
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -230,9 +240,9 @@ export default function LoginPage() {
     <div className="flex min-h-screen bg-slate-50">
       {/* Right Side - Image Only */}
       <div className="hidden lg:block lg:w-2/3 relative">
-        <Image 
-          src={LoginImage} 
-          alt="Agro Shop Management" 
+        <Image
+          src={LoginImage}
+          alt="Agro Shop Management"
           fill
           priority
           className="object-cover"
@@ -248,103 +258,80 @@ export default function LoginPage() {
           </div>
           <span className="font-bold text-xl">AgroBill</span>
         </Link>
-        
+
         <div className="w-full max-w-md mx-auto mt-12">
           <div className="mb-10">
             <h1 className="text-3xl font-bold mb-3">Sign in to AgroBill</h1>
             <div className="h-1 w-12 bg-green-500 rounded-full mb-3"></div>
             <p className="text-slate-500">Manage your agro business smarter, not harder</p>
           </div>
-          
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {error && (
-              <Alert variant="destructive" className="bg-red-50 text-red-800 border-l-4 border-red-500">
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
-            
-            <div className="space-y-1.5">
-              <Label htmlFor="number" className="text-sm font-medium text-slate-700">
-                Phone Number
-              </Label>
-              <div className="relative">
-                <Phone className="absolute left-3 top-3.5 h-5 w-5 text-slate-400" />
-                <Input
+
+          <Formik
+            initialValues={{ number: "", password: "" }}
+            validationSchema={loginSchema}
+            onSubmit={handleSubmit}
+          >
+            {() => (
+              <Form className="space-y-6">
+                {error && (
+                  <Alert variant="destructive" className="bg-red-50 text-red-800 border-l-4 border-red-500">
+                    <AlertDescription>{error}</AlertDescription>
+                  </Alert>
+                )}
+
+                <TextInput
                   id="number"
                   name="number"
                   type="tel"
                   placeholder="Enter your phone number"
-                  value={formData.number}
-                  onChange={handleChange}
-                  className={`pl-12 h-12 rounded-lg border-slate-200 bg-white focus:border-green-500 focus:ring-1 focus:ring-green-500 ${formErrors.number ? "border-red-500 focus:border-red-500 focus:ring-red-500" : ""}`}
+                  icon={Phone}
                 />
-              </div>
-              {formErrors.number && (
-                <p className="text-sm text-red-500 mt-1">{formErrors.number}</p>
-              )}
-            </div>
-            
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="password" className="text-sm font-medium text-slate-700">
-                  Password
-                </Label>
-                <Link href="/forgot-password" className="text-sm text-green-600 font-medium hover:text-green-700">
-                  Forgot password?
-                </Link>
-              </div>
-              <div className="relative">
-                <Lock className="absolute left-3 top-3.5 h-5 w-5 text-slate-400" />
-                <Input
+
+                <PasswordInput
                   id="password"
                   name="password"
-                  type="password"
                   placeholder="Enter your password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  className={`pl-12 h-12 rounded-lg border-slate-200 bg-white focus:border-green-500 focus:ring-1 focus:ring-green-500 ${formErrors.password ? "border-red-500 focus:border-red-500 focus:ring-red-500" : ""}`}
+                  isPasswordVisible={isPasswordVisible}
+                  toggleVisibility={() => setIsPasswordVisible((prev) => !prev)}
                 />
-              </div>
-              {formErrors.password && (
-                <p className="text-sm text-red-500 mt-1">{formErrors.password}</p>
-              )}
-            </div>
-            
-            <Button 
-              type="submit" 
-              className="w-full h-12 rounded-lg font-medium text-white bg-green-600 hover:bg-green-700 transition-all shadow-lg shadow-green-600/30" 
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <div className="flex items-center justify-center gap-2">
-                  <div className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  <span>Signing In...</span>
-                </div>
-              ) : (
-                <div className="flex items-center justify-center gap-2">
-                  <span>Sign In</span>
-                  <ArrowRight className="h-4 w-4" />
-                </div>
-              )}
-            </Button>
-            
-            <div className="pt-4">
-              <div className="relative flex items-center">
-                <div className="flex-grow border-t border-slate-200"></div>
-                <span className="flex-shrink mx-3 text-slate-400 text-sm">Don't have an account?</span>
-                <div className="flex-grow border-t border-slate-200"></div>
-              </div>
-              
-              <div className="mt-4 text-center">
-                <Link 
-                  href="/register" 
-                  className="inline-flex items-center justify-center gap-2 px-5 py-2.5 border border-green-600 rounded-lg text-green-600 font-medium hover:bg-green-50 transition-colors"
+
+                <Button
+                  type="submit"
+                  className="w-full h-12 rounded-lg font-medium text-white bg-green-600 hover:bg-green-700 transition-all shadow-lg shadow-green-600/30"
+                  disabled={isLoading}
                 >
-                  Register Your Shop
-                </Link>
-              </div>
-            </div>
-          </form>
+                  {isLoading ? (
+                    <div className="flex items-center justify-center gap-2">
+                      <div className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      <span>Signing In...</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-center gap-2">
+                      <span>Sign In</span>
+                      <ArrowRight className="h-4 w-4" />
+                    </div>
+                  )}
+                </Button>
+
+                <div className="pt-4">
+                  <div className="relative flex items-center">
+                    <div className="flex-grow border-t border-slate-200"></div>
+                    <span className="flex-shrink mx-3 text-slate-400 text-sm">Don't have an account?</span>
+                    <div className="flex-grow border-t border-slate-200"></div>
+                  </div>
+
+                  <div className="mt-4 text-center">
+                    <Link
+                      href="/register"
+                      className="inline-flex items-center justify-center gap-2 px-5 py-2.5 border border-green-600 rounded-lg text-green-600 font-medium hover:bg-green-50 transition-colors"
+                    >
+                      Register Your Shop
+                    </Link>
+                  </div>
+                </div>
+              </Form>
+            )}
+          </Formik>
         </div>
       </div>
     </div>

@@ -260,6 +260,8 @@ import { useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
+import { Formik, Form, Field, ErrorMessage } from "formik"
+import * as Yup from "yup"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -272,75 +274,49 @@ import { serverRegister } from "@/services/serverApi"
 
 export default function RegisterPage() {
   const [activeTab, setActiveTab] = useState("owner")
-  const [ownerData, setOwnerData] = useState({
-    name: "",
-    email: "",
-    number: "",
-    password: "",
-    confirmPassword: "",
-  })
-  const [shopData, setShopData] = useState({
-    shopName: "",
-    address: "",
-    shopNumber: "",
-    shopEmail: "",
-    gst: "",
-  })
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
 
-  const handleOwnerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setOwnerData((prev) => ({ ...prev, [name]: value }))
-    if (error) setError(null)
-  }
+  // Validation schema using Yup
+  const validationSchema = Yup.object({
+    name: Yup.string().required("Full Name is required"),
+    email: Yup.string().email("Invalid email address").required("Email is required"),
+    number: Yup.string()
+      .matches(/^[0-9]+$/, "Phone number must be numeric")
+      .min(10, "Phone number must be at least 10 digits")
+      .required("Phone number is required"),
+    password: Yup.string()
+      .min(8, "Password must be at least 8 characters")
+      .required("Password is required"),
+    confirmPassword: Yup.string()
+      .oneOf([Yup.ref("password"), undefined], "Passwords must match")
+      .required("Confirm Password is required"),
+    shopName: Yup.string().required("Shop Name is required"),
+    address: Yup.string().required("Shop Address is required"),
+    shopNumber: Yup.string()
+      .matches(/^[0-9]+$/, "Shop phone number must be numeric")
+      .min(10, "Shop phone number must be at least 10 digits")
+      .required("Shop phone number is required"),
+    shopEmail: Yup.string().email("Invalid shop email address").required("Shop email is required"),
+    gst: Yup.string().required("GST Number is required")
+  })
 
-  const handleShopChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target
-    setShopData((prev) => ({ ...prev, [name]: value }))
-    if (error) setError(null)
-  }
-
-  const validateForm = () => {
-    // Password validation
-    if (ownerData.password !== ownerData.confirmPassword) {
-      setError("Passwords don't match")
-      return false
-    }
-    
-    if (ownerData.password.length < 8) {
-      setError("Password must be at least 8 characters")
-      return false
-    }
-    
-    return true
-  }
-
-  const nextStep = () => {
-    if (validateForm()) {
-      setActiveTab("shop")
-    }
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!validateForm()) return
-    
+  const handleSubmit = async (values: any) => {
     setIsLoading(true)
     setError(null)
 
     try {
       const bodyData = {
-        name: ownerData?.name,
-        email: ownerData?.email,
-        number: Number(ownerData?.number),
-        password: ownerData?.password,
-        shopName: shopData?.shopName,
-        address: shopData?.address,
-        shopNumber: Number(shopData?.shopNumber),
-        shopEmail: shopData?.shopEmail,
-        gst: shopData?.gst,
+        name: values?.name,
+        email: values?.email,
+        number: Number(values?.number),
+        password: values?.password,
+        shopName: values?.shopName,
+        address: values?.address,
+        shopNumber: Number(values?.shopNumber),
+        shopEmail: values?.shopEmail,
+        gst: values?.gst,
       }
       await serverRegister(bodyData)
       setIsLoading(false)
@@ -382,250 +358,254 @@ export default function RegisterPage() {
             <p className="text-slate-500">Register as a shop owner and start managing your agro business</p>
           </div>
           
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {error && (
-              <Alert variant="destructive" className="bg-red-50 text-red-800 border-l-4 border-red-500">
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
-            
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="owner">Owner Details</TabsTrigger>
-                <TabsTrigger value="shop">Shop Details</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="owner" className="space-y-5 pt-2">
-                <div className="space-y-1.5">
-                  <Label htmlFor="name" className="text-sm font-medium text-slate-700">
-                    Full Name
-                  </Label>
-                  <div className="relative">
-                    <User className="absolute left-3 top-3.5 h-5 w-5 text-slate-400" />
-                    <Input
-                      id="name"
-                      name="name"
-                      placeholder="John Doe"
-                      value={ownerData.name}
-                      onChange={handleOwnerChange}
-                      className="pl-12 h-12 rounded-lg border-slate-200 bg-white focus:border-green-500 focus:ring-1 focus:ring-green-500"
-                      required
-                    />
-                  </div>
-                </div>
+          <Formik
+            initialValues={{
+              name: "",
+              email: "",
+              number: "",
+              password: "",
+              confirmPassword: "",
+              shopName: "",
+              address: "",
+              shopNumber: "",
+              shopEmail: "",
+              gst: "",
+            }}
+            validationSchema={validationSchema}
+            onSubmit={handleSubmit}
+          >
+            {({ values, handleChange }) => (
+              <Form className="space-y-6">
+                {error && (
+                  <Alert variant="destructive" className="bg-red-50 text-red-800 border-l-4 border-red-500">
+                    <AlertDescription>{error}</AlertDescription>
+                  </Alert>
+                )}
                 
-                <div className="space-y-1.5">
-                  <Label htmlFor="email" className="text-sm font-medium text-slate-700">
-                    Email
-                  </Label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-3.5 h-5 w-5 text-slate-400" />
-                    <Input
-                      id="email"
-                      name="email"
-                      type="email"
-                      placeholder="name@example.com"
-                      value={ownerData.email}
-                      onChange={handleOwnerChange}
-                      className="pl-12 h-12 rounded-lg border-slate-200 bg-white focus:border-green-500 focus:ring-1 focus:ring-green-500"
-                      required
-                    />
-                  </div>
-                </div>
-                
-                <div className="space-y-1.5">
-                  <Label htmlFor="number" className="text-sm font-medium text-slate-700">
-                    Phone Number
-                  </Label>
-                  <div className="relative">
-                    <Phone className="absolute left-3 top-3.5 h-5 w-5 text-slate-400" />
-                    <Input
-                      id="number"
-                      name="number"
-                      placeholder="Enter your phone number"
-                      value={ownerData.number}
-                      onChange={handleOwnerChange}
-                      className="pl-12 h-12 rounded-lg border-slate-200 bg-white focus:border-green-500 focus:ring-1 focus:ring-green-500"
-                      required
-                    />
-                  </div>
-                </div>
-                
-                <div className="space-y-1.5">
-                  <Label htmlFor="password" className="text-sm font-medium text-slate-700">
-                    Password
-                  </Label>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-3.5 h-5 w-5 text-slate-400" />
-                    <Input
-                      id="password"
-                      name="password"
-                      type="password"
-                      placeholder="Create a strong password"
-                      value={ownerData.password}
-                      onChange={handleOwnerChange}
-                      className="pl-12 h-12 rounded-lg border-slate-200 bg-white focus:border-green-500 focus:ring-1 focus:ring-green-500"
-                      required
-                    />
-                  </div>
-                </div>
-                
-                <div className="space-y-1.5">
-                  <Label htmlFor="confirmPassword" className="text-sm font-medium text-slate-700">
-                    Confirm Password
-                  </Label>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-3.5 h-5 w-5 text-slate-400" />
-                    <Input
-                      id="confirmPassword"
-                      name="confirmPassword"
-                      type="password"
-                      placeholder="Confirm your password"
-                      value={ownerData.confirmPassword}
-                      onChange={handleOwnerChange}
-                      className="pl-12 h-12 rounded-lg border-slate-200 bg-white focus:border-green-500 focus:ring-1 focus:ring-green-500"
-                      required
-                    />
-                  </div>
-                </div>
-                
-                <Button 
-                  type="button" 
-                  onClick={nextStep}
-                  className="w-full h-12 mt-2 rounded-lg font-medium text-white bg-green-600 hover:bg-green-700 transition-all shadow-lg shadow-green-600/30"
-                >
-                  <div className="flex items-center justify-center gap-2">
-                    <span>Next: Shop Details</span>
-                    <ArrowRight className="h-4 w-4" />
-                  </div>
-                </Button>
-              </TabsContent>
-              
-              <TabsContent value="shop" className="space-y-5 pt-2">
-                <div className="space-y-1.5">
-                  <Label htmlFor="shopName" className="text-sm font-medium text-slate-700">
-                    Shop Name
-                  </Label>
-                  <div className="relative">
-                    <Building className="absolute left-3 top-3.5 h-5 w-5 text-slate-400" />
-                    <Input
-                      id="shopName"
-                      name="shopName"
-                      placeholder="Green Harvest Agro Shop"
-                      value={shopData.shopName}
-                      onChange={handleShopChange}
-                      className="pl-12 h-12 rounded-lg border-slate-200 bg-white focus:border-green-500 focus:ring-1 focus:ring-green-500"
-                      required
-                    />
-                  </div>
-                </div>
-                
-                <div className="space-y-1.5">
-                  <Label htmlFor="address" className="text-sm font-medium text-slate-700">
-                    Shop Address
-                  </Label>
-                  <div className="relative">
-                    <MapPin className="absolute left-3 top-3.5 h-5 w-5 text-slate-400" />
-                    <Textarea
-                      id="address"
-                      name="address"
-                      placeholder="123 Farm Road, Agricity"
-                      value={shopData.address}
-                      onChange={handleShopChange}
-                      className="pl-12 pt-3 min-h-[80px] rounded-lg border-slate-200 bg-white focus:border-green-500 focus:ring-1 focus:ring-green-500"
-                      required
-                    />
-                  </div>
-                </div>
-                
-                <div className="space-y-1.5">
-                  <Label htmlFor="shopNumber" className="text-sm font-medium text-slate-700">
-                    Shop Phone Number
-                  </Label>
-                  <div className="relative">
-                    <Phone className="absolute left-3 top-3.5 h-5 w-5 text-slate-400" />
-                    <Input
-                      id="shopNumber"
-                      name="shopNumber"
-                      placeholder="Enter shop phone number"
-                      value={shopData.shopNumber}
-                      onChange={handleShopChange}
-                      className="pl-12 h-12 rounded-lg border-slate-200 bg-white focus:border-green-500 focus:ring-1 focus:ring-green-500"
-                      required
-                    />
-                  </div>
-                </div>
-                
-                <div className="space-y-1.5">
-                  <Label htmlFor="shopEmail" className="text-sm font-medium text-slate-700">
-                    Shop Email
-                  </Label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-3.5 h-5 w-5 text-slate-400" />
-                    <Input
-                      id="shopEmail"
-                      name="shopEmail"
-                      type="email"
-                      placeholder="shop@example.com"
-                      value={shopData.shopEmail}
-                      onChange={handleShopChange}
-                      className="pl-12 h-12 rounded-lg border-slate-200 bg-white focus:border-green-500 focus:ring-1 focus:ring-green-500"
-                      required
-                    />
-                  </div>
-                </div>
-                
-                <div className="space-y-1.5">
-                  <Label htmlFor="gst" className="text-sm font-medium text-slate-700">
-                    GST Number (Optional)
-                  </Label>
-                  <Input
-                    id="gst"
-                    name="gst"
-                    placeholder="22AAAAA0000A1Z5"
-                    value={shopData.gst}
-                    onChange={handleShopChange}
-                    className="h-12 rounded-lg border-slate-200 bg-white focus:border-green-500 focus:ring-1 focus:ring-green-500"
-                  />
-                </div>
-                
-                <Button 
-                  type="submit" 
-                  className="w-full h-12 mt-3 rounded-lg font-medium text-white bg-green-600 hover:bg-green-700 transition-all shadow-lg shadow-green-600/30" 
-                  disabled={isLoading}
-                >
-                  {isLoading ? (
-                    <div className="flex items-center justify-center gap-2">
-                      <div className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                      <span>Creating Shop...</span>
-                    </div>
-                  ) : (
-                    <div className="flex items-center justify-center gap-2">
-                      <span>Create Your Shop</span>
-                      <ArrowRight className="h-4 w-4" />
-                    </div>
-                  )}
-                </Button>
-                
-                <div className="pt-4">
-                  <div className="relative flex items-center">
-                    <div className="flex-grow border-t border-slate-200"></div>
-                    <span className="flex-shrink mx-3 text-slate-400 text-sm">Already have an account?</span>
-                    <div className="flex-grow border-t border-slate-200"></div>
-                  </div>
+                <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="owner">Owner Details</TabsTrigger>
+                    <TabsTrigger value="shop">Shop Details</TabsTrigger>
+                  </TabsList>
                   
-                  <div className="mt-4 text-center">
-                    <Link 
-                      href="/login" 
-                      className="inline-flex items-center justify-center gap-2 px-5 py-2.5 border border-green-600 rounded-lg text-green-600 font-medium hover:bg-green-50 transition-colors"
+                  <TabsContent value="owner" className="space-y-5 pt-2">
+                    <div className="space-y-1.5">
+                      <Label htmlFor="name" className="text-sm font-medium text-slate-700">
+                        Full Name
+                      </Label>
+                      <div className="relative">
+                        <User className="absolute left-3 top-3.5 h-5 w-5 text-slate-400" />
+                        <Field
+                          id="name"
+                          name="name"
+                          placeholder="John Doe"
+                          className="w-full pl-12 h-12 rounded-lg border border-slate-300 bg-white focus:border-green-500 focus:ring-1 focus:ring-green-500"
+                        />
+                        <ErrorMessage name="name" component="div" className="text-red-500 text-sm mt-1" />
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-1.5">
+                      <Label htmlFor="email" className="text-sm font-medium text-slate-700">
+                        Email
+                      </Label>
+                      <div className="relative">
+                        <Mail className="absolute left-3 top-3.5 h-5 w-5 text-slate-400" />
+                        <Field
+                          id="email"
+                          name="email"
+                          type="email"
+                          placeholder="name@example.com"
+                          className="w-full pl-12 h-12 rounded-lg border border-slate-300 bg-white focus:border-green-500 focus:ring-1 focus:ring-green-500"
+                        />
+                        <ErrorMessage name="email" component="div" className="text-red-500 text-sm mt-1" />
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-1.5">
+                      <Label htmlFor="number" className="text-sm font-medium text-slate-700">
+                        Phone Number
+                      </Label>
+                      <div className="relative">
+                        <Phone className="absolute left-3 top-3.5 h-5 w-5 text-slate-400" />
+                        <Field
+                          id="number"
+                          name="number"
+                          placeholder="Enter your phone number"
+                          className="w-full pl-12 h-12 rounded-lg border border-slate-300 bg-white focus:border-green-500 focus:ring-1 focus:ring-green-500"
+                        />
+                        <ErrorMessage name="number" component="div" className="text-red-500 text-sm mt-1" />
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-1.5">
+                      <Label htmlFor="password" className="text-sm font-medium text-slate-700">
+                        Password
+                      </Label>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-3.5 h-5 w-5 text-slate-400" />
+                        <Field
+                          id="password"
+                          name="password"
+                          type="password"
+                          placeholder="Create a strong password"
+                          className="w-full pl-12 h-12 rounded-lg border border-slate-300 bg-white focus:border-green-500 focus:ring-1 focus:ring-green-500"
+                        />
+                        <ErrorMessage name="password" component="div" className="text-red-500 text-sm mt-1" />
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-1.5">
+                      <Label htmlFor="confirmPassword" className="text-sm font-medium text-slate-700">
+                        Confirm Password
+                      </Label>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-3.5 h-5 w-5 text-slate-400" />
+                        <Field
+                          id="confirmPassword"
+                          name="confirmPassword"
+                          type="password"
+                          placeholder="Confirm your password"
+                          className="w-full pl-12 h-12 rounded-lg border border-slate-300 bg-white focus:border-green-500 focus:ring-1 focus:ring-green-500"
+                        />
+                        <ErrorMessage name="confirmPassword" component="div" className="text-red-500 text-sm mt-1" />
+                      </div>
+                    </div>
+                    
+                    <Button 
+                      type="button" 
+                      onClick={() => setActiveTab("shop")}
+                      className="w-full h-12 mt-2 rounded-lg font-medium text-white bg-green-600 hover:bg-green-700 transition-all shadow-lg shadow-green-600/30"
                     >
-                      Sign In Instead
-                    </Link>
-                  </div>
-                </div>
-              </TabsContent>
-            </Tabs>
-          </form>
+                      <div className="flex items-center justify-center gap-2">
+                        <span>Next: Shop Details</span>
+                        <ArrowRight className="h-4 w-4" />
+                      </div>
+                    </Button>
+                  </TabsContent>
+                  
+                  <TabsContent value="shop" className="space-y-5 pt-2">
+                    <div className="space-y-1.5">
+                      <Label htmlFor="shopName" className="text-sm font-medium text-slate-700">
+                        Shop Name
+                      </Label>
+                      <div className="relative">
+                        <Building className="absolute left-3 top-3.5 h-5 w-5 text-slate-400" />
+                        <Field
+                          id="shopName"
+                          name="shopName"
+                          placeholder="Green Harvest Agro Shop"
+                          className="w-full pl-12 h-12 rounded-lg border border-slate-300 bg-white focus:border-green-500 focus:ring-1 focus:ring-green-500"
+                        />
+                        <ErrorMessage name="shopName" component="div" className="text-red-500 text-sm mt-1" />
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-1.5">
+                      <Label htmlFor="address" className="text-sm font-medium text-slate-700">
+                        Shop Address
+                      </Label>
+                      <div className="relative">
+                        <MapPin className="absolute left-3 top-3.5 h-5 w-5 text-slate-400" />
+                        <Field
+                          as="textarea"
+                          id="address"
+                          name="address"
+                          placeholder="123 Farm Road, Agricity"
+                          className="w-full pl-12 h-12 min-h-[100px] rounded-lg border border-slate-300 bg-white focus:border-green-500 focus:ring-1 focus:ring-green-500"
+                        />
+                        <ErrorMessage name="address" component="div" className="text-red-500 text-sm mt-1" />
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-1.5">
+                      <Label htmlFor="shopNumber" className="text-sm font-medium text-slate-700">
+                        Shop Phone Number
+                      </Label>
+                      <div className="relative">
+                        <Phone className="absolute left-3 top-3.5 h-5 w-5 text-slate-400" />
+                        <Field
+                          id="shopNumber"
+                          name="shopNumber"
+                          placeholder="Enter shop phone number"
+                          className="w-full pl-12 h-12 rounded-lg border border-slate-300 bg-white focus:border-green-500 focus:ring-1 focus:ring-green-500"
+                        />
+                        <ErrorMessage name="shopNumber" component="div" className="text-red-500 text-sm mt-1" />
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-1.5">
+                      <Label htmlFor="shopEmail" className="text-sm font-medium text-slate-700">
+                        Shop Email
+                      </Label>
+                      <div className="relative">
+                        <Mail className="absolute left-3 top-3.5 h-5 w-5 text-slate-400" />
+                        <Field
+                          id="shopEmail"
+                          name="shopEmail"
+                          type="email"
+                          placeholder="shop@example.com"
+                          className="w-full pl-12 h-12 rounded-lg border border-slate-300 bg-white focus:border-green-500 focus:ring-1 focus:ring-green-500"
+                        />
+                        <ErrorMessage name="shopEmail" component="div" className="text-red-500 text-sm mt-1" />
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-1.5">
+                      <Label htmlFor="gst" className="text-sm font-medium text-slate-700">
+                        GST Number
+                      </Label>
+                      <div className="relative">
+                        <Building className="absolute left-3 top-3.5 h-5 w-5 text-slate-400" />
+                        <Field
+                          id="gst"
+                          name="gst"
+                          placeholder="22AAAAA0000A1Z5"
+                          className="w-full pl-12 h-12 rounded-lg border border-slate-300 bg-white focus:border-green-500 focus:ring-1 focus:ring-green-500"
+                        />
+                      </div>
+                      <ErrorMessage name="gst" component="div" className="text-red-500 text-sm mt-1" />
+                    </div>
+                    
+                    <Button 
+                      type="submit" 
+                      className="w-full h-12 mt-3 rounded-lg font-medium text-white bg-green-600 hover:bg-green-700 transition-all shadow-lg shadow-green-600/30" 
+                      disabled={isLoading}
+                    >
+                      {isLoading ? (
+                        <div className="flex items-center justify-center gap-2">
+                          <div className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                          <span>Creating Shop...</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center justify-center gap-2">
+                          <span>Create Your Shop</span>
+                          <ArrowRight className="h-4 w-4" />
+                        </div>
+                      )}
+                    </Button>
+                    
+                    <div className="pt-4">
+                      <div className="relative flex items-center">
+                        <div className="flex-grow border-t border-slate-200"></div>
+                        <span className="flex-shrink mx-3 text-slate-400 text-sm">Already have an account?</span>
+                        <div className="flex-grow border-t border-slate-200"></div>
+                      </div>
+                      
+                      <div className="mt-4 text-center">
+                        <Link 
+                          href="/login" 
+                          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 border border-green-600 rounded-lg text-green-600 font-medium hover:bg-green-50 transition-colors"
+                        >
+                          Sign In Instead
+                        </Link>
+                      </div>
+                    </div>
+                  </TabsContent>
+                </Tabs>
+              </Form>
+            )}
+          </Formik>
         </div>
       </div>
     </div>
