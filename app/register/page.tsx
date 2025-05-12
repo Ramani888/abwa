@@ -266,15 +266,18 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { ShoppingBag, ArrowRight, User, Mail, Phone, Lock, Building, MapPin } from "lucide-react"
+import { ShoppingBag, ArrowRight, User, Mail, Phone, Lock, Building, MapPin, EyeOff, Eye } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import RegisterImage from "@/assets/images/Galcon_Login_Image.png"
 import { serverRegister } from "@/services/serverApi"
+import { is } from "date-fns/locale"
 
 export default function RegisterPage() {
   const [activeTab, setActiveTab] = useState("owner")
   const [isLoading, setIsLoading] = useState(false)
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false)
+  const [isConfirmPasswordVisible, setIsConfirmPasswordVisible] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
 
@@ -447,10 +450,17 @@ export default function RegisterPage() {
                         <Field
                           id="password"
                           name="password"
-                          type="password"
+                          type={isPasswordVisible ? "text" : "password"}
                           placeholder="Create a strong password"
                           className="w-full pl-12 h-12 rounded-lg border border-slate-300 bg-white focus:border-green-500 focus:ring-1 focus:ring-green-500"
                         />
+                        <button
+                          type="button"
+                          onClick={() => setIsPasswordVisible(!isPasswordVisible)}
+                          className="absolute right-3 top-3.5 text-slate-400 hover:text-slate-600"
+                        >
+                          {isPasswordVisible ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                        </button>
                         <ErrorMessage name="password" component="div" className="text-red-500 text-sm mt-1" />
                       </div>
                     </div>
@@ -464,10 +474,17 @@ export default function RegisterPage() {
                         <Field
                           id="confirmPassword"
                           name="confirmPassword"
-                          type="password"
+                          type={isConfirmPasswordVisible ? "text" : "password"}
                           placeholder="Confirm your password"
                           className="w-full pl-12 h-12 rounded-lg border border-slate-300 bg-white focus:border-green-500 focus:ring-1 focus:ring-green-500"
                         />
+                        <button
+                          type="button"
+                          onClick={() => setIsConfirmPasswordVisible(!isConfirmPasswordVisible)}
+                          className="absolute right-3 top-3.5 text-slate-400 hover:text-slate-600"
+                        >
+                          {isPasswordVisible ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                        </button>
                         <ErrorMessage name="confirmPassword" component="div" className="text-red-500 text-sm mt-1" />
                       </div>
                     </div>
