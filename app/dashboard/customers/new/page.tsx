@@ -2,7 +2,8 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { Formik, Form, Field, ErrorMessage } from "formik"
+import * as Yup from "yup"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -11,12 +12,13 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ArrowLeft } from "lucide-react"
-import { set } from "date-fns"
+import { ArrowLeft, User, Mail, Phone, MapPin, DollarSign, FileText } from "lucide-react"
 import { serverAddCustomer } from "@/services/serverApi"
 
 export default function NewCustomerPage() {
-  const [formData, setFormData] = useState({
+  const router = useRouter()
+
+  const initialValues = {
     name: "",
     email: "",
     number: "",
@@ -25,32 +27,40 @@ export default function NewCustomerPage() {
     gstNumber: "",
     creditLimit: "",
     paymentTerms: "cod",
+  }
+
+  const validationSchema = Yup.object({
+    name: Yup.string().required("Full Name is required"),
+    email: Yup.string().email("Invalid email address").required("Email is required"),
+    number: Yup.string()
+      .matches(/^\d{10}$/, "Phone number must be exactly 10 digits")
+      .required("Phone Number is required"),
+    address: Yup.string().required("Address is required"),
+    gstNumber: Yup.string().when("customerType", {
+      is: "wholesale",
+      then: (schema) => schema.required("GST Number is required for wholesale customers"),
+    }),
+    creditLimit: Yup.number().when("customerType", {
+      is: (value: string) => value === "wholesale",
+      then: (schema) => schema.required("Credit Limit is required for wholesale customers"),
+    }),
+    paymentTerms: Yup.string().required("Payment Terms are required"),
   })
-  const [isLoading, setIsLoading] = useState(false)
-  const router = useRouter()
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
-  }
-
-  const handleSelectChange = (name: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [name]: value }))
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSubmit = async (values: typeof initialValues, { setSubmitting }: { setSubmitting: (isSubmitting: boolean) => void }) => {
     try {
-      setIsLoading(true)
-      const res = await serverAddCustomer({...formData, number: Number(formData.number), creditLimit: Number(formData.creditLimit)});
-      console.log("Customer created successfully:", res)
+      const res = await serverAddCustomer({
+        ...values,
+        number: Number(values.number),
+        creditLimit: Number(values.creditLimit),
+      })
       if (res?.success) {
         router.push("/dashboard/customers")
       }
-      setIsLoading(false)
     } catch (error) {
       console.error("Error creating customer:", error)
-      setIsLoading(false)
+    } finally {
+      setSubmitting(false)
     }
   }
 
@@ -64,137 +74,171 @@ export default function NewCustomerPage() {
       </div>
 
       <Card className="w-full">
-        <form onSubmit={handleSubmit}>
-          <CardHeader>
-            <CardTitle>Customer Information</CardTitle>
-            <CardDescription>Add a new customer to your agro shop</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="customerType">Customer Type</Label>
-              <RadioGroup
-                value={formData.customerType}
-                onValueChange={(value) => handleSelectChange("customerType", value)}
-                className="flex flex-col space-y-1"
-              >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="retail" id="retail" />
-                  <Label htmlFor="retail">Retail Customer</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="wholesale" id="wholesale" />
-                  <Label htmlFor="wholesale">Wholesale Customer</Label>
-                </div>
-              </RadioGroup>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="name">Full Name</Label>
-              <Input
-                id="name"
-                name="name"
-                placeholder="John Doe"
-                value={formData.name}
-                onChange={handleChange}
-                required
-              />
-            </div>
-
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  placeholder="john@example.com"
-                  value={formData.email}
-                  onChange={handleChange}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="number">Phone Number</Label>
-                <Input
-                  id="number"
-                  name="number"
-                  type="number"
-                  placeholder="+91 9876543210"
-                  value={formData.number}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="address">Address</Label>
-              <Textarea
-                id="address"
-                name="address"
-                placeholder="123 Main St, City"
-                value={formData.address}
-                onChange={handleChange}
-                required
-              />
-            </div>
-
-            {formData.customerType === "wholesale" && (
-              <>
+        <Formik initialValues={initialValues} validationSchema={validationSchema} onSubmit={handleSubmit}>
+          {({ values, setFieldValue, isSubmitting }) => (
+            <Form>
+              <CardHeader>
+                <CardTitle>Customer Information</CardTitle>
+                <CardDescription>Add a new customer to your agro shop</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="gstNumber">GST Number</Label>
-                  <Input
-                    id="gstNumber"
-                    name="gstNumber"
-                    placeholder="22AAAAA0000A1Z5"
-                    value={formData.gstNumber}
-                    onChange={handleChange}
-                  />
+                  <Label htmlFor="customerType">Customer Type</Label>
+                  <RadioGroup
+                    value={values.customerType}
+                    onValueChange={(value) => setFieldValue("customerType", value)}
+                    className="flex flex-col space-y-1"
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="retail" id="retail" />
+                      <Label htmlFor="retail">Retail Customer</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="wholesale" id="wholesale" />
+                      <Label htmlFor="wholesale">Wholesale Customer</Label>
+                    </div>
+                  </RadioGroup>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="name">Full Name</Label>
+                  <div className="relative">
+                    <Field
+                      as={Input}
+                      id="name"
+                      name="name"
+                      placeholder="John Doe"
+                      className="pl-10"
+                    />
+                    <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+                  </div>
+                  <ErrorMessage name="name" component="p" className="text-red-500 text-sm" />
                 </div>
 
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="creditLimit">Credit Limit (₹)</Label>
-                    <Input
-                      id="creditLimit"
-                      name="creditLimit"
-                      type="number"
-                      placeholder="10000"
-                      value={formData.creditLimit}
-                      onChange={handleChange}
-                    />
+                    <Label htmlFor="email">Email</Label>
+                    <div className="relative">
+                      <Field
+                        as={Input}
+                        id="email"
+                        name="email"
+                        type="email"
+                        placeholder="john@example.com"
+                        className="pl-10"
+                      />
+                      <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+                    </div>
+                    <ErrorMessage name="email" component="p" className="text-red-500 text-sm" />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="paymentTerms">Payment Terms</Label>
-                    <Select
-                      value={formData.paymentTerms}
-                      onValueChange={(value) => handleSelectChange("paymentTerms", value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select payment terms" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="cod">Cash on Delivery</SelectItem>
-                        <SelectItem value="net15">Net 15 Days</SelectItem>
-                        <SelectItem value="net30">Net 30 Days</SelectItem>
-                        <SelectItem value="net45">Net 45 Days</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <Label htmlFor="number">Phone Number</Label>
+                    <div className="relative">
+                      <Field
+                        as={Input}
+                        id="number"
+                        name="number"
+                        type="number"
+                        placeholder="+91 9876543210"
+                        className="pl-10"
+                      />
+                      <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+                    </div>
+                    <ErrorMessage name="number" component="p" className="text-red-500 text-sm" />
                   </div>
                 </div>
-              </>
-            )}
-          </CardContent>
-          <CardFooter className="flex justify-between">
-            <Button type="button" variant="outline" onClick={() => router.back()}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={isLoading}>
-              {isLoading ? "Adding..." : "Add Customer"}
-            </Button>
-          </CardFooter>
-        </form>
+
+                <div className="space-y-2">
+                  <Label htmlFor="address">Address</Label>
+                  <div className="relative">
+                    <Field
+                      as={Textarea}
+                      id="address"
+                      name="address"
+                      placeholder="123 Main St, City"
+                      className="pl-10"
+                    />
+                    <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-500" />
+                  </div>
+                  <ErrorMessage name="address" component="p" className="text-red-500 text-sm" />
+                </div>
+
+                {values.customerType === "wholesale" && (
+                  <>
+                    <div className="space-y-2">
+                      <Label htmlFor="gstNumber">GST Number</Label>
+                      <div className="relative">
+                        <Field
+                          as={Input}
+                          id="gstNumber"
+                          name="gstNumber"
+                          placeholder="22AAAAA0000A1Z5"
+                          className="pl-10"
+                        />
+                        <FileText className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+                      </div>
+                      <ErrorMessage name="gstNumber" component="p" className="text-red-500 text-sm" />
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label htmlFor="creditLimit">Credit Limit (₹)</Label>
+                        <div className="relative">
+                          <Field
+                            as={Input}
+                            id="creditLimit"
+                            name="creditLimit"
+                            type="number"
+                            placeholder="10000"
+                            className="pl-10"
+                          />
+                          <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+                        </div>
+                        <ErrorMessage name="creditLimit" component="p" className="text-red-500 text-sm" />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="paymentTerms">Payment Terms</Label>
+                        <Select
+                          value={values.paymentTerms}
+                          onValueChange={(value) => setFieldValue("paymentTerms", value)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select payment terms" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="cod">Cash on Delivery</SelectItem>
+                            <SelectItem value="net15">Net 15 Days</SelectItem>
+                            <SelectItem value="net30">Net 30 Days</SelectItem>
+                            <SelectItem value="net45">Net 45 Days</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </CardContent>
+              <CardFooter className="flex justify-between">
+                <Button type="button" variant="outline" onClick={() => router.back()}>
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={isSubmitting}>
+                  {isSubmitting ? (
+                    <div className="flex items-center justify-center gap-2">
+                      <div className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      <span>Adding....</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-center gap-2">
+                      <span>Add Customer</span>
+                    </div>
+                  )}
+                </Button>
+              </CardFooter>
+            </Form>
+          )}
+        </Formik>
       </Card>
     </div>
   )
