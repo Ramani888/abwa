@@ -9,9 +9,11 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { ArrowLeft } from "lucide-react"
+import { ArrowLeft, FileText, Tag } from "lucide-react"
 import { Switch } from "@/components/ui/switch"
 import { serverGetCategory, serverUpdateCategory } from "@/services/serverApi"
+import { Formik, Form, Field, ErrorMessage } from "formik"
+import * as Yup from "yup"
 
 export default function EditCategoryPage({ params }: { params: { id: string } }) {
   const [formData, setFormData] = useState({
@@ -23,6 +25,12 @@ export default function EditCategoryPage({ params }: { params: { id: string } })
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const router = useRouter()
+
+  const validationSchema = Yup.object({
+    name: Yup.string().required("Category name is required"),
+    description: Yup.string().required("Description is required"),
+    isActive: Yup.boolean(),
+  })
 
   useEffect(() => {
     const fetchCategory = async () => {
@@ -47,31 +55,6 @@ export default function EditCategoryPage({ params }: { params: { id: string } })
     fetchCategory();
   }, [params.id]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
-  }
-
-  const handleSwitchChange = (checked: boolean) => {
-    setFormData((prev) => ({ ...prev, isActive: checked }))
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
-    try {
-      setIsSaving(true)
-      const res = await serverUpdateCategory({...formData});
-      if (res?.success) {
-        router.push(`/dashboard/categories`)
-      }
-      setIsSaving(false)
-    } catch (error) {
-      setIsSaving(false)
-      console.error("Error updating category:", error)
-    }
-  }
-
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-[50vh]">
@@ -93,50 +76,92 @@ export default function EditCategoryPage({ params }: { params: { id: string } })
       </div>
 
       <Card className="w-full">
-        <form onSubmit={handleSubmit}>
-          <CardHeader>
-            <CardTitle>Category Information</CardTitle>
-            <CardDescription>Update the category details</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">Category Name</Label>
-              <Input
-                id="name"
-                name="name"
-                placeholder="Fertilizers"
-                value={formData.name}
-                onChange={handleChange}
-                required
-              />
-            </div>
+        <Formik
+          enableReinitialize // Allows Formik to update initialValues when they change
+          initialValues={formData} // Use formData as initialValues
+          validationSchema={validationSchema}
+          onSubmit={async (values, { setSubmitting }) => {
+            try {
+              setIsSaving(true);
+              const res = await serverUpdateCategory(values); // Use Formik's values
+              if (res?.success) {
+                router.push(`/dashboard/categories`);
+              }
+            } catch (error) {
+              console.error("Error updating category:", error);
+            } finally {
+              setIsSaving(false);
+              setSubmitting(false);
+            }
+          }}
+        >
+          {({ isSubmitting, values, setFieldValue }) => (
+            <Form>
+              <CardHeader>
+                <CardTitle>Category Information</CardTitle>
+                <CardDescription>Update the category details</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Category Name</Label>
+                  <div className="relative">
+                    <Field
+                      as={Input}
+                      id="name"
+                      name="name"
+                      placeholder="Fertilizers"
+                      className="pl-10"
+                    />
+                    <Tag className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+                  </div>
+                  <ErrorMessage name="name" component="div" className="text-red-500 text-sm" />
+                </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                name="description"
-                placeholder="All types of fertilizers for crops"
-                value={formData.description}
-                onChange={handleChange}
-                rows={3}
-              />
-            </div>
+                <div className="space-y-2">
+                  <Label htmlFor="description">Description</Label>
+                  <div className="relative">
+                    <Field
+                      as={Textarea}
+                      id="description"
+                      name="description"
+                      placeholder="All types of fertilizers for crops"
+                      rows={3}
+                      className="pl-10"
+                    />
+                    <FileText className="absolute left-3 top-3 h-4 w-4 text-gray-500" />
+                  </div>
+                  <ErrorMessage name="description" component="div" className="text-red-500 text-sm" />
+                </div>
 
-            <div className="flex items-center space-x-2">
-              <Switch id="isActive" checked={formData.isActive} onCheckedChange={handleSwitchChange} />
-              <Label htmlFor="isActive">Active</Label>
-            </div>
-          </CardContent>
-          <CardFooter className="flex justify-between">
-            <Button type="button" variant="outline" onClick={() => router.back()}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={isSaving}>
-              {isSaving ? "Saving..." : "Save Changes"}
-            </Button>
-          </CardFooter>
-        </form>
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="isActive"
+                    checked={values.isActive}
+                    onCheckedChange={(checked) => setFieldValue("isActive", checked)}
+                  />
+                  <Label htmlFor="isActive">Active</Label>
+                </div>
+              </CardContent>
+              <CardFooter className="flex justify-between">
+                <Button type="button" variant="outline" onClick={() => router.back()}>
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={isSaving}>
+                  {isSaving ? (
+                    <div className="flex items-center justify-center gap-2">
+                      <div className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      <span>Saving....</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-center gap-2">
+                      <span>Save Changes</span>
+                    </div>
+                  )}
+                </Button>
+              </CardFooter>
+            </Form>
+          )}
+        </Formik>
       </Card>
     </div>
   )
