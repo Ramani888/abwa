@@ -22,6 +22,7 @@ export default function UserPermissionsPage({ params }: { params: { id: string }
   const [user, setUser] = useState<any>(null)
   const [permissions, setPermissions] = useState<Permission[]>([]);
   const [isLoading, setIsLoading] = useState(true)
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const [formData, setFormData] = useState({
     selectedPermissions: [] as string[] // Store selected permission IDs
   })
@@ -91,17 +92,17 @@ export default function UserPermissionsPage({ params }: { params: { id: string }
     e.preventDefault()
     
     try {
-      setIsLoading(true)
+      setIsSubmitting(true)
       const finalData = {
         ...user,
         permissionIds: formData?.selectedPermissions,
       }
       await serverUpdateUser(finalData);
-      setIsLoading(false)
+      setIsSubmitting(false)
       router.push("/dashboard/users")
     } catch (error) {
       console.error("Error update user:", error)
-      setIsLoading(false)
+      setIsSubmitting(false)
     }
   }
 
@@ -192,8 +193,17 @@ export default function UserPermissionsPage({ params }: { params: { id: string }
             <Button type="button" variant="outline" onClick={() => router.back()}>
               Cancel
             </Button>
-            <Button type="submit" disabled={isLoading}>
-              {isLoading ? "Saving..." : "Save Permissions"}
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? (
+                <div className="flex items-center justify-center gap-2">
+                  <div className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <span>Saving....</span>
+                </div>
+              ) : (
+                <div className="flex items-center justify-center gap-2">
+                  <span>Save Permissions</span>
+                </div>
+              )}
             </Button>
           </CardFooter>
         </form>

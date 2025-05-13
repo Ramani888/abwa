@@ -1,26 +1,32 @@
-"use client"
+"use client";
 
-import type React from "react"
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { Formik, Field, Form, ErrorMessage } from "formik";
+import * as Yup from "yup";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { ArrowLeft, Lock } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { serverGetUser, serverUpdateUserPassword } from "@/services/serverApi";
 
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { ArrowLeft } from "lucide-react"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { serverGetUser, serverUpdateUserPassword } from "@/services/serverApi"
+// Validation schema
+const validationSchema = Yup.object({
+  newPassword: Yup.string()
+    .min(6, "Password must be at least 6 characters long")
+    .required("New Password is required"),
+  confirmPassword: Yup.string()
+    .oneOf([Yup.ref("newPassword"), undefined], "Passwords does not match")
+    .required("Confirm Password is required"),
+});
 
 export default function ResetPasswordPage({ params }: { params: { id: string } }) {
-  const [user, setUser] = useState<any>(null)
-  const [formData, setFormData] = useState({
-    newPassword: "",
-    confirmPassword: "",
-  })
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState("")
-  const router = useRouter()
+  const [user, setUser] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
+  const router = useRouter();
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -29,50 +35,33 @@ export default function ResetPasswordPage({ params }: { params: { id: string } }
         const userData = res?.data?.find((user: any) => user?._id === params?.id);
 
         setUser(userData);
-  
         setIsLoading(false);
       } catch (error) {
         console.error("Error fetching user:", error);
         setIsLoading(false);
       }
     };
-  
+
     fetchUser();
   }, [params.id]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError("")
-
-    if (formData.newPassword !== formData.confirmPassword) {
-      setError("Passwords do not match")
-      return
-    }
-
-    if (formData.newPassword.length < 8) {
-      setError("Password must be at least 8 characters long")
-      return
-    }
+  const handleSubmit = async (values: { newPassword: string; confirmPassword: string }, { setSubmitting }: { setSubmitting: (isSubmitting: boolean) => void }) => {
+    setError("");
 
     try {
-      setIsLoading(true)
       const finalData = {
         _id: user?._id?.toString(),
-        password: formData?.newPassword,
-      }
+        password: values.newPassword,
+      };
       await serverUpdateUserPassword(finalData);
-      setIsLoading(false)
-      router.push("/dashboard/users")
+      setSubmitting(false);
+      router.push("/dashboard/users");
     } catch (error) {
-      console.error("Error update user:", error)
-      setIsLoading(false)
+      console.error("Error updating user password:", error);
+      setError("An error occurred while updating the password.");
+      setSubmitting(false);
     }
-  }
+  };
 
   if (isLoading) {
     return (
@@ -82,7 +71,7 @@ export default function ResetPasswordPage({ params }: { params: { id: string } }
           <p className="mt-2">Loading user data...</p>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -95,53 +84,79 @@ export default function ResetPasswordPage({ params }: { params: { id: string } }
       </div>
 
       <Card className="w-full">
-        <form onSubmit={handleSubmit}>
-          <CardHeader>
-            <CardTitle>Reset Password for {user.name}</CardTitle>
-            <CardDescription>Set a new password for this user account</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {error && (
-              <Alert variant="destructive">
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
+        <Formik
+          initialValues={{
+            newPassword: "",
+            confirmPassword: "",
+          }}
+          validationSchema={validationSchema}
+          onSubmit={handleSubmit}
+        >
+          {({ isSubmitting }) => (
+            <Form>
+              <CardHeader>
+                <CardTitle>Reset Password for {user?.name}</CardTitle>
+                <CardDescription>Set a new password for this user account</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {error && (
+                  <Alert variant="destructive">
+                    <AlertDescription>{error}</AlertDescription>
+                  </Alert>
+                )}
 
-            <div className="space-y-2">
-              <Label htmlFor="newPassword">New Password</Label>
-              <Input
-                id="newPassword"
-                name="newPassword"
-                type="password"
-                value={formData.newPassword}
-                onChange={handleChange}
-                required
-              />
-            </div>
+                <div className="space-y-2">
+                  <Label htmlFor="newPassword">New Password</Label>
+                  <div className="relative">
+                    <Field
+                      as={Input}
+                      id="newPassword"
+                      name="newPassword"
+                      type="password"
+                      placeholder="Enter new password"
+                      className="pl-10"
+                    />
+                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+                  </div>
+                  <ErrorMessage name="newPassword" component="p" className="text-red-500 text-sm" />
+                </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm Password</Label>
-              <Input
-                id="confirmPassword"
-                name="confirmPassword"
-                type="password"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                required
-              />
-            </div>
-          </CardContent>
-          <CardFooter className="flex justify-between">
-            <Button type="button" variant="outline" onClick={() => router.back()}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={isLoading}>
-              {isLoading ? "Resetting..." : "Reset Password"}
-            </Button>
-          </CardFooter>
-        </form>
+                <div className="space-y-2">
+                  <Label htmlFor="confirmPassword">Confirm Password</Label>
+                  <div className="relative">
+                    <Field
+                      as={Input}
+                      id="confirmPassword"
+                      name="confirmPassword"
+                      type="password"
+                      placeholder="Confirm new password"
+                      className="pl-10"
+                    />
+                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+                  </div>
+                  <ErrorMessage name="confirmPassword" component="p" className="text-red-500 text-sm" />
+                </div>
+              </CardContent>
+              <CardFooter className="flex justify-between">
+                <Button type="button" variant="outline" onClick={() => router.back()}>
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={isSubmitting}>
+                  {isSubmitting ? (
+                    <div className="flex items-center justify-center gap-2">
+                      <div className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      <span>Saving...</span>
+                    </div>
+                  ) : (
+                    <span>Save Password</span>
+                  )}
+                </Button>
+              </CardFooter>
+            </Form>
+          )}
+        </Formik>
       </Card>
     </div>
-  )
+  );
 }
 
