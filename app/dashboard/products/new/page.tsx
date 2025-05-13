@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ArrowLeft } from "lucide-react"
-import { serverAddProduct, serverGetCategory } from "@/services/serverApi"
+import { serverAddProduct, serverGetActiveCategory } from "@/services/serverApi"
 import { ICategory } from "@/types/category"
 
 export default function NewProductPage() {
@@ -60,7 +60,7 @@ export default function NewProductPage() {
   const getCustomerData = async () => {
     try {
       setIsLoading(true)
-      const res = await serverGetCategory();
+      const res = await serverGetActiveCategory();
       setCategoryData(res?.data)
       setIsLoading(false)
     } catch (error) {

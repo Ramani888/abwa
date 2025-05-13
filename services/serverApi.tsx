@@ -133,6 +133,10 @@ export const serverDeleteCustomer = async (_id: string) => {
 export const serverGetCategory = async () => {
   return await serverRequest(`/category`, "GET", null, true);
 };
+
+export const serverGetActiveCategory = async () => {
+  return await serverRequest(`/category/active`, "GET", null, true);
+};
  
 export const serverAddCategory = async (data: ICategory) => {
   return await serverRequest(`/category`, "POST", data, true);
