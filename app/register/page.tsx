@@ -529,8 +529,9 @@ export default function RegisterPage() {
                           id="address"
                           name="address"
                           placeholder="123 Farm Road, Agricity"
-                          className="w-full pl-12 h-12 min-h-[100px] rounded-lg border border-slate-300 bg-white focus:border-green-500 focus:ring-1 focus:ring-green-500"
+                          className="w-full pl-12 pt-3 pr-3 pb-3 h-12 min-h-[100px] rounded-lg border border-slate-300 bg-white focus:border-green-500 focus:ring-1 focus:ring-green-500"
                         />
+
                         <ErrorMessage name="address" component="div" className="text-red-500 text-sm mt-1" />
                       </div>
                     </div>
