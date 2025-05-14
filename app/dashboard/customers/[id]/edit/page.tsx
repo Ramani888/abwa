@@ -13,7 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "@/components/ui/use-toast";
-import { ArrowLeft, Mail, Phone, MapPin, User, DollarSign, FileText } from "lucide-react";
+import { ArrowLeft, Mail, Phone, MapPin, User, DollarSign, FileText, List } from "lucide-react";
 import { serverGetCustomers, serverUpdateCustomer } from "@/services/serverApi";
 
 interface CustomerData {
@@ -308,20 +308,23 @@ export default function EditCustomerPage({ params }: { params: { id: string } })
 
                       <div className="space-y-2">
                         <Label htmlFor="paymentTerms">Payment Terms</Label>
-                        <Select
-                          value={values.paymentTerms}
-                          onValueChange={(value) => setFieldValue("paymentTerms", value)}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select payment terms" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="cod">Cash on Delivery</SelectItem>
-                            <SelectItem value="net15">Net 15 Days</SelectItem>
-                            <SelectItem value="net30">Net 30 Days</SelectItem>
-                            <SelectItem value="net45">Net 45 Days</SelectItem>
-                          </SelectContent>
-                        </Select>
+                        <div className="relative">
+                          <List className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+                          <Select
+                            value={values.paymentTerms}
+                            onValueChange={(value) => setFieldValue("paymentTerms", value)}
+                          >
+                            <SelectTrigger className="pl-10">
+                              <SelectValue placeholder="Select payment terms" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="cod">Cash on Delivery</SelectItem>
+                              <SelectItem value="net15">Net 15 Days</SelectItem>
+                              <SelectItem value="net30">Net 30 Days</SelectItem>
+                              <SelectItem value="net45">Net 45 Days</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
                       </div>
                     </div>
                   </>

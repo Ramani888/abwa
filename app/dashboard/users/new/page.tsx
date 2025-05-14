@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ArrowLeft, Loader2, User, Mail, Phone } from "lucide-react";
+import { ArrowLeft, Loader2, User, Mail, Phone, List } from "lucide-react";
 import { serverGetAllPermission, serverGetAllRole, serverInsertUser } from "@/services/serverApi";
 import { IRole } from "@/types/user";
 
@@ -208,21 +208,24 @@ export default function NewUserPage() {
 
                   <div className="space-y-2">
                     <Label htmlFor="role">Role</Label>
-                    <Select
-                      value={values.role}
-                      onValueChange={(value) => setFieldValue("role", value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select role" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {role?.map((item) => (
-                          <SelectItem key={item?._id} value={item?._id}>
-                            {item?.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <div className="relative">
+                      <List className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+                      <Select
+                        value={values.role}
+                        onValueChange={(value) => setFieldValue("role", value)}
+                      >
+                        <SelectTrigger className="pl-10">
+                          <SelectValue placeholder="Select role" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {role?.map((item) => (
+                            <SelectItem key={item?._id} value={item?._id}>
+                              {item?.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                     <ErrorMessage name="role" component="p" className="text-red-500 text-sm" />
                   </div>
 

@@ -147,6 +147,7 @@ import { useAuth } from "@/components/auth-provider"
 import LoginImage from "@/assets/images/Galcon_Login_Image.png"
 import { Formik, Form, Field, ErrorMessage } from "formik"
 import * as Yup from "yup"
+import { Input } from "@/components/ui/input"
 
 // Validation schema using Yup
 const loginSchema = Yup.object().shape({
@@ -167,6 +168,7 @@ const TextInput = ({ id, name, type, placeholder, icon: Icon }: any) => (
     <div className="relative">
       {Icon && <Icon className="absolute left-3 top-3.5 h-5 w-5 text-slate-400" />}
       <Field
+        as={Input}
         id={id}
         name={name}
         type={type}
@@ -192,6 +194,7 @@ const PasswordInput = ({ id, name, placeholder, isPasswordVisible, toggleVisibil
     <div className="relative">
       <Lock className="absolute left-3 top-3.5 h-5 w-5 text-slate-400" />
       <Field
+        as={Input}
         id={id}
         name={name}
         type={isPasswordVisible ? "text" : "password"}

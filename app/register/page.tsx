@@ -399,6 +399,7 @@ export default function RegisterPage() {
                       <div className="relative">
                         <User className="absolute left-3 top-3.5 h-5 w-5 text-slate-400" />
                         <Field
+                          as={Input}
                           id="name"
                           name="name"
                           placeholder="John Doe"
@@ -415,6 +416,7 @@ export default function RegisterPage() {
                       <div className="relative">
                         <Mail className="absolute left-3 top-3.5 h-5 w-5 text-slate-400" />
                         <Field
+                          as={Input}
                           id="email"
                           name="email"
                           type="email"
@@ -432,6 +434,7 @@ export default function RegisterPage() {
                       <div className="relative">
                         <Phone className="absolute left-3 top-3.5 h-5 w-5 text-slate-400" />
                         <Field
+                          as={Input}
                           id="number"
                           name="number"
                           placeholder="Enter your phone number"
@@ -448,6 +451,7 @@ export default function RegisterPage() {
                       <div className="relative">
                         <Lock className="absolute left-3 top-3.5 h-5 w-5 text-slate-400" />
                         <Field
+                          as={Input}
                           id="password"
                           name="password"
                           type={isPasswordVisible ? "text" : "password"}
@@ -472,6 +476,7 @@ export default function RegisterPage() {
                       <div className="relative">
                         <Lock className="absolute left-3 top-3.5 h-5 w-5 text-slate-400" />
                         <Field
+                          as={Input}
                           id="confirmPassword"
                           name="confirmPassword"
                           type={isConfirmPasswordVisible ? "text" : "password"}
@@ -509,6 +514,7 @@ export default function RegisterPage() {
                       <div className="relative">
                         <Building className="absolute left-3 top-3.5 h-5 w-5 text-slate-400" />
                         <Field
+                          as={Input}
                           id="shopName"
                           name="shopName"
                           placeholder="Green Harvest Agro Shop"
@@ -525,7 +531,7 @@ export default function RegisterPage() {
                       <div className="relative">
                         <MapPin className="absolute left-3 top-3.5 h-5 w-5 text-slate-400" />
                         <Field
-                          as="textarea"
+                          as={Textarea}
                           id="address"
                           name="address"
                           placeholder="123 Farm Road, Agricity"
@@ -543,6 +549,7 @@ export default function RegisterPage() {
                       <div className="relative">
                         <Phone className="absolute left-3 top-3.5 h-5 w-5 text-slate-400" />
                         <Field
+                          as={Input}
                           id="shopNumber"
                           name="shopNumber"
                           placeholder="Enter shop phone number"
@@ -559,6 +566,7 @@ export default function RegisterPage() {
                       <div className="relative">
                         <Mail className="absolute left-3 top-3.5 h-5 w-5 text-slate-400" />
                         <Field
+                          as={Input}
                           id="shopEmail"
                           name="shopEmail"
                           type="email"
@@ -576,6 +584,7 @@ export default function RegisterPage() {
                       <div className="relative">
                         <Building className="absolute left-3 top-3.5 h-5 w-5 text-slate-400" />
                         <Field
+                          as={Input}
                           id="gst"
                           name="gst"
                           placeholder="22AAAAA0000A1Z5"
