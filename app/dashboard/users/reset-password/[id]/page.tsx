@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, Lock } from "lucide-react";
+import { ArrowLeft, Eye, EyeOff, Lock } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { serverGetUser, serverUpdateUserPassword } from "@/services/serverApi";
 
@@ -24,6 +24,8 @@ const validationSchema = Yup.object({
 
 export default function ResetPasswordPage({ params }: { params: { id: string } }) {
   const [user, setUser] = useState<any>(null);
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false)
+  const [isConfirmPasswordVisible, setIsConfirmPasswordVisible] = useState(false)
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const router = useRouter();
@@ -112,11 +114,18 @@ export default function ResetPasswordPage({ params }: { params: { id: string } }
                       as={Input}
                       id="newPassword"
                       name="newPassword"
-                      type="password"
+                      type={isPasswordVisible ? "text" : "password"}
                       placeholder="Enter new password"
                       className="pl-10"
                     />
                     <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+                    <button
+                      type="button"
+                      onClick={() => setIsPasswordVisible(!isPasswordVisible)}
+                      className="absolute right-3 top-3 text-slate-400 hover:text-slate-600"
+                    >
+                      {isPasswordVisible ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                    </button>
                   </div>
                   <ErrorMessage name="newPassword" component="p" className="text-red-500 text-sm" />
                 </div>
@@ -128,11 +137,18 @@ export default function ResetPasswordPage({ params }: { params: { id: string } }
                       as={Input}
                       id="confirmPassword"
                       name="confirmPassword"
-                      type="password"
+                      type={isConfirmPasswordVisible ? "text" : "password"}
                       placeholder="Confirm new password"
                       className="pl-10"
                     />
                     <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+                    <button
+                      type="button"
+                      onClick={() => setIsConfirmPasswordVisible(!isConfirmPasswordVisible)}
+                      className="absolute right-3 top-3 text-slate-400 hover:text-slate-600"
+                    >
+                      {isConfirmPasswordVisible ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                    </button>
                   </div>
                   <ErrorMessage name="confirmPassword" component="p" className="text-red-500 text-sm" />
                 </div>
