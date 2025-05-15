@@ -5,8 +5,11 @@ import { Button } from "@/components/ui/button"
 import { PlusCircle, RefreshCw } from "lucide-react"
 import { CategoriesTable } from "@/components/dashboard/categories-table"
 import { useRef, useState } from "react"
+import { usePermission } from "@/hooks/usePermission"
+import { Permissions } from "@/utils/consts/permission"
 
 export default function CategoriesPage() {
+  const { hasPermission } = usePermission();
   const [isRefreshing, setIsRefreshing] = useState(false)
   const refreshFunctionRef = useRef<(() => Promise<void>) | null>(null)
   
@@ -38,12 +41,14 @@ export default function CategoriesPage() {
             <RefreshCw className={`mr-2 h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
             Refresh
           </Button>
-          <Link href="/dashboard/categories/new">
-            <Button>
-              <PlusCircle className="mr-2 h-4 w-4" />
-              Add Category
-            </Button>
-          </Link>
+          {hasPermission(Permissions.ADD_CATEGORY) && (
+            <Link href="/dashboard/categories/new">
+              <Button>
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Add Category
+              </Button>
+            </Link>
+          )}
         </div>
       </div>
 

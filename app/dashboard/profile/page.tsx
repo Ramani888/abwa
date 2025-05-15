@@ -20,7 +20,7 @@ import { set } from "date-fns"
 
 export default function ProfilePage() {
   const { currentPlan } = usePlan()
-  const { user, updateUser } = useAuth();
+  const { user, updateUser, owner, updateOwner } = useAuth();
   const [profileData, setProfileData] = useState({
     name: "",
     email: "",
@@ -58,6 +58,15 @@ export default function ProfilePage() {
         ...profileData,
         number: Number(profileData.number)
       })
+      if (Number(user?.number) === Number(owner?.number)) {
+        const newOwnerData = {
+          ...owner,
+          name: profileData.name,
+          email: profileData.email,
+          number: Number(profileData.number),
+        }
+        updateOwner(newOwnerData)
+      }
       fetchProfileData();
       setIsLoading(false)
     } catch (error) {

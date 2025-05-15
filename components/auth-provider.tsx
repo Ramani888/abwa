@@ -9,6 +9,7 @@ import {
 } from "react"
 import { useRouter, usePathname } from "next/navigation"
 import Cookies from "js-cookie"
+import { set } from "date-fns"
 
 type User = {
   _id: string
@@ -18,6 +19,7 @@ type User = {
   password: string
   ownerId: string
   token: string
+  permissionData?: any[]
   createdAt: Date
   updatedAt: Date
 } | null
@@ -44,6 +46,7 @@ type Owner = {
 
 type AuthContextType = {
   user: User
+  permissions: string[]
   owner: Owner
   login: (userData: User, ownerData: Owner) => void
   logout: () => void,
@@ -59,6 +62,7 @@ const publicRoutes = ["/login", "/register", "/"]
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User>(null)
   const [owner, setOwner] = useState<Owner>(null)
+  const [permissions, setPermissions] = useState<string[]>([])
   const router = useRouter()
   const pathname = usePathname()
 
@@ -68,11 +72,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (storedUser && storedOwner) {
       setUser(JSON.parse(storedUser))
       setOwner(JSON.parse(storedOwner))
+      const userData = JSON.parse(storedUser)
+      const userPermission = userData?.permissionData?.map((item: any) => item?.permissionName)
+      setPermissions(userPermission ?? [])
       if (publicRoutes.includes(pathname)) {
         router.push("/dashboard") // redirect logged-in users away from login/signup
       }
     } else {
       setUser(null)
+      setPermissions([])
       setOwner(null)
       if (!publicRoutes.includes(pathname)) {
         router.push("/login") // redirect unauthenticated users to login
@@ -86,6 +94,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     Cookies.set("auth-token", userData?.token ?? '', { expires: 30 })
     setOwner(ownerDate)
     setUser(userData)
+    const userPermission = userData?.permissionData?.map((item: any) => item?.permissionName)
+    setPermissions(userPermission ?? [])
 
     router.push("/dashboard") // redirect after login
   }
@@ -96,6 +106,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     Cookies.remove("auth-token")
     setOwner(null)
     setUser(null)
+    setPermissions([])
     router.push("/login")
   }
 
@@ -112,6 +123,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     
     // Update state
     setUser(newUserData);
+    const userPermission = newUserData?.permissionData?.map((item: any) => item?.permissionName)
+    setPermissions(userPermission ?? [])
     
     // Update localStorage
     localStorage.setItem("user", JSON.stringify(newUserData));
@@ -135,7 +148,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider value={{ 
-      user, 
+      user,
+      permissions,
       owner, 
       login, 
       logout, 

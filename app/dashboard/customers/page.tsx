@@ -6,8 +6,11 @@ import Link from "next/link"
 import { CustomersTable } from "@/components/dashboard/customers-table"
 import { PlanLimitsAlert } from "@/components/dashboard/plan-limits-alert"
 import { useState, useRef } from "react"
+import { usePermission } from "@/hooks/usePermission"
+import { Permissions } from "@/utils/consts/permission"
 
 export default function CustomersPage() {
+  const { hasPermission } = usePermission();
   const [isRefreshing, setIsRefreshing] = useState(false)
   const refreshFunctionRef = useRef<(() => Promise<void>) | null>(null)
   
@@ -37,12 +40,14 @@ export default function CustomersPage() {
             <RefreshCw className={`mr-2 h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
             Refresh
           </Button>
-          <Link href="/dashboard/customers/new">
-            <Button>
-              <PlusCircle className="mr-2 h-4 w-4" />
-              Add Customer
-            </Button>
-          </Link>
+          {hasPermission(Permissions.ADD_CUSTOMER) && (
+            <Link href="/dashboard/customers/new">
+              <Button>
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Add Customer
+              </Button>
+            </Link>
+          )}
         </div>
       </div>
 

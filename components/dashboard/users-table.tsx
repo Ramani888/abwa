@@ -29,9 +29,12 @@ import {
 import { serverGetUser } from "@/services/serverApi"
 import { IUser } from "@/types/user"
 import { useAuth } from "../auth-provider"
+import { usePermission } from "@/hooks/usePermission"
+import { Permissions } from "@/utils/consts/permission"
 
 export function UsersTable({ setRefreshFunction }: { setRefreshFunction?: (fn: () => Promise<void>) => void }) {
-  const { user } = useAuth();
+  const { hasPermission, hasAnyPermission } = usePermission();
+  const { user, owner } = useAuth();
   const [searchQuery, setSearchQuery] = useState("")
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [userToDelete, setUserToDelete] = useState<string | null>(null)
@@ -169,52 +172,68 @@ export function UsersTable({ setRefreshFunction }: { setRefreshFunction?: (fn: (
                     </Badge>
                   </TableCell> */}
                   {/* <TableCell>{user.lastActive}</TableCell> */}
-                  {user?._id === item?._id ? (
+                  {/* {owner?._id === item?._id ? (
                     // because this is main user so we need to show another message here
                     <TableCell className="text-right">
                       <Badge variant={"default"}>
                         Owner
                       </Badge>
                     </TableCell>
-                  ) : (
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon">
-                            <MoreHorizontal className="h-4 w-4" />
-                            <span className="sr-only">Open menu</span>
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem asChild>
-                            <Link href={`/dashboard/users/${item?._id}`}>
-                              <Edit className="mr-2 h-4 w-4" />
-                              Edit User
-                            </Link>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem asChild>
-                            <Link href={`/dashboard/users/permissions/${item?._id}`}>
-                              <Shield className="mr-2 h-4 w-4" />
-                              Manage Permissions
-                            </Link>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem asChild>
-                            <Link href={`/dashboard/users/reset-password/${item?._id}`}>
-                              <UserCog className="mr-2 h-4 w-4" />
-                              Reset Password
-                            </Link>
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem onClick={() => handleDeleteClick(item?._id)} className="text-destructive">
-                            <Trash className="mr-2 h-4 w-4" />
-                            Delete User
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  )}
+                  ) : ( */}
+                    {hasAnyPermission([Permissions.DELETE_USER, Permissions.UPDATE_USER]) && (
+                      <TableCell className="text-right">
+                        {(Number(owner?.number) === Number(item?.number) && user?.number !== item?.number) ? (
+                          <Badge variant={"default"}>
+                            OWNER
+                          </Badge>
+                        ) : (
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon">
+                                <MoreHorizontal className="h-4 w-4" />
+                                <span className="sr-only">Open menu</span>
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                              <DropdownMenuSeparator />
+                              {hasPermission(Permissions.UPDATE_USER) && (
+                                <DropdownMenuItem asChild>
+                                  <Link href={`/dashboard/users/${item?._id}`}>
+                                    <Edit className="mr-2 h-4 w-4" />
+                                    Edit User
+                                  </Link>
+                                </DropdownMenuItem>
+                              )}
+                              {hasPermission(Permissions.UPDATE_USER) && (
+                                <DropdownMenuItem asChild>
+                                  <Link href={`/dashboard/users/permissions/${item?._id}`}>
+                                    <Shield className="mr-2 h-4 w-4" />
+                                    Manage Permissions
+                                  </Link>
+                                </DropdownMenuItem>
+                              )}
+                              {hasPermission(Permissions.UPDATE_USER) && (
+                                <DropdownMenuItem asChild>
+                                  <Link href={`/dashboard/users/reset-password/${item?._id}`}>
+                                    <UserCog className="mr-2 h-4 w-4" />
+                                    Reset Password
+                                  </Link>
+                                </DropdownMenuItem>
+                              )}
+                              <DropdownMenuSeparator />
+                              {hasPermission(Permissions.DELETE_USER) && (
+                                <DropdownMenuItem onClick={() => handleDeleteClick(item?._id)} className="text-destructive">
+                                  <Trash className="mr-2 h-4 w-4" />
+                                  Delete User
+                                </DropdownMenuItem>
+                              )}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        )}
+                      </TableCell>
+                    )}
+                  {/* )} */}
                 </TableRow>
               ))
             ) : (

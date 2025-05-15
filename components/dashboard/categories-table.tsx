@@ -27,8 +27,11 @@ import {
 } from "@/components/ui/alert-dialog"
 import { ICategory } from "@/types/category"
 import { serverDeleteCategory, serverGetCategory } from "@/services/serverApi"
+import { usePermission } from "@/hooks/usePermission"
+import { Permissions } from "@/utils/consts/permission"
 
 export function CategoriesTable({ setRefreshFunction }: { setRefreshFunction?: (fn: () => Promise<void>) => void }) {
+  const { hasPermission, hasAnyPermission } = usePermission();
   const [searchQuery, setSearchQuery] = useState("")
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [categoryToDelete, setCategoryToDelete] = useState<string | null>(null)
@@ -132,30 +135,36 @@ export function CategoriesTable({ setRefreshFunction }: { setRefreshFunction?: (
                   <TableCell>
                     <Badge variant="outline">{category?.isActive ? 'Active' : 'InActive'}</Badge>
                   </TableCell>
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <MoreHorizontal className="h-4 w-4" />
-                          <span className="sr-only">Open menu</span>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem asChild>
-                          <Link href={`/dashboard/categories/${category?._id}`}>
-                            <Edit className="mr-2 h-4 w-4" />
-                            Edit
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleDeleteClick(category?._id)}>
-                          <Trash className="mr-2 h-4 w-4" />
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
+                  {hasAnyPermission([Permissions.UPDATE_CATEGORY, Permissions.DELETE_CATEGORY]) && (
+                    <TableCell className="text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon">
+                            <MoreHorizontal className="h-4 w-4" />
+                            <span className="sr-only">Open menu</span>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                          <DropdownMenuSeparator />
+                          {hasPermission(Permissions.UPDATE_CATEGORY) && (
+                            <DropdownMenuItem asChild>
+                              <Link href={`/dashboard/categories/${category?._id}`}>
+                                <Edit className="mr-2 h-4 w-4" />
+                                Edit
+                              </Link>
+                            </DropdownMenuItem>
+                          )}
+                          {hasPermission(Permissions.DELETE_CATEGORY) && (
+                            <DropdownMenuItem onClick={() => handleDeleteClick(category?._id)}>
+                              <Trash className="mr-2 h-4 w-4" />
+                              Delete
+                            </DropdownMenuItem>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  )}
                 </TableRow>
               ))
             ) : (

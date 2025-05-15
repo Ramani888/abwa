@@ -11,8 +11,9 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ArrowLeft, Loader2, User, Mail, Phone, List } from "lucide-react";
-import { IRole } from "@/types/user";
-import { serverGetAllPermission, serverGetAllRole, serverGetUser, serverUpdateUser } from "@/services/serverApi";
+import { IRole, IUser } from "@/types/user";
+import { serverGetAllPermission, serverGetAllRole, serverGetUser, serverGetUserRolePermissionData, serverUpdateUser } from "@/services/serverApi";
+import { useAuth } from "@/components/auth-provider";
 
 // Define permission type
 type Permission = {
@@ -33,9 +34,11 @@ const validationSchema = Yup.object({
 });
 
 export default function EditUserPage({ params }: { params: { id: string } }) {
+  const { user, updateUser, owner, updateOwner } = useAuth();
   const [loading, setLoading] = useState<boolean>(false);
   const [permissions, setPermissions] = useState<Permission[]>([]);
   const [role, setRole] = useState<IRole[]>([]);
+  const [selectedUser, setSelectedUser] = useState<IUser | null>(null);
   const router = useRouter();
 
   const fetchUser = async (setFieldValue: (field: string, value: any) => void) => {
@@ -50,6 +53,7 @@ export default function EditUserPage({ params }: { params: { id: string } }) {
         setFieldValue("number", userData.number);
         setFieldValue("role", userData.roleId);
         setFieldValue("selectedPermissions", userData.permissionIds);
+        setSelectedUser(userData);
       }
     } catch (error) {
       console.error("Error fetching user:", error);
@@ -122,7 +126,20 @@ export default function EditUserPage({ params }: { params: { id: string } }) {
         roleId: values.role,
         number: Number(values.number),
       };
-      await serverUpdateUser(finalData);
+      const userUpdateRes = await serverUpdateUser(finalData);
+      if (values?._id === user?._id && userUpdateRes?.success) {
+        const res = await serverGetUserRolePermissionData();
+        updateUser({permissionData: res?.data})
+      }
+      if (Number(selectedUser?.number) === Number(owner?.number)) {
+        const newOwnerData = {
+          ...owner,
+          name: values.name,
+          email: values.email,
+          number: values.number,
+        }
+        updateOwner(newOwnerData);
+      }
       setSubmitting(false);
       router.push("/dashboard/users");
     } catch (error) {

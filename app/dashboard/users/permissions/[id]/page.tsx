@@ -9,7 +9,8 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
 import { ArrowLeft, Loader2 } from "lucide-react"
-import { serverGetAllPermission, serverGetUser, serverUpdateUser } from "@/services/serverApi"
+import { serverGetAllPermission, serverGetUser, serverGetUserRolePermissionData, serverUpdateUser } from "@/services/serverApi"
+import { useAuth } from "@/components/auth-provider"
 
 // Define permission type
 type Permission = {
@@ -19,6 +20,7 @@ type Permission = {
 }
 
 export default function UserPermissionsPage({ params }: { params: { id: string } }) {
+  const { user: authUser, updateUser } = useAuth()
   const [user, setUser] = useState<any>(null)
   const [permissions, setPermissions] = useState<Permission[]>([]);
   const [isLoading, setIsLoading] = useState(true)
@@ -98,6 +100,10 @@ export default function UserPermissionsPage({ params }: { params: { id: string }
         permissionIds: formData?.selectedPermissions,
       }
       await serverUpdateUser(finalData);
+      if (user?._id === authUser?._id) {
+        const res = await serverGetUserRolePermissionData();
+        updateUser({permissionData: res?.data})
+      }
       setIsSubmitting(false)
       router.push("/dashboard/users")
     } catch (error) {

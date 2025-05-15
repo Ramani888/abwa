@@ -26,6 +26,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import { usePermission } from "@/hooks/usePermission"
+import { Permissions } from "@/utils/consts/permission"
 
 // Mock data for orders
 const orders = [
@@ -77,6 +79,7 @@ const orders = [
 ]
 
 export function OrdersTable() {
+  const { hasPermission, hasAnyPermission } = usePermission();
   const [searchQuery, setSearchQuery] = useState("")
   const [customerTypeFilter, setCustomerTypeFilter] = useState("all")
   const [statusFilter, setStatusFilter] = useState("all")
@@ -102,7 +105,6 @@ export function OrdersTable() {
 
   const handleConfirmDelete = () => {
     // Here you would implement actual delete logic
-    console.log(`Deleting order with ID: ${orderToDelete}`)
     setDeleteDialogOpen(false)
     setOrderToDelete(null)
   }
@@ -212,12 +214,14 @@ export function OrdersTable() {
                             View Details
                           </Link>
                         </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                          <Link href={`/dashboard/orders/${order.id}/edit`}>
-                            <Edit className="mr-2 h-4 w-4" />
-                            Edit Order
-                          </Link>
-                        </DropdownMenuItem>
+                        {hasPermission(Permissions.UPDATE_ORDER) && (
+                          <DropdownMenuItem asChild>
+                            <Link href={`/dashboard/orders/${order.id}/edit`}>
+                              <Edit className="mr-2 h-4 w-4" />
+                              Edit Order
+                            </Link>
+                          </DropdownMenuItem>
+                        )}
                         <DropdownMenuItem asChild>
                           <Link href={`/dashboard/orders/${order.id}/invoice`}>
                             <FileText className="mr-2 h-4 w-4" />
@@ -229,10 +233,12 @@ export function OrdersTable() {
                           Print Invoice
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => handleDeleteClick(order.id)} className="text-destructive">
-                          <Trash className="mr-2 h-4 w-4" />
-                          Delete
-                        </DropdownMenuItem>
+                        {hasPermission(Permissions.DELETE_ORDER) && (
+                          <DropdownMenuItem onClick={() => handleDeleteClick(order.id)} className="text-destructive">
+                            <Trash className="mr-2 h-4 w-4" />
+                            Delete
+                          </DropdownMenuItem>
+                        )}
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>

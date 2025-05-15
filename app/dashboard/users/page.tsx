@@ -6,8 +6,11 @@ import { PlusCircle, RefreshCw } from "lucide-react"
 import { UsersTable } from "@/components/dashboard/users-table"
 import { PlanLimitsAlert } from "@/components/dashboard/plan-limits-alert"
 import { useRef, useState } from "react"
+import { usePermission } from "@/hooks/usePermission"
+import { Permissions } from "@/utils/consts/permission"
 
 export default function UsersPage() {
+  const { hasPermission } = usePermission();
   const [isRefreshing, setIsRefreshing] = useState(false)
   const refreshFunctionRef = useRef<(() => Promise<void>) | null>(null)
   
@@ -36,12 +39,14 @@ export default function UsersPage() {
             <RefreshCw className={`mr-2 h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
             Refresh
           </Button>
-          <Link href="/dashboard/users/new">
-            <Button>
-              <PlusCircle className="mr-2 h-4 w-4" />
-              Add User
-            </Button>
-          </Link>
+          {hasPermission(Permissions.ADD_USER) && (
+            <Link href="/dashboard/users/new">
+              <Button>
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Add User
+              </Button>
+            </Link>
+          )}
         </div>
       </div>
 

@@ -112,6 +112,10 @@ export const serverGetAllRole = async () => {
   return await serverRequest("/role", "GET", null, true);
 }
 
+export const serverGetUserRolePermissionData = async () => {
+  return await serverRequest("/user/role/permission", "GET", null, true);
+}
+
 /// Customer ///
 export const serverAddCustomer = async (data: ICustomer) => {
   return await serverRequest("/customer", "POST", data, true);

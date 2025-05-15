@@ -28,8 +28,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import { usePermission } from "@/hooks/usePermission"
+import { Permissions } from "@/utils/consts/permission"
 
 export function CustomersTable({ setRefreshFunction }: { setRefreshFunction?: (fn: () => Promise<void>) => void }) {
+  const { hasPermission, hasAnyPermission } = usePermission();
   const [searchQuery, setSearchQuery] = useState("")
   const [customerType, setCustomerType] = useState("all") // all, retail, wholesale
   const [loading, setLoading] = useState<boolean>(false)
@@ -180,37 +183,43 @@ export function CustomersTable({ setRefreshFunction }: { setRefreshFunction?: (f
                     </div>
                   </TableCell>
                   <TableCell>{'12,000'}</TableCell>
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <MoreHorizontal className="h-4 w-4" />
-                          <span className="sr-only">Open menu</span>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem asChild>
-                          <Link href={`/dashboard/customers/${customer._id?.toString()}/edit`}>
-                            <Edit className="mr-2 h-4 w-4" />
-                            Edit
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                          <Link href={`/dashboard/customers/${customer._id?.toString()}/orders`}>
-                            <ShoppingBag className="mr-2 h-4 w-4" />
-                            View Orders
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem className="text-destructive" onClick={() => handleDelete(customer?._id)}>
-                          <Trash className="mr-2 h-4 w-4" />
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
+                  {hasAnyPermission([Permissions.UPDATE_CUSTOMER, Permissions.DELETE_CUSTOMER, Permissions.VIEW_CUSTOMER]) && (
+                    <TableCell className="text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon">
+                            <MoreHorizontal className="h-4 w-4" />
+                            <span className="sr-only">Open menu</span>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                          <DropdownMenuSeparator />
+                          {hasPermission(Permissions.UPDATE_CUSTOMER) && (
+                            <DropdownMenuItem asChild>
+                              <Link href={`/dashboard/customers/${customer._id?.toString()}/edit`}>
+                                <Edit className="mr-2 h-4 w-4" />
+                                Edit
+                              </Link>
+                            </DropdownMenuItem>
+                          )}
+                          <DropdownMenuItem asChild>
+                            <Link href={`/dashboard/customers/${customer._id?.toString()}/orders`}>
+                              <ShoppingBag className="mr-2 h-4 w-4" />
+                              View Orders
+                            </Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          {hasPermission(Permissions.DELETE_CUSTOMER) && (
+                            <DropdownMenuItem className="text-destructive" onClick={() => handleDelete(customer?._id)}>
+                              <Trash className="mr-2 h-4 w-4" />
+                              Delete
+                            </DropdownMenuItem>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  )}
                 </TableRow>
               ))
             ) : (
