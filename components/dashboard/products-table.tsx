@@ -75,6 +75,7 @@ export function ProductsTable({ setRefreshFunction }: { setRefreshFunction?: (fn
         setProductToDelete(null)
         getProductData();
       }
+      setLoading(false);
     } catch (error) {
       console.error("Error deleting product:", error)
       setLoading(false);

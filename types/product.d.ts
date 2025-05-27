@@ -16,6 +16,7 @@ export interface IProduct {
     minStockLevel?: number;
     taxRate?: number;
     status?: "In Stock" | "Low Stock" | "Out of Stock";
+    packingSize
     createdAt?: Date;
     updatedAt?: Date;
 }

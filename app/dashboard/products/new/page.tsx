@@ -49,6 +49,7 @@ export default function NewProductPage() {
     minStockLevel: Yup.number().required("Minimum stock level is required").min(0, "Cannot be negative"),
     taxRate: Yup.string().required("Tax rate is required"),
     unit: Yup.string().required("Unit is required"),
+    packingSize: Yup.string().required("Packing size is required"), // <-- Add this line
   })
 
   const handleSubmit = async (values: any, { setSubmitting }: { setSubmitting: (isSubmitting: boolean) => void }) => {
@@ -61,6 +62,7 @@ export default function NewProductPage() {
         quantity: Number(values.quantity),
         minStockLevel: Number(values.minStockLevel),
         taxRate: Number(values.taxRate),
+        packingSize: values.packingSize, // <-- Add this line
       })
       if (res?.success) {
         router.push("/dashboard/products")
@@ -96,6 +98,7 @@ export default function NewProductPage() {
             minStockLevel: "",
             taxRate: "5",
             unit: "kg",
+            packingSize: "", // <-- Add this line
           }}
           validationSchema={validationSchema}
           onSubmit={handleSubmit}
@@ -170,6 +173,22 @@ export default function NewProductPage() {
                     </div>
                     <ErrorMessage name="unit" component="div" className="text-red-500 text-sm" />
                   </div>
+                </div>
+
+                {/* Packing Size Field */}
+                <div className="space-y-2">
+                  <Label htmlFor="packingSize">Packing Size</Label>
+                  <div className="relative">
+                    <Box className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+                    <Field
+                      as={Input}
+                      id="packingSize"
+                      name="packingSize"
+                      placeholder="e.g. 5kg, 10L, 1 box"
+                      className="pl-10"
+                    />
+                  </div>
+                  <ErrorMessage name="packingSize" component="div" className="text-red-500 text-sm" />
                 </div>
 
                 <div className="space-y-2">
@@ -326,6 +345,8 @@ export default function NewProductPage() {
                     <ErrorMessage name="taxRate" component="div" className="text-red-500 text-sm" />
                   </div>
                 </div>
+
+                {/* ...rest of your fields... */}
               </CardContent>
               <CardFooter className="flex justify-between">
                 <Button type="button" variant="outline" onClick={() => router.back()}>

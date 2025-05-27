@@ -171,3 +171,20 @@ export const serverDeleteProduct = async (_id: string) => {
   return await serverRequest(`/product?_id=${_id}`, "DELETE", null, true);
 }
 
+/// Order ///
+export const serverGetOrder = async () => {
+  return await serverRequest(`/order`, "GET", null, true);
+}
+
+export const serverAddOrder = async (data: any) => {
+  return await serverRequest(`/order`, "POST", data, true);
+}
+
+export const serverUpdateOrder = async (data: any) => {
+  return await serverRequest(`/order`, "PUT", data, true);
+}
+
+export const serverDeleteOrder = async (_id: string) => {
+  return await serverRequest(`/order?_id=${_id}`, "DELETE", null, true);
+}
+
