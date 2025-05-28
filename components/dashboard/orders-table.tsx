@@ -183,7 +183,7 @@ export function OrdersTable({ setRefreshFunction }: { setRefreshFunction?: (fn: 
                           : ""
                       : ""}
                   </TableCell>
-                  <TableCell>{order?.total}</TableCell>
+                  <TableCell>₹{order?.total}</TableCell>
                   <TableCell>
                     <Badge variant={order.paymentStatus === "paid" ? "default" : "destructive"} className="capitalize">{order?.paymentStatus}</Badge>
                   </TableCell>
