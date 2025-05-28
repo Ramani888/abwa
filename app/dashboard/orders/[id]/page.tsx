@@ -8,54 +8,31 @@ import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { ArrowLeft, Edit, FileText } from "lucide-react"
 import Link from "next/link"
-
-// Mock data for the order
-const orderData = {
-  id: "ORD-001",
-  date: "2023-03-15",
-  customer: {
-    id: "1",
-    name: "Rahul Sharma",
-    type: "retail",
-    phone: "+91 9876543210",
-    email: "rahul@example.com",
-    address: "123 Main St, Agricity",
-  },
-  items: [
-    {
-      id: "1",
-      name: "Organic Fertilizer",
-      price: 850,
-      quantity: 2,
-      total: 1700,
-    },
-    {
-      id: "2",
-      name: "Garden Tools Set",
-      price: 800,
-      quantity: 1,
-      total: 800,
-    },
-  ],
-  subtotal: 2500,
-  tax: 125,
-  total: 2625,
-  status: "Completed",
-  paymentStatus: "Paid",
-  paymentMethod: "Cash",
-  notes: "Customer requested delivery on Saturday morning.",
-}
+import { IOrder } from "@/types/order"
+import { serverGetOrder } from "@/services/serverApi"
 
 export default function OrderDetailsPage({ params }: { params: { id: string } }) {
-  const [order, setOrder] = useState<any>(null)
+  const [order, setOrder] = useState<IOrder>()
   const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
 
   useEffect(() => {
-    // In a real app, you would fetch the order data from an API
-    // For now, we'll just use the mock data
-    setOrder(orderData)
-    setIsLoading(false)
+    const fetchData = async () => {
+      setIsLoading(true)
+      try {
+        const res = await serverGetOrder();
+        const orderData = res?.data?.find((order: any) => order?._id?.toString() === params?.id);
+        setOrder(orderData)
+      } catch (error) {
+        setOrder(undefined)
+        setIsLoading(false)
+        console.error("Failed to fetch order details:", error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchData()
   }, [params.id])
 
   if (isLoading) {
@@ -76,7 +53,7 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
           <Button variant="outline" size="icon" onClick={() => router.back()} className="mr-4">
             <ArrowLeft className="h-4 w-4" />
           </Button>
-          <h2 className="text-3xl font-bold tracking-tight">Order #{order.id}</h2>
+          <h2 className="text-3xl font-bold tracking-tight">Order #{order?._id}</h2>
         </div>
         <div className="flex gap-2">
           <Link href={`/dashboard/orders/${params.id}/edit`}>
@@ -107,21 +84,22 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
                 <div className="space-y-2">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Order Date:</span>
-                    <span>{order.date}</span>
+                    <span>{order?.createdAt ? new Date(order.createdAt).toLocaleDateString() : ""}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Status:</span>
-                    <Badge variant={order.status === "Completed" ? "default" : "outline"}>{order.status}</Badge>
+                    {/* <Badge variant={order.status === "Completed" ? "default" : "outline"}>{order.status}</Badge> */}
+                    <Badge variant={"default"}>{'Completed'}</Badge>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Payment Status:</span>
-                    <Badge variant={order.paymentStatus === "Paid" ? "default" : "destructive"}>
-                      {order.paymentStatus}
+                    <Badge variant={order?.paymentStatus === "paid" ? "default" : "destructive"} className="capitalize">
+                      {order?.paymentStatus}
                     </Badge>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Payment Method:</span>
-                    <span>{order.paymentMethod}</span>
+                    <span>{order?.paymentMethod}</span>
                   </div>
                 </div>
               </div>
@@ -131,23 +109,23 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
                 <div className="space-y-2">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Name:</span>
-                    <Link href={`/dashboard/customers/${order.customer.id}`} className="text-primary hover:underline">
-                      {order.customer.name}
+                    <Link href={`/dashboard/customers/${order?.customerData?._id}`} className="text-primary hover:underline capitalize">
+                      {order?.customerData?.name}
                     </Link>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Type:</span>
-                    <Badge variant={order.customer.type === "wholesale" ? "default" : "secondary"}>
-                      {order.customer.type === "wholesale" ? "Wholesale" : "Retail"}
+                    <Badge variant={order?.customerType === "wholesale" ? "default" : "secondary"}>
+                      {order?.customerType === "wholesale" ? "Wholesale" : "Retail"}
                     </Badge>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Phone:</span>
-                    <span>{order.customer.phone}</span>
+                    <span>{order?.customerData?.number}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Email:</span>
-                    <span>{order.customer.email}</span>
+                    <span>{order?.customerData?.email}</span>
                   </div>
                 </div>
               </div>
@@ -165,18 +143,24 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
                 <TableHeader>
                   <TableRow>
                     <TableHead>Product</TableHead>
+                    <TableHead className="text-right">Size</TableHead>
                     <TableHead className="text-right">Price</TableHead>
                     <TableHead className="text-right">Quantity</TableHead>
+                    <TableHead className="text-right">GST %</TableHead>
+                    <TableHead className="text-right">GST Amount</TableHead>
                     <TableHead className="text-right">Total</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {order.items.map((item: any) => (
-                    <TableRow key={item.id}>
-                      <TableCell className="font-medium">{item.name}</TableCell>
-                      <TableCell className="text-right">₹{item.price.toFixed(2)}</TableCell>
-                      <TableCell className="text-right">{item.quantity}</TableCell>
-                      <TableCell className="text-right">₹{item.total.toFixed(2)}</TableCell>
+                  {order?.products?.map((item, index) => (
+                    <TableRow key={index}>
+                      <TableCell className="font-medium">{item?.productData?.name}</TableCell>
+                      <TableCell className="text-right">{item?.productData?.packingSize}</TableCell>
+                      <TableCell className="text-right">₹{item?.price?.toFixed(2)}</TableCell>
+                      <TableCell className="text-right">{item?.quantity}</TableCell>
+                      <TableCell className="text-right">{item?.gstRate} %</TableCell>
+                      <TableCell className="text-right">₹{item?.gstAmount}</TableCell>
+                      <TableCell className="text-right">₹{item?.total?.toFixed(2)}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -187,28 +171,32 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
               <div className="w-full md:w-1/2 space-y-2">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Subtotal:</span>
-                  <span>₹{order.subtotal.toFixed(2)}</span>
+                  <span>₹{order?.subTotal?.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Tax (5%):</span>
-                  <span>₹{order.tax.toFixed(2)}</span>
+                  <span className="text-muted-foreground">Total GST:</span>
+                  <span>₹{order?.totalGst?.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Round-off:</span>
+                  <span>₹{order?.roundOff?.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between font-bold">
                   <span>Total:</span>
-                  <span>₹{order.total.toFixed(2)}</span>
+                  <span>₹{order?.total?.toFixed(2)}</span>
                 </div>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {order.notes && (
+        {order?.notes && (
           <Card className="w-full">
             <CardHeader>
               <CardTitle>Notes</CardTitle>
             </CardHeader>
             <CardContent>
-              <p>{order.notes}</p>
+              <p>{order?.notes}</p>
             </CardContent>
           </Card>
         )}
