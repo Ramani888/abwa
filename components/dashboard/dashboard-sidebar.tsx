@@ -44,6 +44,12 @@ export function DashboardSidebar({ isMobile = false, closeMobileMenu }: Dashboar
       permission: true,
     },
     {
+      title: "Suppliers",
+      href: "/dashboard/suppliers",
+      icon: Store,
+      permission: true,
+    },
+    {
       title: "Products",
       href: "/dashboard/products",
       icon: Package,
