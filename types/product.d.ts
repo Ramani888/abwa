@@ -1,22 +1,29 @@
+export interface IVariant {
+  _id?: string;
+  unit: string;
+  packingSize: string;
+  sku: string;
+  barcode: string;
+  retailPrice: number;
+  wholesalePrice: number;
+  purchasePrice: number;
+  minStockLevel: number;
+  taxRate: number;
+  quantity: number;
+  status?: string;
+}
+
 export interface IProduct {
-    _id?: string;
-    ownerId?: string;
-    userId?: string;
-    name: string;
-    categoryId: string;
-    categoryName?: string;
-    unit: string;
-    description?: string;
-    sku?: string;
-    barcode?: string;
-    retailPrice: number;
-    wholesalePrice: number;
-    purchasePrice: number;
-    quantity: number;
-    minStockLevel?: number;
-    taxRate?: number;
-    status?: "In Stock" | "Low Stock" | "Out of Stock";
-    packingSize
-    createdAt?: Date;
-    updatedAt?: Date;
+  _id?: string;
+  ownerId?: string;
+  userId?: string;
+  name: string;
+  categoryId: string;
+  categoryName?: string;
+  description?: string;
+  variants: IVariant[];
+  variantsCount?: number;
+  captureDate?: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
 }

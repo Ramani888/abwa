@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import React, { useEffect, useState } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -40,6 +40,7 @@ export function ProductsTable({ setRefreshFunction }: { setRefreshFunction?: (fn
   const [productToDelete, setProductToDelete] = useState<string | null>(null)
   const [loading, setLoading] = useState<boolean>(false);
   const [productData, setProductData] = useState<IProduct[]>([]);
+  const [expandedProductId, setExpandedProductId] = useState<string | null>(null);
 
   const filteredProducts = productData?.filter((product) => {
     const matchesSearch =
@@ -48,16 +49,9 @@ export function ProductsTable({ setRefreshFunction }: { setRefreshFunction?: (fn
 
     const matchesCategory = categoryFilter === "all" || (product?.categoryName || '').toLowerCase() === categoryFilter.toLowerCase()
 
-    const matchesStock =
-      stockFilter === "all" ||
-      (stockFilter === "in-stock" && product?.status === "In Stock") ||
-      (stockFilter === "low-stock" && product?.status === "Low Stock") ||
-      (stockFilter === "out-of-stock" && product?.status === "Out of Stock")
-
-    return matchesSearch && matchesCategory && matchesStock
+    return matchesSearch && matchesCategory
   })
 
-  // Get unique categories
   const categories = ["all", ...new Set(productData?.map((product) => (product?.categoryName || '').toLowerCase()))]
 
   const handleDeleteClick = (id?: string) => {
@@ -152,12 +146,11 @@ export function ProductsTable({ setRefreshFunction }: { setRefreshFunction?: (fn
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead></TableHead>
               <TableHead>Name</TableHead>
               <TableHead>Category</TableHead>
-              <TableHead>Retail Price</TableHead>
-              <TableHead>Wholesale</TableHead>
-              <TableHead>Stock</TableHead>
-              <TableHead>Status</TableHead>
+              <TableHead>Total Variants</TableHead>
+              <TableHead>Description</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -174,58 +167,106 @@ export function ProductsTable({ setRefreshFunction }: { setRefreshFunction?: (fn
             ) : 
             filteredProducts.length > 0 ? (
               filteredProducts.map((product) => (
-                <TableRow key={product?._id}>
-                  <TableCell className="font-medium">{product?.name}</TableCell>
-                  <TableCell>{product?.categoryName}</TableCell>
-                  <TableCell>₹{product?.retailPrice}</TableCell>
-                  <TableCell>₹{product?.wholesalePrice}</TableCell>
-                  <TableCell>
-                    {product?.quantity} {product?.unit}
-                  </TableCell>
-                  <TableCell>
-                    <Badge
-                      variant={
-                        product?.status === "In Stock"
-                          ? "default"
-                          : product?.status === "Low Stock"
-                            ? "outline"
-                            : "destructive"
-                      }
-                    >
-                      {product?.status}
-                    </Badge>
-                  </TableCell>
-                  {hasAnyPermission([Permissions.UPDATE_PRODUCT, Permissions.DELETE_PRODUCT]) && (
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon">
-                            <MoreHorizontal className="h-4 w-4" />
-                            <span className="sr-only">Open menu</span>
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <DropdownMenuSeparator />
-                          {hasPermission(Permissions.UPDATE_PRODUCT) && (
-                            <DropdownMenuItem asChild>
-                              <Link href={`/dashboard/products/${product?._id}`}>
-                                <Edit className="mr-2 h-4 w-4" />
-                                Edit
-                              </Link>
-                            </DropdownMenuItem>
-                          )}
-                          {hasPermission(Permissions.DELETE_PRODUCT) && (
-                            <DropdownMenuItem onClick={() => handleDeleteClick(product?._id)}>
-                              <Trash className="mr-2 h-4 w-4" />
-                              Delete
-                            </DropdownMenuItem>
-                          )}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                <React.Fragment key={product?._id}>
+                  <TableRow>
+                    <TableCell>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() =>
+                          setExpandedProductId(expandedProductId === (product._id ?? null) ? null : (product._id ?? null))
+                        }
+                      >
+                        {expandedProductId === product._id ? "−" : "+"}
+                      </Button>
                     </TableCell>
+                    <TableCell className="font-medium">{product?.name}</TableCell>
+                    <TableCell>{product?.categoryName}</TableCell>
+                    <TableCell>{product?.variantsCount}</TableCell>
+                    <TableCell className="max-w-[200px] truncate">
+                      {product?.description || "No description available"}
+                    </TableCell>
+                    {hasAnyPermission([Permissions.UPDATE_PRODUCT, Permissions.DELETE_PRODUCT]) && (
+                      <TableCell className="text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon">
+                              <MoreHorizontal className="h-4 w-4" />
+                              <span className="sr-only">Open menu</span>
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            {hasPermission(Permissions.UPDATE_PRODUCT) && (
+                              <DropdownMenuItem asChild>
+                                <Link href={`/dashboard/products/${product?._id}`}>
+                                  <Edit className="mr-2 h-4 w-4" />
+                                  Edit
+                                </Link>
+                              </DropdownMenuItem>
+                            )}
+                            {hasPermission(Permissions.DELETE_PRODUCT) && (
+                              <DropdownMenuItem onClick={() => handleDeleteClick(product?._id)}>
+                                <Trash className="mr-2 h-4 w-4" />
+                                Delete
+                              </DropdownMenuItem>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    )}
+                  </TableRow>
+                  {expandedProductId === product._id && (
+                    <TableRow>
+                      <TableCell colSpan={6}>
+                        <div className="p-4 bg-muted rounded">
+                          <div className="font-semibold mb-2">Variants</div>
+                          <Table>
+                            <TableHeader>
+                              <TableRow>
+                                <TableHead>Packing Size</TableHead>
+                                <TableHead>Unit</TableHead>
+                                <TableHead>SKU</TableHead>
+                                <TableHead>Barcode</TableHead>
+                                <TableHead>Retail Price</TableHead>
+                                <TableHead>Wholesale</TableHead>
+                                <TableHead>Purchase</TableHead>
+                                <TableHead>Min Stock</TableHead>
+                                <TableHead>Tax Rate</TableHead>
+                                <TableHead>Stock</TableHead>
+                                <TableHead>Status</TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {product.variants.map((variant, idx) => (
+                                <TableRow key={idx}>
+                                  <TableCell>{variant.packingSize}</TableCell>
+                                  <TableCell>{variant.unit}</TableCell>
+                                  <TableCell>{variant.sku}</TableCell>
+                                  <TableCell>{variant.barcode}</TableCell>
+                                  <TableCell>₹{variant.retailPrice}</TableCell>
+                                  <TableCell>₹{variant.wholesalePrice}</TableCell>
+                                  <TableCell>₹{variant.purchasePrice}</TableCell>
+                                  <TableCell>{variant.minStockLevel}</TableCell>
+                                  <TableCell>{variant.taxRate}%</TableCell>
+                                  <TableCell>
+                                    {variant.quantity} {variant.unit}
+                                  </TableCell>
+                                  <TableCell>
+                                    <Badge variant={variant.status === "In Stock" ? "default" : "destructive"}>
+                                      {variant?.status}
+                                    </Badge>
+                                  </TableCell>
+                                </TableRow>
+                              ))}
+                            </TableBody>
+                          </Table>
+                        </div>
+                      </TableCell>
+                    </TableRow>
                   )}
-                </TableRow>
+                </React.Fragment>
               ))
             ) : (
               <TableRow>

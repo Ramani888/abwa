@@ -11,32 +11,68 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ArrowLeft, Barcode, Box, DollarSign, Layers, List, Percent, Tag } from "lucide-react"
+import { ArrowLeft, Barcode, Box, Boxes, Delete, Edit, FileText, IndianRupee, Layers, List, Package, Percent, Tag } from "lucide-react"
 import { serverGetActiveCategory, serverGetProduct, serverUpdateProduct } from "@/services/serverApi"
 import { ICategory } from "@/types/category"
 import { IProduct } from "@/types/product"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
+
+const newVariantSchema = Yup.object({
+  packingSize: Yup.string().required("Packing size is required"),
+  sku: Yup.string().required("SKU is required"),
+  barcode: Yup.string().required("Barcode is required"),
+  unit: Yup.string().required("Unit is required"), // <-- Add unit validation
+  retailPrice: Yup.number().typeError("Retail price must be a number").required("Retail price is required").positive("Must be positive"),
+  wholesalePrice: Yup.number().typeError("Wholesale price must be a number").required("Wholesale price is required").positive("Must be positive"),
+  purchasePrice: Yup.number().typeError("Purchase price must be a number").required("Purchase price is required").positive("Must be positive"),
+  minStockLevel: Yup.number().typeError("Minimum stock level must be a number").required("Minimum stock level is required").min(0, "Cannot be negative"),
+  taxRate: Yup.number().typeError("Tax rate must be a number").required("Tax rate is required"),
+  // quantity: Yup.number().typeError("Stock quantity must be a number").required("Stock quantity is required").min(0, "Cannot be negative"),
+})
 
 export default function EditProductPage({ params }: { params: { id: string } }) {
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [categoryData, setCategoryData] = useState<ICategory[]>([])
   const [productData, setProductData] = useState<IProduct | null>(null) // State to store fetched product data
+  const [showVariantForm, setShowVariantForm] = useState(false)
+  const [variantErrors, setVariantErrors] = useState<any>({})
+  const [editVariantIndex, setEditVariantIndex] = useState<number | null>(null)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [deleteVariantIndex, setDeleteVariantIndex] = useState<number | null>(null)
   const router = useRouter()
 
   const validationSchema = Yup.object({
     name: Yup.string().required("Product name is required"),
     categoryId: Yup.string().required("Category is required"),
     description: Yup.string().required("Description is required"),
-    sku: Yup.string().required("SKU is required"),
-    barcode: Yup.string().required("Barcode is required"),
-    retailPrice: Yup.number().required("Retail price is required").positive("Must be positive"),
-    wholesalePrice: Yup.number().required("Wholesale price is required").positive("Must be positive"),
-    purchasePrice: Yup.number().required("Purchase price is required").positive("Must be positive"),
-    quantity: Yup.number().required("Quantity is required").min(1, "Must be at least 1"),
-    minStockLevel: Yup.number().required("Minimum stock level is required").min(0, "Cannot be negative"),
-    taxRate: Yup.string().required("Tax rate is required"),
-    unit: Yup.string().required("Unit is required"),
-    packingSize: Yup.string().required("Packing size is required"), // <-- Add this line
+    // unit: Yup.string().required("Unit is required"),
+    variants: Yup.array().of(
+      Yup.object({
+        packingSize: Yup.string().required("Packing size is required"),
+        sku: Yup.string().required("SKU is required"),
+        barcode: Yup.string().required("Barcode is required"),
+        unit: Yup.string().required("Unit is required"), // <-- Add here
+        retailPrice: Yup.number().required("Retail price is required").positive("Must be positive"),
+        wholesalePrice: Yup.number().required("Wholesale price is required").positive("Must be positive"),
+        purchasePrice: Yup.number().required("Purchase price is required").positive("Must be positive"),
+        minStockLevel: Yup.number().required("Minimum stock level is required").min(0, "Cannot be negative"),
+        taxRate: Yup.number().required("Tax rate is required"),
+        // quantity: Yup.number().required("Stock quantity is required").min(0, "Cannot be negative"),
+      })
+    ).min(1, "At least one variant is required"),
+    newVariant: Yup.object({
+      packingSize: Yup.string(),
+      sku: Yup.string(),
+      barcode: Yup.string(),
+      unit: Yup.string(), // <-- Add here
+      retailPrice: Yup.string(),
+      wholesalePrice: Yup.string(),
+      purchasePrice: Yup.string(),
+      minStockLevel: Yup.string(),
+      taxRate: Yup.string(),
+      // quantity: Yup.string(),
+    }),
   })
 
   const fetchProduct = async () => {
@@ -56,6 +92,43 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
     } catch (error) {
       console.error("Error fetching category data:", error)
     }
+  }
+
+  const handleDelete = (idx: number) => {
+    setDeleteVariantIndex(idx) // set which variant to delete
+    setDeleteDialogOpen(true)
+  }
+
+  const handleConfirmDelete = (values: any, setFieldValue: any) => {
+    if (deleteVariantIndex === null) return
+    const newVariants = [...values.variants]
+    newVariants.splice(deleteVariantIndex, 1)
+    setFieldValue("variants", newVariants)
+    // If editing this variant, reset form
+    if (editVariantIndex === deleteVariantIndex) {
+      setShowVariantForm(false)
+      setEditVariantIndex(null)
+      setFieldValue("newVariant", {
+        packingSize: "",
+        sku: "",
+        barcode: "",
+        unit: "",
+        retailPrice: "",
+        wholesalePrice: "",
+        purchasePrice: "",
+        minStockLevel: "",
+        taxRate: "",
+        quantity: "",
+      })
+      setVariantErrors({})
+    }
+    setDeleteDialogOpen(false)
+    setDeleteVariantIndex(null)
+  }
+
+  const handleCancelDelete = () => {
+    setDeleteDialogOpen(false)
+    setDeleteVariantIndex(null)
   }
 
   useEffect(() => {
@@ -94,30 +167,38 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
             name: productData?.name || "",
             categoryId: productData?.categoryId || "",
             description: productData?.description || "",
-            sku: productData?.sku || "",
-            barcode: productData?.barcode || "",
-            retailPrice: productData?.retailPrice || "",
-            wholesalePrice: productData?.wholesalePrice || "",
-            purchasePrice: productData?.purchasePrice || "",
-            quantity: productData?.quantity || "",
-            minStockLevel: productData?.minStockLevel || "",
-            taxRate: productData?.taxRate || "5",
-            unit: productData?.unit || "kg",
-            packingSize: productData?.packingSize || "", // Ensure packingSize is included
+            variants: productData?.variants || [],
+            newVariant: {
+              packingSize: "",
+              sku: "",
+              barcode: "",
+              unit: "",
+              retailPrice: "",
+              wholesalePrice: "",
+              purchasePrice: "",
+              minStockLevel: "",
+              taxRate: "",
+              quantity: "",
+            },
           }}
           validationSchema={validationSchema}
           onSubmit={async (values, { setSubmitting }) => {
             try {
               setIsSaving(true)
               const res = await serverUpdateProduct({
-                ...values,
-                retailPrice: Number(values.retailPrice),
-                wholesalePrice: Number(values.wholesalePrice),
-                purchasePrice: Number(values.purchasePrice),
-                quantity: Number(values.quantity),
-                minStockLevel: Number(values.minStockLevel),
-                taxRate: Number(values.taxRate),
-                packingSize: values.packingSize || "", // Ensure packingSize is included
+                _id: values?._id,
+                name: values.name,
+                categoryId: values.categoryId,
+                description: values.description,
+                variants: values.variants.map((v: any) => ({
+                  ...v,
+                  retailPrice: Number(v.retailPrice),
+                  wholesalePrice: Number(v.wholesalePrice),
+                  purchasePrice: Number(v.purchasePrice),
+                  minStockLevel: Number(v.minStockLevel),
+                  taxRate: Number(v.taxRate),
+                  quantity: Number(0),
+                })),
               })
               if (res?.success) {
                 router.push(`/dashboard/products`)
@@ -138,247 +219,369 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
                 <CardDescription>Update product details and inventory information</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
+                {/* Product fields */}
                 <div className="space-y-2">
                   <Label htmlFor="name">Product Name</Label>
                   <div className="relative">
-                    <Tag className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
-                    <Field
-                      as={Input}
-                      id="name"
-                      name="name"
-                      placeholder="Organic Fertilizer"
-                      className="pl-10"
-                    />
+                    <Tag className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <Field as={Input} id="name" name="name" placeholder="Organic Fertilizer" className="pl-8" />
                   </div>
                   <ErrorMessage name="name" component="div" className="text-red-500 text-sm" />
                 </div>
-
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="categoryId">Category</Label>
-                    <div className="relative">
-                      <List className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
-                      <Select
-                        value={values.categoryId}
-                        onValueChange={(value) => setFieldValue("categoryId", value)}
-                      >
-                        <SelectTrigger className="pl-10">
-                          <SelectValue placeholder="Select category" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {categoryData?.map((category) => (
-                            <SelectItem key={category?._id} value={category?._id}>
-                              {category?.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <ErrorMessage name="categoryId" component="div" className="text-red-500 text-sm" />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="unit">Unit</Label>
-                    <div className="relative">
-                      <Box className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
-                      <Select
-                        value={values.unit}
-                        onValueChange={(value) => setFieldValue("unit", value)}
-                      >
-                        <SelectTrigger className="pl-10">
-                          <SelectValue placeholder="Select unit" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="kg">Kilogram (kg)</SelectItem>
-                          <SelectItem value="g">Gram (g)</SelectItem>
-                          <SelectItem value="l">Liter (L)</SelectItem>
-                          <SelectItem value="ml">Milliliter (ml)</SelectItem>
-                          <SelectItem value="pcs">Pieces (pcs)</SelectItem>
-                          <SelectItem value="bag">Bag</SelectItem>
-                          <SelectItem value="box">Box</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <ErrorMessage name="unit" component="div" className="text-red-500 text-sm" />
-                  </div>
-                </div>
-
-                {/* Packing Size Field */}
                 <div className="space-y-2">
-                  <Label htmlFor="packingSize">Packing Size</Label>
+                  <Label htmlFor="categoryId">Category</Label>
                   <div className="relative">
-                    <Box className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
-                    <Field
-                      as={Input}
-                      id="packingSize"
-                      name="packingSize"
-                      placeholder="e.g. 5kg, 10L, 1 box"
-                      className="pl-10"
-                    />
+                    <List className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <Select
+                      value={values.categoryId}
+                      onValueChange={(value) => setFieldValue("categoryId", value)}
+                    >
+                      <SelectTrigger className="pl-8">
+                        <SelectValue placeholder="Select category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categoryData?.map((category) => (
+                          <SelectItem key={category?._id} value={category?._id}>
+                            {category?.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
-                  <ErrorMessage name="packingSize" component="div" className="text-red-500 text-sm" />
+                  <ErrorMessage name="categoryId" component="div" className="text-red-500 text-sm" />
                 </div>
-
                 <div className="space-y-2">
                   <Label htmlFor="description">Description</Label>
                   <div className="relative">
-                    <Field
-                      as={Textarea}
-                      id="description"
-                      name="description"
-                      placeholder="Product description"
-                      rows={3}
-                      className="pl-10"
-                    />
-                    <Tag className="absolute left-3 top-3 h-4 w-4 text-gray-500" />
+                    <FileText className="absolute left-2 top-3 h-4 w-4 text-gray-400" />
+                    <Field as={Textarea} id="description" name="description" placeholder="Product description" rows={3} className="pl-8" />
                   </div>
                   <ErrorMessage name="description" component="div" className="text-red-500 text-sm" />
                 </div>
 
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="sku">SKU</Label>
-                    <div className="relative">
-                      <Layers className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
-                      <Field
-                        as={Input}
-                        id="sku"
-                        name="sku"
-                        placeholder="FERT-ORG-001"
-                        className="pl-10"
-                      />
-                    </div>
-                    <ErrorMessage name="sku" component="div" className="text-red-500 text-sm" />
+                {/* Variants Table */}
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <h3 className="text-xl font-semibold">Variants</h3>
+                    <Button
+                      type="button"
+                      onClick={() => {
+                        setShowVariantForm(true)
+                        setEditVariantIndex(null)
+                        setFieldValue("newVariant", {
+                          packingSize: "",
+                          sku: "",
+                          barcode: "",
+                          unit: "",
+                          retailPrice: "",
+                          wholesalePrice: "",
+                          purchasePrice: "",
+                          minStockLevel: "",
+                          taxRate: "",
+                          quantity: "",
+                        })
+                        setVariantErrors({})
+                      }}
+                      disabled={showVariantForm}
+                    >
+                      Add Variant
+                    </Button>
                   </div>
+                  {/* Table of added variants */}
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full border text-sm">
+                      <thead>
+                        <tr>
+                          <th className="border px-2 py-1 text-left">Packing Size</th>
+                          <th className="border px-2 py-1 text-left">SKU</th>
+                          <th className="border px-2 py-1 text-left">Barcode</th>
+                          <th className="border px-2 py-1 text-left">Unit</th>
+                          <th className="border px-2 py-1 text-left">Retail Price</th>
+                          <th className="border px-2 py-1 text-left">Wholesale Price</th>
+                          <th className="border px-2 py-1 text-left">Purchase Price</th>
+                          <th className="border px-2 py-1 text-left">Min Stock</th>
+                          <th className="border px-2 py-1 text-left">Tax Rate</th>
+                          {/* <th className="border px-2 py-1 text-left">Stock Qty</th> */}
+                          <th className="border px-2 py-1 text-left">Action</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {values.variants.length > 0 ? (
+                          values.variants.map((variant: any, idx: number) => (
+                            <tr key={idx}>
+                              <td className="border px-2 py-1">{variant.packingSize}</td>
+                              <td className="border px-2 py-1">{variant.sku}</td>
+                              <td className="border px-2 py-1">{variant.barcode}</td>
+                              <td className="border px-2 py-1">{variant.unit}</td>
+                              <td className="border px-2 py-1">{variant.retailPrice}</td>
+                              <td className="border px-2 py-1">{variant.wholesalePrice}</td>
+                              <td className="border px-2 py-1">{variant.purchasePrice}</td>
+                              <td className="border px-2 py-1">{variant.minStockLevel}</td>
+                              <td className="border px-2 py-1">{variant.taxRate}</td>
+                              {/* <td className="border px-2 py-1">{variant.quantity}</td> */}
+                              <td className="border px-2 py-1">
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  variant="outline"
+                                  className="mr-2"
+                                  onClick={() => {
+                                    setShowVariantForm(true)
+                                    setEditVariantIndex(idx)
+                                    setFieldValue("newVariant", { ...variant })
+                                    setVariantErrors({})
+                                  }}
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  type="button"
+                                  variant="destructive"
+                                  size="sm"
+                                  onClick={() => handleDelete(idx)} // <-- use idx
+                                >
+                                  <Delete className="h-4 w-4" />
+                                </Button>
+                              </td>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="barcode">Barcode</Label>
-                    <div className="relative">
-                      <Barcode className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
-                      <Field
-                        as={Input}
-                        id="barcode"
-                        name="barcode"
-                        placeholder="8901234567890"
-                        className="pl-10"
-                      />
-                    </div>
-                    <ErrorMessage name="barcode" component="div" className="text-red-500 text-sm" />
+                              <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      This will permanently delete this variant. This action cannot be undone.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel onClick={handleCancelDelete}>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction
+                                      onClick={() => handleConfirmDelete(values, setFieldValue)}
+                                      className="bg-destructive text-destructive-foreground"
+                                    >
+                                      Delete
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            </tr>
+                          ))
+                        ) : (
+                          <tr>
+                            <td className="border px-2 py-1 text-center" colSpan={10}>
+                              No Data
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                  <div className="space-y-2">
-                    <Label htmlFor="retailPrice">Retail Price (₹)</Label>
-                    <div className="relative">
-                      <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
-                      <Field
-                        as={Input}
-                        id="retailPrice"
-                        name="retailPrice"
-                        type="number"
-                        placeholder="850"
-                        className="pl-10"
-                      />
+                {/* Add/Edit Variant Form */}
+                {showVariantForm && (
+                  <div className="border p-4 rounded space-y-2 mt-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <Label>Packing Size</Label>
+                        <div className="relative">
+                          <Package className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                          <Field as={Input} name="newVariant.packingSize" placeholder="e.g. 5kg" className="pl-8" />
+                        </div>
+                        {variantErrors.packingSize && (
+                          <div className="text-red-500 text-sm">{variantErrors.packingSize}</div>
+                        )}
+                      </div>
+                      <div>
+                        <Label>SKU</Label>
+                        <div className="relative">
+                          <Layers className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                          <Field as={Input} name="newVariant.sku" placeholder="SKU" className="pl-8" />
+                        </div>
+                        {variantErrors.sku && (
+                          <div className="text-red-500 text-sm">{variantErrors.sku}</div>
+                        )}
+                      </div>
+                      <div>
+                        <Label>Barcode</Label>
+                        <div className="relative">
+                          <Barcode className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                          <Field as={Input} name="newVariant.barcode" placeholder="Barcode" className="pl-8" />
+                        </div>
+                        {variantErrors.barcode && (
+                          <div className="text-red-500 text-sm">{variantErrors.barcode}</div>
+                        )}
+                      </div>
+                      <div>
+                        <Label>Retail Price</Label>
+                        <div className="relative">
+                          <IndianRupee className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                          <Field as={Input} name="newVariant.retailPrice" type="number" placeholder="Retail Price" className="pl-8" />
+                        </div>
+                        {variantErrors.retailPrice && (
+                          <div className="text-red-500 text-sm">{variantErrors.retailPrice}</div>
+                        )}
+                      </div>
+                      <div>
+                        <Label>Wholesale Price</Label>
+                        <div className="relative">
+                          <IndianRupee className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                          <Field as={Input} name="newVariant.wholesalePrice" type="number" placeholder="Wholesale Price" className="pl-8" />
+                        </div>
+                        {variantErrors.wholesalePrice && (
+                          <div className="text-red-500 text-sm">{variantErrors.wholesalePrice}</div>
+                        )}
+                      </div>
+                      <div>
+                        <Label>Purchase Price</Label>
+                        <div className="relative">
+                          <IndianRupee className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                          <Field as={Input} name="newVariant.purchasePrice" type="number" placeholder="Purchase Price" className="pl-8" />
+                        </div>
+                        {variantErrors.purchasePrice && (
+                          <div className="text-red-500 text-sm">{variantErrors.purchasePrice}</div>
+                        )}
+                      </div>
+                      <div>
+                        <Label>Min Stock Level</Label>
+                        <div className="relative">
+                          <Boxes className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                          <Field as={Input} name="newVariant.minStockLevel" type="number" placeholder="Min Stock Level" className="pl-8" />
+                        </div>
+                        {variantErrors.minStockLevel && (
+                          <div className="text-red-500 text-sm">{variantErrors.minStockLevel}</div>
+                        )}
+                      </div>
+                      <div>
+                        <Label>Tax Rate (%)</Label>
+                        <div className="relative">
+                          <Percent className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                          <Field as={Input} name="newVariant.taxRate" type="number" placeholder="Tax Rate" className="pl-8" />
+                        </div>
+                        {variantErrors.taxRate && (
+                          <div className="text-red-500 text-sm">{variantErrors.taxRate}</div>
+                        )}
+                      </div>
+                      <div>
+                        <Label>Unit</Label>
+                        <div className="relative">
+                          <Package className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                          <Field name="newVariant.unit">
+                            {({ field }: any) => (
+                              <Select
+                                value={field.value}
+                                onValueChange={(value) => field.onChange({ target: { name: field.name, value } })}
+                              >
+                                <SelectTrigger className="pl-8 border rounded w-full h-10">
+                                  <SelectValue placeholder="Select unit" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="kg">Kilogram (kg)</SelectItem>
+                                  <SelectItem value="litre">Litre</SelectItem>
+                                  <SelectItem value="box">Box</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            )}
+                          </Field>
+                        </div>
+                        {variantErrors.unit && (
+                          <div className="text-red-500 text-sm">{variantErrors.unit}</div>
+                        )}
+                      </div>
                     </div>
-                    <ErrorMessage name="retailPrice" component="div" className="text-red-500 text-sm" />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="wholesalePrice">Wholesale Price (₹)</Label>
-                    <div className="relative">
-                      <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
-                      <Field
-                        as={Input}
-                        id="wholesalePrice"
-                        name="wholesalePrice"
-                        type="number"
-                        placeholder="750"
-                        className="pl-10"
-                      />
-                    </div>
-                    <ErrorMessage name="wholesalePrice" component="div" className="text-red-500 text-sm" />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="purchasePrice">Purchase Price (₹)</Label>
-                    <div className="relative">
-                      <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
-                      <Field
-                        as={Input}
-                        id="purchasePrice"
-                        name="purchasePrice"
-                        type="number"
-                        placeholder="650"
-                        className="pl-10"
-                      />
-                    </div>
-                    <ErrorMessage name="purchasePrice" component="div" className="text-red-500 text-sm" />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                  <div className="space-y-2">
-                    <Label htmlFor="quantity">Stock Quantity</Label>
-                    <div className="relative">
-                      <Box className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
-                      <Field
-                        as={Input}
-                        id="quantity"
-                        name="quantity"
-                        type="number"
-                        placeholder="100"
-                        className="pl-10"
-                      />
-                    </div>
-                    <ErrorMessage name="quantity" component="div" className="text-red-500 text-sm" />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="minStockLevel">Min Stock Level</Label>
-                    <div className="relative">
-                      <Box className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
-                      <Field
-                        as={Input}
-                        id="minStockLevel"
-                        name="minStockLevel"
-                        type="number"
-                        placeholder="10"
-                        className="pl-10"
-                      />
-                    </div>
-                    <ErrorMessage name="minStockLevel" component="div" className="text-red-500 text-sm" />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="taxRate">Tax Rate (%)</Label>
-                    <div className="relative">
-                      <Percent className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
-                      <Select
-                        value={String(values.taxRate)}
-                        onValueChange={(value) => setFieldValue("taxRate", value)}
+                    <div className="flex gap-2 mt-2">
+                      <Button
+                        type="button"
+                        onClick={async () => {
+                          try {
+                            await newVariantSchema.validate(values.newVariant, { abortEarly: false })
+                            if (editVariantIndex !== null) {
+                              // Edit mode: update existing variant
+                              const updatedVariants = [...values.variants]
+                              updatedVariants[editVariantIndex] = {
+                                ...values.newVariant,
+                                retailPrice: Number(values.newVariant.retailPrice),
+                                wholesalePrice: Number(values.newVariant.wholesalePrice),
+                                purchasePrice: Number(values.newVariant.purchasePrice),
+                                minStockLevel: Number(values.newVariant.minStockLevel),
+                                taxRate: Number(values.newVariant.taxRate),
+                                quantity: Number(0),
+                              }
+                              setFieldValue("variants", updatedVariants)
+                            } else {
+                              // Add mode: add new variant
+                              setFieldValue("variants", [
+                                ...values.variants,
+                                {
+                                  ...values.newVariant,
+                                  retailPrice: Number(values.newVariant.retailPrice),
+                                  wholesalePrice: Number(values.newVariant.wholesalePrice),
+                                  purchasePrice: Number(values.newVariant.purchasePrice),
+                                  minStockLevel: Number(values.newVariant.minStockLevel),
+                                  taxRate: Number(values.newVariant.taxRate),
+                                  quantity: Number(0),
+                                },
+                              ])
+                            }
+                            setFieldValue("newVariant", {
+                              packingSize: "",
+                              sku: "",
+                              barcode: "",
+                              unit: "",
+                              retailPrice: "",
+                              wholesalePrice: "",
+                              purchasePrice: "",
+                              minStockLevel: "",
+                              taxRate: "",
+                              quantity: "",
+                            })
+                            setVariantErrors({})
+                            setShowVariantForm(false)
+                            setEditVariantIndex(null)
+                          } catch (err: any) {
+                            if (err.inner) {
+                              const errors: any = {}
+                              err.inner.forEach((e: any) => {
+                                errors[e.path] = e.message
+                              })
+                              setVariantErrors(errors)
+                            }
+                          }
+                        }}
                       >
-                        <SelectTrigger className="pl-10">
-                          <SelectValue placeholder="Select tax rate" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="0">0%</SelectItem>
-                          <SelectItem value="5">5%</SelectItem>
-                          <SelectItem value="12">12%</SelectItem>
-                          <SelectItem value="18">18%</SelectItem>
-                          <SelectItem value="28">28%</SelectItem>
-                        </SelectContent>
-                      </Select>
+                        {editVariantIndex !== null ? "Update Variant" : "Save Variant"}
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => {
+                          setFieldValue("newVariant", {
+                            packingSize: "",
+                            sku: "",
+                            barcode: "",
+                            unit: "",
+                            retailPrice: "",
+                            wholesalePrice: "",
+                            purchasePrice: "",
+                            minStockLevel: "",
+                            taxRate: "",
+                            quantity: "",
+                          })
+                          setVariantErrors({})
+                          setShowVariantForm(false)
+                          setEditVariantIndex(null)
+                        }}
+                      >
+                        Cancel
+                      </Button>
                     </div>
-                    <ErrorMessage name="taxRate" component="div" className="text-red-500 text-sm" />
                   </div>
-                </div>
+                )}
               </CardContent>
               <CardFooter className="flex justify-between">
                 <Button type="button" variant="outline" onClick={() => router.back()}>
                   Cancel
                 </Button>
-                <Button type="submit" disabled={isSaving}>
+                <Button type="submit" disabled={isSaving || values.variants.length === 0}>
                   {isSaving ? (
                     <div className="flex items-center justify-center gap-2">
                       <div className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
