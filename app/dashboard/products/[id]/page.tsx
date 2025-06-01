@@ -16,6 +16,7 @@ import { serverGetActiveCategory, serverGetProduct, serverUpdateProduct } from "
 import { ICategory } from "@/types/category"
 import { IProduct } from "@/types/product"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 
 const newVariantSchema = Yup.object({
   packingSize: Yup.string().required("Packing size is required"),
@@ -289,37 +290,35 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
                   </div>
                   {/* Table of added variants */}
                   <div className="overflow-x-auto">
-                    <table className="min-w-full border text-sm">
-                      <thead>
-                        <tr>
-                          <th className="border px-2 py-1 text-left">Packing Size</th>
-                          <th className="border px-2 py-1 text-left">SKU</th>
-                          <th className="border px-2 py-1 text-left">Barcode</th>
-                          <th className="border px-2 py-1 text-left">Unit</th>
-                          <th className="border px-2 py-1 text-left">Retail Price</th>
-                          <th className="border px-2 py-1 text-left">Wholesale Price</th>
-                          <th className="border px-2 py-1 text-left">Purchase Price</th>
-                          <th className="border px-2 py-1 text-left">Min Stock</th>
-                          <th className="border px-2 py-1 text-left">Tax Rate</th>
-                          {/* <th className="border px-2 py-1 text-left">Stock Qty</th> */}
-                          <th className="border px-2 py-1 text-left">Action</th>
-                        </tr>
-                      </thead>
-                      <tbody>
+                    <Table className="min-w-full border text-sm">
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="border px-2 py-1 text-left whitespace-nowrap">Packing Size</TableHead>
+                          <TableHead className="border px-2 py-1 text-left whitespace-nowrap">SKU</TableHead>
+                          <TableHead className="border px-2 py-1 text-left whitespace-nowrap">Barcode</TableHead>
+                          <TableHead className="border px-2 py-1 text-left whitespace-nowrap">Unit</TableHead> {/* <-- Add this */}
+                          <TableHead className="border px-2 py-1 text-left whitespace-nowrap">Retail Price</TableHead>
+                          <TableHead className="border px-2 py-1 text-left whitespace-nowrap">Wholesale Price</TableHead>
+                          <TableHead className="border px-2 py-1 text-left whitespace-nowrap">Purchase Price</TableHead>
+                          <TableHead className="border px-2 py-1 text-left whitespace-nowrap">Min Stock</TableHead>
+                          <TableHead className="border px-2 py-1 text-left whitespace-nowrap">Tax Rate</TableHead>
+                          <TableHead className="border px-2 py-1 text-left whitespace-nowrap">Action</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
                         {values.variants.length > 0 ? (
                           values.variants.map((variant: any, idx: number) => (
-                            <tr key={idx}>
-                              <td className="border px-2 py-1">{variant.packingSize}</td>
-                              <td className="border px-2 py-1">{variant.sku}</td>
-                              <td className="border px-2 py-1">{variant.barcode}</td>
-                              <td className="border px-2 py-1">{variant.unit}</td>
-                              <td className="border px-2 py-1">{variant.retailPrice}</td>
-                              <td className="border px-2 py-1">{variant.wholesalePrice}</td>
-                              <td className="border px-2 py-1">{variant.purchasePrice}</td>
-                              <td className="border px-2 py-1">{variant.minStockLevel}</td>
-                              <td className="border px-2 py-1">{variant.taxRate}</td>
-                              {/* <td className="border px-2 py-1">{variant.quantity}</td> */}
-                              <td className="border px-2 py-1">
+                            <TableRow key={idx}>
+                              <TableCell className="border px-2 py-1">{variant.packingSize}</TableCell>
+                              <TableCell className="border px-2 py-1">{variant.sku}</TableCell>
+                              <TableCell className="border px-2 py-1">{variant.barcode}</TableCell>
+                              <TableCell className="border px-2 py-1">{variant.unit}</TableCell> {/* <-- Add this */}
+                              <TableCell className="border px-2 py-1">₹{variant.retailPrice}</TableCell>
+                              <TableCell className="border px-2 py-1">₹{variant.wholesalePrice}</TableCell>
+                              <TableCell className="border px-2 py-1">₹{variant.purchasePrice}</TableCell>
+                              <TableCell className="border px-2 py-1">{variant.minStockLevel}</TableCell>
+                              <TableCell className="border px-2 py-1">{variant.taxRate}</TableCell>
+                              <TableCell className="border px-2 py-1">
                                 <Button
                                   type="button"
                                   size="sm"
@@ -342,7 +341,7 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
                                 >
                                   <Delete className="h-4 w-4" />
                                 </Button>
-                              </td>
+                              </TableCell>
 
                               <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
                                 <AlertDialogContent>
@@ -363,17 +362,17 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
                                   </AlertDialogFooter>
                                 </AlertDialogContent>
                               </AlertDialog>
-                            </tr>
+                            </TableRow>
                           ))
                         ) : (
-                          <tr>
-                            <td className="border px-2 py-1 text-center" colSpan={10}>
+                          <TableRow>
+                            <TableCell className="border px-2 py-1 text-center" colSpan={10}>
                               No Data
-                            </td>
-                          </tr>
+                            </TableCell>
+                          </TableRow>
                         )}
-                      </tbody>
-                    </table>
+                      </TableBody>
+                    </Table>
                   </div>
                 </div>
 
@@ -381,7 +380,7 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
                 {showVariantForm && (
                   <div className="border p-4 rounded space-y-2 mt-4">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div>
+                      <div className="space-y-2">
                         <Label>Packing Size</Label>
                         <div className="relative">
                           <Package className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -391,7 +390,7 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
                           <div className="text-red-500 text-sm">{variantErrors.packingSize}</div>
                         )}
                       </div>
-                      <div>
+                      <div className="space-y-2">
                         <Label>SKU</Label>
                         <div className="relative">
                           <Layers className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -401,7 +400,7 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
                           <div className="text-red-500 text-sm">{variantErrors.sku}</div>
                         )}
                       </div>
-                      <div>
+                      <div className="space-y-2">
                         <Label>Barcode</Label>
                         <div className="relative">
                           <Barcode className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -411,7 +410,7 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
                           <div className="text-red-500 text-sm">{variantErrors.barcode}</div>
                         )}
                       </div>
-                      <div>
+                      <div className="space-y-2">
                         <Label>Retail Price</Label>
                         <div className="relative">
                           <IndianRupee className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -421,7 +420,7 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
                           <div className="text-red-500 text-sm">{variantErrors.retailPrice}</div>
                         )}
                       </div>
-                      <div>
+                      <div className="space-y-2">
                         <Label>Wholesale Price</Label>
                         <div className="relative">
                           <IndianRupee className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -431,7 +430,7 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
                           <div className="text-red-500 text-sm">{variantErrors.wholesalePrice}</div>
                         )}
                       </div>
-                      <div>
+                      <div className="space-y-2">
                         <Label>Purchase Price</Label>
                         <div className="relative">
                           <IndianRupee className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -441,7 +440,7 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
                           <div className="text-red-500 text-sm">{variantErrors.purchasePrice}</div>
                         )}
                       </div>
-                      <div>
+                      <div className="space-y-2">
                         <Label>Min Stock Level</Label>
                         <div className="relative">
                           <Boxes className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -451,7 +450,7 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
                           <div className="text-red-500 text-sm">{variantErrors.minStockLevel}</div>
                         )}
                       </div>
-                      <div>
+                      <div className="space-y-2">
                         <Label>Tax Rate (%)</Label>
                         <div className="relative">
                           <Percent className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -461,7 +460,7 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
                           <div className="text-red-500 text-sm">{variantErrors.taxRate}</div>
                         )}
                       </div>
-                      <div>
+                      <div className="space-y-2">
                         <Label>Unit</Label>
                         <div className="relative">
                           <Package className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
