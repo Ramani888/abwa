@@ -310,7 +310,7 @@ export default function EditOrderPage({ params }: { params: { id: string } }) {
         <h2 className="text-3xl font-bold tracking-tight">Edit Order #{params.id}</h2>
       </div>
 
-      <form onSubmit={handleSubmit}>
+      <div>
         <div className="grid gap-6 mb-6">
           <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "retail" | "wholesale")}>
             <TabsList className="grid w-full grid-cols-2">
@@ -684,13 +684,13 @@ export default function EditOrderPage({ params }: { params: { id: string } }) {
               <Button type="button" variant="outline" onClick={() => router.back()}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={isSubmitting || orderItems.length === 0 || !selectedCustomer}>
+              <Button type="submit" disabled={isSubmitting || orderItems.length === 0 || !selectedCustomer} onClick={handleSubmit}>
                 {isSubmitting ? "Saving..." : "Save Changes"}
               </Button>
             </CardFooter>
           </Card>
         </div>
-      </form>
+      </div>
     </div>
   )
 }

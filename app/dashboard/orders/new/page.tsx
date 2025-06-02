@@ -213,9 +213,8 @@ export default function NewOrderPage() {
     return total + roundOff
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-
+  // Remove form event, just a plain function
+  const handleSubmit = async () => {
     const bodyData = {
       customerType: activeTab,
       customerId: selectedCustomer,
@@ -262,7 +261,8 @@ export default function NewOrderPage() {
         <h2 className="text-3xl font-bold tracking-tight">Create New Order</h2>
       </div>
 
-      <form onSubmit={handleSubmit}>
+      {/* Removed <form> and replaced with <div> */}
+      <div>
         <div className="grid gap-6 mb-6">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="grid w-full grid-cols-2">
@@ -364,7 +364,6 @@ export default function NewOrderPage() {
                   </Select>
                 </div>
 
-                
                 <div className="sm:col-span-6">
                   <Label htmlFor="variant">Variant</Label>
                   <Select value={selectedVariant} onValueChange={setSelectedVariant}>
@@ -380,7 +379,7 @@ export default function NewOrderPage() {
                     </SelectContent>
                   </Select>
                 </div>
-                
+
 
                 <div className="sm:col-span-2">
                   <Label>Unit</Label>
@@ -638,13 +637,17 @@ export default function NewOrderPage() {
               <Button type="button" variant="outline" onClick={() => router.back()}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={isSubmitting || orderItems.length === 0 || !selectedCustomer}>
+              <Button
+                type="button"
+                disabled={isSubmitting || orderItems.length === 0 || !selectedCustomer}
+                onClick={handleSubmit}
+              >
                 {isSubmitting ? "Creating..." : "Create Order"}
               </Button>
             </CardFooter>
           </Card>
         </div>
-      </form>
+      </div>
     </div>
   )
 }
