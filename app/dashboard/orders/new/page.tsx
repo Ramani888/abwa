@@ -22,27 +22,32 @@ export default function NewOrderPage() {
     Array<{
       id: string
       productId: string
+      variantId: string
       name: string
       price: number
+      unit: number
+      carton: number
       quantity: number
       gstRate: number | undefined
       gstAmount: number
       total: number
-      size: string // <-- added
+      size: string
     }>
   >([])
   const [selectedCustomer, setSelectedCustomer] = useState("")
   const [selectedProduct, setSelectedProduct] = useState("")
-  const [quantity, setQuantity] = useState(1)
+  const [selectedVariant, setSelectedVariant] = useState("")
+  const [unit, setUnit] = useState(1)
+  const [carton, setCarton] = useState(1)
   const [paymentMethod, setPaymentMethod] = useState("cash")
   const [searchQuery, setSearchQuery] = useState("")
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [notes, setNotes] = useState("") // For optional notes/delivery instructions
-  const [manualRoundOff, setManualRoundOff] = useState<number | "">(0) // Editable round-off
+  const [notes, setNotes] = useState("")
+  const [manualRoundOff, setManualRoundOff] = useState<number | "">(0)
   const [customerData, setCustomerData] = useState<ICustomer[]>([])
   const [productData, setProductData] = useState<IProduct[]>([])
-  const [paymentStatus, setPaymentStatus] = useState("paid") // Added paymentStatus state
+  const [paymentStatus, setPaymentStatus] = useState("paid")
   const router = useRouter()
 
   const filteredProducts = productData?.filter((product) => product?.name.toLowerCase().includes(searchQuery.toLowerCase()))
@@ -61,7 +66,7 @@ export default function NewOrderPage() {
       setIsLoading(false)
     } catch (error) {
       setIsLoading(false)
-      setCustomerData([]);
+      setCustomerData([])
       console.error("Error fetching customer data:", error)
     }
   }
@@ -69,52 +74,59 @@ export default function NewOrderPage() {
   const getProductData = async () => {
     try {
       setIsLoading(true)
-      const res = await serverGetProduct();
-      setProductData(res?.data);
+      const res = await serverGetProduct()
+      setProductData(res?.data)
       setIsLoading(false)
     } catch (error) {
       setIsLoading(false)
-      setProductData([]);
+      setProductData([])
       console.error("Error fetching product data:", error)
     }
   }
 
   useEffect(() => {
-    getCustomerData();
-    getProductData();
+    getCustomerData()
+    getProductData()
   }, [])
 
-  // When selecting a product, set quantity to its current value if already in order
+  // When selecting a product, reset variant and unit/carton
   const handleSelectProduct = (productId: string) => {
     setSelectedProduct(productId)
-    const existing = orderItems.find((item) => item.productId === productId)
-    setQuantity(existing ? existing.quantity : 1)
+    setSelectedVariant("")
+    setUnit(1)
+    setCarton(1)
   }
 
   // Add or update product in order
   const handleAddItem = () => {
-    if (!selectedProduct || quantity <= 0) return
+    if (!selectedProduct || !selectedVariant || unit <= 0 || carton <= 0) return
 
     const product = productData?.find((p) => p?._id === selectedProduct)
     if (!product) return
 
-    const price = activeTab === "wholesale" ? product.wholesalePrice : product?.retailPrice
-    const gstRate = product?.taxRate ?? 0 // If undefined, treat as 0
+    const variant = product.variants?.find((v: any) => v._id === selectedVariant)
+    if (!variant) return
 
-    const existingIndex = orderItems.findIndex((item) => item.productId === product?._id)
+    const quantity = unit * carton
+    const price = activeTab === "wholesale" ? variant.wholesalePrice : variant.retailPrice
+    const gstRate = variant.taxRate ?? 0
+
+    const existingIndex = orderItems.findIndex((item) => item.productId === product._id && item.variantId === variant._id)
     if (existingIndex !== -1) {
-      // Replace quantity, gstAmount, and total for the existing item
+      // Update existing item
       const updatedItems = [...orderItems]
       const gstAmount = ((price * quantity) * gstRate) / 100
       const total = price * quantity + gstAmount
 
       updatedItems[existingIndex] = {
         ...updatedItems[existingIndex],
+        unit,
+        carton,
         quantity,
-        gstRate: product?.taxRate,
+        gstRate: variant.taxRate,
         gstAmount,
         total,
-        size: product?.packingSize, // <-- added
+        size: variant.packingSize ? String(variant.packingSize) : "",
       }
       setOrderItems(updatedItems)
     } else {
@@ -125,23 +137,44 @@ export default function NewOrderPage() {
       const newItem = {
         id: Date.now().toString(),
         productId: product._id as string,
-        name: product.name,
+        variantId: String(variant._id),
+        name: product.name + " - " + (variant.packingSize || ""),
         price,
+        unit,
+        carton,
         quantity,
-        gstRate: product?.taxRate, // Keep original value (could be undefined)
+        gstRate: variant.taxRate,
         gstAmount,
         total,
-        size: product.packingSize ? String(product.packingSize) : "", // ensure string
+        size: variant.packingSize ? String(variant.packingSize) : "",
       }
       setOrderItems([...orderItems, newItem])
     }
 
     setSelectedProduct("")
-    setQuantity(1)
+    setSelectedVariant("")
+    setUnit(1)
+    setCarton(1)
   }
 
   const handleRemoveItem = (id: string) => {
     setOrderItems(orderItems.filter((item) => item.id !== id))
+  }
+
+  // Update unit/carton for an item in the table
+  const updateOrderItemUnitCarton = (id: string, newUnit: number, newCarton: number) => {
+    setOrderItems(orderItems.map(item =>
+      item.id === id
+        ? {
+            ...item,
+            unit: newUnit,
+            carton: newCarton,
+            quantity: newUnit * newCarton,
+            gstAmount: ((item.price * newUnit * newCarton) * (item.gstRate ?? 0)) / 100,
+            total: item.price * newUnit * newCarton + (((item.price * newUnit * newCarton) * (item.gstRate ?? 0)) / 100),
+          }
+        : item
+    ))
   }
 
   const calculateSubtotal = () => {
@@ -156,7 +189,6 @@ export default function NewOrderPage() {
     return orderItems.reduce((sum, item) => sum + item.total, 0)
   }
 
-  // Calculate round-off for total
   const calculateAutoRoundOff = () => {
     const total = calculateTotal()
     return Math.round(total) - total
@@ -172,7 +204,7 @@ export default function NewOrderPage() {
   }, [orderItems])
 
   useEffect(() => {
-    setSelectedCustomer("");
+    setSelectedCustomer("")
   }, [activeTab])
 
   const calculateFinalTotal = () => {
@@ -199,7 +231,7 @@ export default function NewOrderPage() {
 
     try {
       setIsSubmitting(true)
-      const res = await serverAddOrder(bodyData);
+      const res = await serverAddOrder(bodyData)
       if (res?.success) {
         router.push("/dashboard/orders")
       }
@@ -313,7 +345,7 @@ export default function NewOrderPage() {
             </CardHeader>
             <CardContent>
               <div className="mb-2 text-sm text-muted-foreground">
-                Use <b>+/−</b> to quickly adjust quantity.
+                Use <b>+/−</b> to quickly adjust unit and carton.
               </div>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-12">
                 <div className="sm:col-span-6">
@@ -325,51 +357,61 @@ export default function NewOrderPage() {
                     <SelectContent>
                       {filteredProducts.map((product) => (
                         <SelectItem key={product?._id ?? ""} value={product?._id ?? ""}>
-                          {/* disabled={product.stock <= 0} */}
-                          {product.name} - ₹{activeTab === "wholesale" ? product.wholesalePrice : product.retailPrice}
+                          {product.name}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
 
-                <div className="sm:col-span-3">
-                  <Label htmlFor="quantity">Quantity</Label>
+                
+                <div className="sm:col-span-6">
+                  <Label htmlFor="variant">Variant</Label>
+                  <Select value={selectedVariant} onValueChange={setSelectedVariant}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a variant" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {productData.find(p => p._id === selectedProduct)?.variants?.map((variant: any) => (
+                        <SelectItem key={variant._id} value={variant._id}>
+                          {variant.name || variant.packingSize} - ₹{activeTab === "wholesale" ? variant.wholesalePrice : variant.retailPrice}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+
+                <div className="sm:col-span-2">
+                  <Label>Unit</Label>
                   <div className="flex items-center space-x-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="icon"
-                      onClick={() => setQuantity(q => Math.max(1, q - 1))}
-                      tabIndex={-1}
-                    >−</Button>
-                    <Input
-                      id="quantity"
-                      type="number"
-                      min="1"
-                      value={quantity}
-                      onChange={(e) => setQuantity(Number.parseInt(e.target.value) || 0)}
-                      className="w-20"
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="icon"
-                      onClick={() => setQuantity(q => q + 1)}
-                      tabIndex={-1}
-                    >+</Button>
+                    <Button type="button" variant="outline" size="icon" onClick={() => setUnit(u => Math.max(1, u - 1))}>−</Button>
+                    <Input type="number" min="1" value={unit} onChange={e => setUnit(Number(e.target.value) || 1)} className="w-16" />
+                    <Button type="button" variant="outline" size="icon" onClick={() => setUnit(u => u + 1)}>+</Button>
                   </div>
+                </div>
+                <div className="sm:col-span-2">
+                  <Label>Carton</Label>
+                  <div className="flex items-center space-x-2">
+                    <Button type="button" variant="outline" size="icon" onClick={() => setCarton(c => Math.max(1, c - 1))}>−</Button>
+                    <Input type="number" min="1" value={carton} onChange={e => setCarton(Number(e.target.value) || 1)} className="w-16" />
+                    <Button type="button" variant="outline" size="icon" onClick={() => setCarton(c => c + 1)}>+</Button>
+                  </div>
+                </div>
+                <div className="sm:col-span-2">
+                  <Label>Quantity</Label>
+                  <Input type="number" value={unit * carton} readOnly className="w-20 bg-muted" />
                 </div>
 
                 <div className="sm:col-span-3 flex items-end">
                   <Button
                     type="button"
                     onClick={handleAddItem}
-                    disabled={!selectedProduct || quantity <= 0}
+                    disabled={!selectedProduct || !selectedVariant || unit <= 0 || carton <= 0}
                     className="w-full"
                   >
                     <Plus className="mr-2 h-4 w-4" />
-                    {orderItems.some((item) => item.productId === selectedProduct) ? "Update Item" : "Add Item"}
+                    {orderItems.some((item) => item.productId === selectedProduct && item.variantId === selectedVariant) ? "Update Item" : "Add Item"}
                   </Button>
                 </div>
               </div>
@@ -381,6 +423,8 @@ export default function NewOrderPage() {
                       <TableHead>Product</TableHead>
                       <TableHead>Size</TableHead>
                       <TableHead>Price</TableHead>
+                      <TableHead>Unit</TableHead>
+                      <TableHead>Carton</TableHead>
                       <TableHead>Quantity</TableHead>
                       <TableHead>GST %</TableHead>
                       <TableHead>GST Amount</TableHead>
@@ -401,60 +445,63 @@ export default function NewOrderPage() {
                                 type="button"
                                 variant="outline"
                                 size="icon"
-                                onClick={() => {
-                                  const newQty = Math.max(1, item.quantity - 1)
-                                  setOrderItems(orderItems.map(oi =>
-                                    oi.productId === item.productId
-                                      ? {
-                                          ...oi,
-                                          quantity: newQty,
-                                          gstAmount: ((oi.price * newQty) * (oi.gstRate ?? 0)) / 100,
-                                          total: oi.price * newQty + (((oi.price * newQty) * (oi.gstRate ?? 0)) / 100),
-                                        }
-                                      : oi
-                                  ))
-                                }}
+                                onClick={() => updateOrderItemUnitCarton(item.id, Math.max(1, item.unit - 1), item.carton)}
                                 tabIndex={-1}
                               >−</Button>
                               <Input
                                 type="number"
                                 min={1}
-                                value={item.quantity}
+                                value={item.unit}
                                 onChange={e => {
-                                  const newQty = Number(e.target.value) || 1
-                                  setOrderItems(orderItems.map(oi =>
-                                    oi.productId === item.productId
-                                      ? {
-                                          ...oi,
-                                          quantity: newQty,
-                                          gstAmount: ((oi.price * newQty) * (oi.gstRate ?? 0)) / 100,
-                                          total: oi.price * newQty + (((oi.price * newQty) * (oi.gstRate ?? 0)) / 100),
-                                        }
-                                      : oi
-                                  ))
+                                  const newUnit = Number(e.target.value) || 1
+                                  updateOrderItemUnitCarton(item.id, newUnit, item.carton)
                                 }}
-                                className="w-16"
+                                className="w-12"
                               />
                               <Button
                                 type="button"
                                 variant="outline"
                                 size="icon"
-                                onClick={() => {
-                                  const newQty = item.quantity + 1
-                                  setOrderItems(orderItems.map(oi =>
-                                    oi.productId === item.productId
-                                      ? {
-                                          ...oi,
-                                          quantity: newQty,
-                                          gstAmount: ((oi.price * newQty) * (oi.gstRate ?? 0)) / 100,
-                                          total: oi.price * newQty + (((oi.price * newQty) * (oi.gstRate ?? 0)) / 100),
-                                        }
-                                      : oi
-                                  ))
-                                }}
+                                onClick={() => updateOrderItemUnitCarton(item.id, item.unit + 1, item.carton)}
                                 tabIndex={-1}
                               >+</Button>
                             </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center space-x-2">
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="icon"
+                                onClick={() => updateOrderItemUnitCarton(item.id, item.unit, Math.max(1, item.carton - 1))}
+                                tabIndex={-1}
+                              >−</Button>
+                              <Input
+                                type="number"
+                                min={1}
+                                value={item.carton}
+                                onChange={e => {
+                                  const newCarton = Number(e.target.value) || 1
+                                  updateOrderItemUnitCarton(item.id, item.unit, newCarton)
+                                }}
+                                className="w-12"
+                              />
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="icon"
+                                onClick={() => updateOrderItemUnitCarton(item.id, item.unit, item.carton + 1)}
+                                tabIndex={-1}
+                              >+</Button>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Input
+                              type="number"
+                              value={item.quantity}
+                              readOnly
+                              className="w-16 bg-muted"
+                            />
                           </TableCell>
                           <TableCell>
                             <Input
@@ -464,7 +511,7 @@ export default function NewOrderPage() {
                               onChange={e => {
                                 const newGst = Number(e.target.value)
                                 setOrderItems(orderItems.map(oi =>
-                                  oi.productId === item.productId
+                                  oi.id === item.id
                                     ? {
                                         ...oi,
                                         gstRate: isNaN(newGst) ? undefined : newGst,
@@ -492,7 +539,7 @@ export default function NewOrderPage() {
                       ))
                     ) : (
                       <TableRow>
-                        <TableCell colSpan={8} className="h-24 text-center">
+                        <TableCell colSpan={10} className="h-24 text-center">
                           No items added to the order.
                         </TableCell>
                       </TableRow>
@@ -529,8 +576,8 @@ export default function NewOrderPage() {
                       className="w-24 text-right"
                       value={manualRoundOff}
                       onChange={e => {
-                        const val = e.target.value;
-                        setManualRoundOff(val === "" ? "" : Number(val));
+                        const val = e.target.value
+                        setManualRoundOff(val === "" ? "" : Number(val))
                       }}
                       placeholder={calculateAutoRoundOff().toFixed(2)}
                     />
