@@ -1,11 +1,25 @@
+"use client"
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { SalesOverview } from "@/components/dashboard/sales-overview"
 import { RecentSales } from "@/components/dashboard/recent-sales"
 import { CustomerStats } from "@/components/dashboard/customer-stats"
 import { StockSummary } from "@/components/dashboard/stock-summary"
+import { useDispatch, useSelector } from 'react-redux'
+import { AppDispatch, RootState } from "@/lib/store"
+import { useEffect } from "react"
+import { getCustomers } from "@/lib/features/customerSlice"
 
 export default function DashboardPage() {
+  const dispatch = useDispatch<AppDispatch>()
+  const { customers, loading, error } = useSelector((state: RootState) => state.customers)
+
+  useEffect(() => {
+    dispatch(getCustomers())
+  }, [dispatch])
+
+  console.log("Customers:", customers)
   return (
     <div className="flex flex-col gap-6 w-full">
       <div>

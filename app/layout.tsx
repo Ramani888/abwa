@@ -6,6 +6,7 @@ import { ThemeProvider } from "@/components/theme-provider"
 import './globals.css'
 import { AuthProvider } from "@/components/auth-provider"
 import { Toaster } from "sonner"
+import { ReduxProvider } from "@/components/redux-provider"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -25,8 +26,10 @@ export default function RootLayout({
       <body className={inter.className}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <AuthProvider>
-            {children}
-            <Toaster richColors position="bottom-right" /> {/* You can customize position */}
+            <ReduxProvider>
+              {children}
+              <Toaster richColors position="bottom-right" />
+            </ReduxProvider>
           </AuthProvider>
         </ThemeProvider>
       </body>
