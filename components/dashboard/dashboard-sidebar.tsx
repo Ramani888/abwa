@@ -62,8 +62,14 @@ export function DashboardSidebar({ isMobile = false, closeMobileMenu }: Dashboar
       permission: hasPermission(Permissions.VIEW_CATEGORY)
     },
     {
-      title: "Orders",
+      title: "Sales Orders",
       href: "/dashboard/orders",
+      icon: ShoppingCart,
+      permission: hasPermission(Permissions.VIEW_ORDER),
+    },
+    {
+      title: "Purchase Orders",
+      href: "/dashboard/purchase-order",
       icon: ShoppingCart,
       permission: hasPermission(Permissions.VIEW_ORDER),
     },
