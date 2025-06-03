@@ -184,7 +184,7 @@ export function PurchaseOrdersTable({ setRefreshFunction }: { setRefreshFunction
                             View Details
                           </Link>
                         </DropdownMenuItem>
-                        {hasPermission(Permissions.UPDATE_ORDER) && (
+                        {hasPermission(Permissions.UPDATE_PURCHASE_ORDER) && (
                           <DropdownMenuItem asChild>
                             <Link href={`/dashboard/purchase-order/${order?._id}/edit`}>
                               <Edit className="mr-2 h-4 w-4" />
@@ -203,7 +203,7 @@ export function PurchaseOrdersTable({ setRefreshFunction }: { setRefreshFunction
                           Print Invoice
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        {hasPermission(Permissions.DELETE_ORDER) && (
+                        {hasPermission(Permissions.DELETE_PURCHASE_ORDER) && (
                           <DropdownMenuItem onClick={() => handleDeleteClick(order?._id ?? '')} className="text-destructive">
                             <Trash className="mr-2 h-4 w-4" />
                             Delete

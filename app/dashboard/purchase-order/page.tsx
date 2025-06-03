@@ -39,7 +39,7 @@ export default function OrdersPage() {
             <RefreshCw className={`mr-2 h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
             Refresh
           </Button>
-          {hasPermission(Permissions.ADD_ORDER) && (
+          {hasPermission(Permissions.ADD_PURCHASE_ORDER) && (
             <Link href="/dashboard/purchase-order/new">
               <Button>
                 <PlusCircle className="mr-2 h-4 w-4" />

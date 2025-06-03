@@ -47,7 +47,7 @@ export function DashboardSidebar({ isMobile = false, closeMobileMenu }: Dashboar
       title: "Suppliers",
       href: "/dashboard/suppliers",
       icon: Store,
-      permission: true,
+      permission: hasPermission(Permissions.VIEW_SUPPLIER),
     },
     {
       title: "Products",
@@ -71,7 +71,7 @@ export function DashboardSidebar({ isMobile = false, closeMobileMenu }: Dashboar
       title: "Purchase Orders",
       href: "/dashboard/purchase-order",
       icon: ShoppingCart,
-      permission: hasPermission(Permissions.VIEW_ORDER),
+      permission: hasPermission(Permissions.VIEW_PURCHASE_ORDER),
     },
     {
       title: "Customers",

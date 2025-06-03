@@ -19,5 +19,13 @@ export const Permissions = {
     ADD_CATEGORY: 'add-category',
     UPDATE_CATEGORY: 'update-category',
     DELETE_CATEGORY: 'delete-category',
-    VIEW_CATEGORY: 'view-category'
+    VIEW_CATEGORY: 'view-category',
+    ADD_SUPPLIER: 'add-supplier',
+    UPDATE_SUPPLIER: 'update-supplier',
+    DELETE_SUPPLIER: 'delete-supplier',
+    VIEW_SUPPLIER: 'view-supplier',
+    ADD_PURCHASE_ORDER: 'add-purchase-order',
+    UPDATE_PURCHASE_ORDER: 'update-purchase-order',
+    DELETE_PURCHASE_ORDER: 'delete-purchase-order',
+    VIEW_PURCHASE_ORDER: 'view-purchase-order'
 };

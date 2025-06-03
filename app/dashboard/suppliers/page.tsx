@@ -41,7 +41,7 @@ export default function CategoriesPage() {
             <RefreshCw className={`mr-2 h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
             Refresh
           </Button>
-          {hasPermission(Permissions.ADD_CATEGORY) && (
+          {hasPermission(Permissions.ADD_SUPPLIER) && (
             <Link href="/dashboard/suppliers/new">
               <Button>
                 <PlusCircle className="mr-2 h-4 w-4" />

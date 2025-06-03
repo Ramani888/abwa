@@ -135,7 +135,7 @@ export function SuppliersTable({ setRefreshFunction }: { setRefreshFunction?: (f
                   <TableCell>{supplier?.email ?? 'N/A'}</TableCell>
                   <TableCell>{supplier?.gstNumber ?? 'N/A'}</TableCell>
                   <TableCell>{supplier?.address ?? 'N/A'}</TableCell>
-                  {hasAnyPermission([Permissions.UPDATE_CATEGORY, Permissions.DELETE_CATEGORY]) && (
+                  {hasAnyPermission([Permissions.UPDATE_SUPPLIER, Permissions.DELETE_SUPPLIER]) && (
                     <TableCell className="text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -147,7 +147,7 @@ export function SuppliersTable({ setRefreshFunction }: { setRefreshFunction?: (f
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>Actions</DropdownMenuLabel>
                           <DropdownMenuSeparator />
-                          {hasPermission(Permissions.UPDATE_CATEGORY) && (
+                          {hasPermission(Permissions.UPDATE_SUPPLIER) && (
                             <DropdownMenuItem asChild>
                               <Link href={`/dashboard/suppliers/${supplier?._id}`}>
                                 <Edit className="mr-2 h-4 w-4" />
@@ -155,7 +155,7 @@ export function SuppliersTable({ setRefreshFunction }: { setRefreshFunction?: (f
                               </Link>
                             </DropdownMenuItem>
                           )}
-                          {hasPermission(Permissions.DELETE_CATEGORY) && (
+                          {hasPermission(Permissions.DELETE_SUPPLIER) && (
                             <DropdownMenuItem onClick={() => handleDeleteClick(supplier?._id ?? '')}>
                               <Trash className="mr-2 h-4 w-4" />
                               Delete
