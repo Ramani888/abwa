@@ -150,6 +150,7 @@ export function ProductsTable({ setRefreshFunction }: { setRefreshFunction?: (fn
               <TableHead>Name</TableHead>
               <TableHead>Category</TableHead>
               <TableHead>Total Variants</TableHead>
+              <TableHead>Date</TableHead>
               <TableHead>Description</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
@@ -183,6 +184,15 @@ export function ProductsTable({ setRefreshFunction }: { setRefreshFunction?: (fn
                     <TableCell className="font-medium">{product?.name}</TableCell>
                     <TableCell>{product?.categoryName}</TableCell>
                     <TableCell>{product?.variantsCount}</TableCell>
+                    <TableCell>
+                      {product?.captureDate
+                        ? new Date(product.captureDate).toLocaleDateString("en-US", {
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                          })
+                        : "N/A"}
+                    </TableCell>
                     <TableCell className="max-w-[200px] truncate">
                       {product?.description || "No description available"}
                     </TableCell>

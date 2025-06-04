@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ArrowLeft, Barcode, Box, Boxes, Delete, Edit, FileText, IndianRupee, Layers, List, Package, Percent, Tag } from "lucide-react"
+import { ArrowLeft, Barcode, Box, Boxes, Calendar, Delete, Edit, FileText, IndianRupee, Layers, List, Package, Percent, Tag } from "lucide-react"
 import { serverGetActiveCategory, serverGetProduct, serverUpdateProduct } from "@/services/serverApi"
 import { ICategory } from "@/types/category"
 import { IProduct } from "@/types/product"
@@ -47,6 +47,7 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
     name: Yup.string().required("Product name is required"),
     categoryId: Yup.string().required("Category is required"),
     description: Yup.string().required("Description is required"),
+    captureDate: Yup.string().required("Date is required"), // <-- Add validation
     variants: Yup.array().of(
       Yup.object({
         packingSize: Yup.string().required("Packing size is required"),
@@ -167,6 +168,9 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
             name: productData?.name || "",
             categoryId: productData?.categoryId || "",
             description: productData?.description || "",
+            captureDate: productData?.captureDate
+              ? new Date(productData.captureDate).toISOString().slice(0, 10)
+              : new Date().toISOString().slice(0, 10), // <-- Default to product or today
             variants: productData?.variants || [],
             newVariant: {
               packingSize: "",
@@ -191,6 +195,7 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
                 name: values.name,
                 categoryId: values.categoryId,
                 description: values.description,
+                captureDate: new Date(values.captureDate), // <-- Convert to Date
                 variants: values.variants.map((v: any) => ({
                   ...v,
                   mrp: Number(v.mrp),
@@ -259,6 +264,21 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
                     <Field as={Textarea} id="description" name="description" placeholder="Product description" rows={3} className="pl-8" />
                   </div>
                   <ErrorMessage name="description" component="div" className="text-red-500 text-sm" />
+                </div>
+                {/* Capture Date input */}
+                <div className="space-y-2">
+                  <Label htmlFor="captureDate">Select Date</Label>
+                  <div className="relative">
+                    <Calendar className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <Field
+                      as={Input}
+                      id="captureDate"
+                      name="captureDate"
+                      type="date"
+                      className="pl-8"
+                    />
+                  </div>
+                  <ErrorMessage name="captureDate" component="div" className="text-red-500 text-sm" />
                 </div>
 
                 {/* Variants Table */}
