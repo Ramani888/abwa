@@ -144,6 +144,7 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
                   <TableRow>
                     <TableHead>Product</TableHead>
                     <TableHead className="text-right">Size</TableHead>
+                    <TableHead className="text-right">MRP</TableHead>
                     <TableHead className="text-right">Price</TableHead>
                     <TableHead className="text-right">Unit</TableHead>
                     <TableHead className="text-right">Carton</TableHead>
@@ -158,6 +159,7 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
                     <TableRow key={index}>
                       <TableCell className="font-medium">{item?.productData?.name}</TableCell>
                       <TableCell className="text-right">{item?.variantData?.packingSize}</TableCell>
+                      <TableCell className="text-right">₹{item?.mrp?.toFixed(2) ?? item?.variantData?.mrp?.toFixed(2)}</TableCell>
                       <TableCell className="text-right">₹{item?.price?.toFixed(2)}</TableCell>
                       <TableCell className="text-right">{item?.unit ?? 1}</TableCell>
                       <TableCell className="text-right">{item?.carton ?? 1}</TableCell>
