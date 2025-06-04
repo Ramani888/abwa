@@ -15,7 +15,7 @@ import { serverAddPurchaseOrder, serverGetProduct, serverGetSupplier } from "@/s
 import { IProduct } from "@/types/product"
 import { ISupplier } from "@/types/supplier"
 
-export default function NewOrderPage() {
+export default function NewPurchaseOrderPage() {
   const [orderItems, setOrderItems] = useState<
     Array<{
       id: string
@@ -23,6 +23,7 @@ export default function NewOrderPage() {
       variantId: string
       name: string
       price: number
+      mrp: number // <-- Added MRP
       unit: number
       carton: number
       quantity: number
@@ -102,7 +103,8 @@ export default function NewOrderPage() {
     if (!variant) return
 
     const quantity = unit * carton
-    const price = variant.purchasePrice;
+    const price = variant.purchasePrice
+    const mrp = variant.mrp ?? 0 // <-- Get MRP from variant
     const gstRate = variant.taxRate ?? 0
 
     const existingIndex = orderItems.findIndex((item) => item.productId === product._id && item.variantId === variant._id)
@@ -121,6 +123,7 @@ export default function NewOrderPage() {
         gstAmount,
         total,
         size: variant.packingSize ? String(variant.packingSize) : "",
+        mrp, // <-- Add MRP
       }
       setOrderItems(updatedItems)
     } else {
@@ -134,6 +137,7 @@ export default function NewOrderPage() {
         variantId: String(variant._id),
         name: product.name + " - " + (variant.packingSize || ""),
         price,
+        mrp, // <-- Add MRP
         unit,
         carton,
         quantity,
@@ -250,7 +254,6 @@ export default function NewOrderPage() {
         <h2 className="text-3xl font-bold tracking-tight">Create New Purchase Order</h2>
       </div>
 
-      {/* Removed <form> and replaced with <div> */}
       <div>
         <div className="grid gap-6 mb-6">  
           <Card className="w-full">
@@ -368,6 +371,7 @@ export default function NewOrderPage() {
                     <TableRow>
                       <TableHead>Product</TableHead>
                       <TableHead>Size</TableHead>
+                      <TableHead>MRP</TableHead>
                       <TableHead>Price</TableHead>
                       <TableHead>Unit</TableHead>
                       <TableHead>Carton</TableHead>
@@ -384,6 +388,7 @@ export default function NewOrderPage() {
                         <TableRow key={item.id}>
                           <TableCell>{item.name}</TableCell>
                           <TableCell>{item.size}</TableCell>
+                          <TableCell>₹{item.mrp?.toFixed(2)}</TableCell>
                           <TableCell>₹{item.price.toFixed(2)}</TableCell>
                           <TableCell>
                             <div className="flex items-center space-x-2">
@@ -485,7 +490,7 @@ export default function NewOrderPage() {
                       ))
                     ) : (
                       <TableRow>
-                        <TableCell colSpan={10} className="h-24 text-center">
+                        <TableCell colSpan={11} className="h-24 text-center">
                           No items added to the order.
                         </TableCell>
                       </TableRow>

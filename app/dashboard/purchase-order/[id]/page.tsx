@@ -88,7 +88,6 @@ export default function PurchaseOrderDetailsPage({ params }: { params: { id: str
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Status:</span>
-                    {/* <Badge variant={order.status === "Completed" ? "default" : "outline"}>{order.status}</Badge> */}
                     <Badge variant={"default"}>{'Completed'}</Badge>
                   </div>
                   <div className="flex justify-between">
@@ -138,6 +137,7 @@ export default function PurchaseOrderDetailsPage({ params }: { params: { id: str
                   <TableRow>
                     <TableHead>Product</TableHead>
                     <TableHead className="text-right">Size</TableHead>
+                    <TableHead className="text-right">MRP</TableHead>
                     <TableHead className="text-right">Price</TableHead>
                     <TableHead className="text-right">Unit</TableHead>
                     <TableHead className="text-right">Carton</TableHead>
@@ -152,6 +152,9 @@ export default function PurchaseOrderDetailsPage({ params }: { params: { id: str
                     <TableRow key={index}>
                       <TableCell className="font-medium">{item?.productData?.name}</TableCell>
                       <TableCell className="text-right">{item?.variantData?.packingSize}</TableCell>
+                      <TableCell className="text-right">
+                        ₹{(item?.mrp ?? item?.variantData?.mrp ?? 0).toFixed(2)}
+                      </TableCell>
                       <TableCell className="text-right">₹{item?.price?.toFixed(2)}</TableCell>
                       <TableCell className="text-right">{item?.unit ?? 1}</TableCell>
                       <TableCell className="text-right">{item?.carton ?? 1}</TableCell>

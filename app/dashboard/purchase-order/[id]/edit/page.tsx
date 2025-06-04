@@ -15,8 +15,7 @@ import { serverGetProduct, serverGetPurchaseOrder, serverGetSupplier, serverUpda
 import { IProduct } from "@/types/product"
 import { ISupplier } from "@/types/supplier"
 
-export default function EditOrderPage({ params }: { params: { id: string } }) {
-  // const [activeTab, setActiveTab] = useState<"retail" | "wholesale">("retail")
+export default function EditPurchaseOrderPage({ params }: { params: { id: string } }) {
   const [orderItems, setOrderItems] = useState<
     Array<{
       id: string
@@ -24,6 +23,7 @@ export default function EditOrderPage({ params }: { params: { id: string } }) {
       variantId: string
       name: string
       price: number
+      mrp: number // <-- Added MRP
       unit: number
       carton: number
       quantity: number
@@ -49,13 +49,12 @@ export default function EditOrderPage({ params }: { params: { id: string } }) {
   const [paymentStatus, setPaymentStatus] = useState("paid")
   const router = useRouter()
 
-  // Fetch customers and products
+  // Fetch suppliers and products
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true)
       try {
         const res = await serverGetPurchaseOrder();
-        console.log("Purchase Order Data:", res?.data)
         const orderData = res?.data?.find((order: any) => order?._id?.toString() === params?.id);
 
         if (orderData) {
@@ -72,6 +71,7 @@ export default function EditOrderPage({ params }: { params: { id: string } }) {
                 variantId: item?.variantId || "",
                 name: item?.productData?.name + (item?.variantData?.packingSize ? " - " + item?.variantData?.packingSize : ""),
                 price: item?.price,
+                mrp: item?.mrp ?? item?.variantData?.mrp ?? 0, // <-- Add MRP here
                 unit: item?.unit ?? 1,
                 carton: item?.carton ?? 1,
                 quantity: item?.quantity ?? ((item?.unit ?? 1) * (item?.carton ?? 1)),
@@ -153,7 +153,8 @@ export default function EditOrderPage({ params }: { params: { id: string } }) {
     if (!variant) return
 
     const quantity = unit * carton
-    const price = variant.purchasePrice ?? 0;
+    const price = variant.purchasePrice ?? 0
+    const mrp = variant.mrp ?? 0 // <-- Add MRP
     const gstRate = variant.taxRate ?? 0
 
     const existingIndex = orderItems.findIndex(
@@ -174,6 +175,7 @@ export default function EditOrderPage({ params }: { params: { id: string } }) {
         gstAmount,
         total,
         size: variant.packingSize ? String(variant.packingSize) : "",
+        mrp, // <-- Add MRP
       }
       setOrderItems(updatedItems)
     } else {
@@ -187,6 +189,7 @@ export default function EditOrderPage({ params }: { params: { id: string } }) {
         variantId: String(variant._id),
         name: product.name + " - " + (variant.packingSize || ""),
         price,
+        mrp, // <-- Add MRP
         unit,
         carton,
         quantity,
@@ -420,6 +423,7 @@ export default function EditOrderPage({ params }: { params: { id: string } }) {
                     <TableRow>
                       <TableHead>Product</TableHead>
                       <TableHead>Size</TableHead>
+                      <TableHead>MRP</TableHead>
                       <TableHead>Price</TableHead>
                       <TableHead>Unit</TableHead>
                       <TableHead>Carton</TableHead>
@@ -436,6 +440,7 @@ export default function EditOrderPage({ params }: { params: { id: string } }) {
                         <TableRow key={item.id}>
                           <TableCell>{item.name}</TableCell>
                           <TableCell>{item.size}</TableCell>
+                          <TableCell>₹{item.mrp?.toFixed(2)}</TableCell>
                           <TableCell>₹{item.price.toFixed(2)}</TableCell>
                           <TableCell>
                             <div className="flex items-center space-x-2">
@@ -537,7 +542,7 @@ export default function EditOrderPage({ params }: { params: { id: string } }) {
                       ))
                     ) : (
                       <TableRow>
-                        <TableCell colSpan={10} className="h-24 text-center">
+                        <TableCell colSpan={11} className="h-24 text-center">
                           No items added to the order.
                         </TableCell>
                       </TableRow>
