@@ -21,13 +21,13 @@ const newVariantSchema = Yup.object({
   packingSize: Yup.string().required("Packing size is required"),
   sku: Yup.string().required("SKU is required"),
   barcode: Yup.string().required("Barcode is required"),
-  unit: Yup.string().required("Unit is required"), // <-- Add unit validation
+  unit: Yup.string().required("Unit is required"),
+  mrp: Yup.number().typeError("MRP must be a number").required("MRP is required").positive("Must be positive"),
   retailPrice: Yup.number().typeError("Retail price must be a number").required("Retail price is required").positive("Must be positive"),
   wholesalePrice: Yup.number().typeError("Wholesale price must be a number").required("Wholesale price is required").positive("Must be positive"),
   purchasePrice: Yup.number().typeError("Purchase price must be a number").required("Purchase price is required").positive("Must be positive"),
   minStockLevel: Yup.number().typeError("Minimum stock level must be a number").required("Minimum stock level is required").min(0, "Cannot be negative"),
   taxRate: Yup.number().typeError("Tax rate must be a number").required("Tax rate is required"),
-  // quantity: Yup.number().typeError("Stock quantity must be a number").required("Stock quantity is required").min(0, "Cannot be negative"),
 })
 
 export default function NewProductPage() {
@@ -36,9 +36,9 @@ export default function NewProductPage() {
   const router = useRouter()
   const [showVariantForm, setShowVariantForm] = useState(false)
   const [variantErrors, setVariantErrors] = useState<any>({})
-  const [editVariantIndex, setEditVariantIndex] = useState<number | null>(null) // <-- NEW
+  const [editVariantIndex, setEditVariantIndex] = useState<number | null>(null)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
-  const [deleteVariantIndex, setDeleteVariantIndex] = useState<number | null>(null) // <-- add this
+  const [deleteVariantIndex, setDeleteVariantIndex] = useState<number | null>(null)
 
   const getCustomerData = async () => {
     try {
@@ -56,31 +56,30 @@ export default function NewProductPage() {
     getCustomerData()
   }, [])
 
-  // 1. Remove unit from product validation
   const validationSchema = Yup.object({
     name: Yup.string().required("Product name is required"),
     categoryId: Yup.string().required("Category is required"),
     description: Yup.string().required("Description is required"),
-    // unit: Yup.string().required("Unit is required"), // <-- Remove this line
     variants: Yup.array().of(
       Yup.object({
         packingSize: Yup.string().required("Packing size is required"),
         sku: Yup.string().required("SKU is required"),
         barcode: Yup.string().required("Barcode is required"),
-        unit: Yup.string().required("Unit is required"), // <-- Add here
+        unit: Yup.string().required("Unit is required"),
+        mrp: Yup.number().required("MRP is required").positive("Must be positive"),
         retailPrice: Yup.number().required("Retail price is required").positive("Must be positive"),
         wholesalePrice: Yup.number().required("Wholesale price is required").positive("Must be positive"),
         purchasePrice: Yup.number().required("Purchase price is required").positive("Must be positive"),
         minStockLevel: Yup.number().required("Minimum stock level is required").min(0, "Cannot be negative"),
         taxRate: Yup.number().required("Tax rate is required"),
-        // quantity: Yup.number().required("Stock quantity is required").min(0, "Cannot be negative"),
       })
     ).min(1, "At least one variant is required"),
     newVariant: Yup.object({
       packingSize: Yup.string(),
       sku: Yup.string(),
       barcode: Yup.string(),
-      unit: Yup.string(), // <-- Add here
+      unit: Yup.string(),
+      mrp: Yup.string(),
       retailPrice: Yup.string(),
       wholesalePrice: Yup.string(),
       purchasePrice: Yup.string(),
@@ -97,13 +96,13 @@ export default function NewProductPage() {
         description: values.description,
         variants: values.variants.map((v: any) => ({
           ...v,
+          mrp: Number(v.mrp),
           retailPrice: Number(v.retailPrice),
           wholesalePrice: Number(v.wholesalePrice),
           purchasePrice: Number(v.purchasePrice),
           minStockLevel: Number(v.minStockLevel),
           taxRate: Number(v.taxRate),
           quantity: Number(0),
-          // unit is already included in v
         })),
       })
       if (res?.success) {
@@ -117,7 +116,7 @@ export default function NewProductPage() {
   }
 
   const handleDelete = (idx: number) => {
-    setDeleteVariantIndex(idx) // set which variant to delete
+    setDeleteVariantIndex(idx)
     setDeleteDialogOpen(true)
   }
 
@@ -126,7 +125,6 @@ export default function NewProductPage() {
     const newVariants = [...values.variants]
     newVariants.splice(deleteVariantIndex, 1)
     setFieldValue("variants", newVariants)
-    // If editing this variant, reset form
     if (editVariantIndex === deleteVariantIndex) {
       setShowVariantForm(false)
       setEditVariantIndex(null)
@@ -135,6 +133,7 @@ export default function NewProductPage() {
         sku: "",
         barcode: "",
         unit: "",
+        mrp: "",
         retailPrice: "",
         wholesalePrice: "",
         purchasePrice: "",
@@ -172,7 +171,8 @@ export default function NewProductPage() {
               packingSize: string
               sku: string
               barcode: string
-              unit: string // <-- Add unit to variant type
+              unit: string
+              mrp: number
               retailPrice: number
               wholesalePrice: number
               purchasePrice: number
@@ -184,7 +184,8 @@ export default function NewProductPage() {
               packingSize: "",
               sku: "",
               barcode: "",
-              unit: "", // <-- Add unit to newVariant
+              unit: "",
+              mrp: "",
               retailPrice: "",
               wholesalePrice: "",
               purchasePrice: "",
@@ -251,12 +252,13 @@ export default function NewProductPage() {
                       type="button"
                       onClick={() => {
                         setShowVariantForm(true)
-                        setEditVariantIndex(null) // <-- Reset edit mode
+                        setEditVariantIndex(null)
                         setFieldValue("newVariant", {
                           packingSize: "",
                           sku: "",
                           barcode: "",
                           unit: "",
+                          mrp: "",
                           retailPrice: "",
                           wholesalePrice: "",
                           purchasePrice: "",
@@ -279,7 +281,8 @@ export default function NewProductPage() {
                           <TableHead className="border px-2 py-1 text-left whitespace-nowrap">Packing Size</TableHead>
                           <TableHead className="border px-2 py-1 text-left whitespace-nowrap">SKU</TableHead>
                           <TableHead className="border px-2 py-1 text-left whitespace-nowrap">Barcode</TableHead>
-                          <TableHead className="border px-2 py-1 text-left whitespace-nowrap">Unit</TableHead> {/* <-- Add this */}
+                          <TableHead className="border px-2 py-1 text-left whitespace-nowrap">Unit</TableHead>
+                          <TableHead className="border px-2 py-1 text-left whitespace-nowrap">MRP</TableHead>
                           <TableHead className="border px-2 py-1 text-left whitespace-nowrap">Retail Price</TableHead>
                           <TableHead className="border px-2 py-1 text-left whitespace-nowrap">Wholesale Price</TableHead>
                           <TableHead className="border px-2 py-1 text-left whitespace-nowrap">Purchase Price</TableHead>
@@ -295,7 +298,8 @@ export default function NewProductPage() {
                               <TableCell className="border px-2 py-1">{variant.packingSize}</TableCell>
                               <TableCell className="border px-2 py-1">{variant.sku}</TableCell>
                               <TableCell className="border px-2 py-1">{variant.barcode}</TableCell>
-                              <TableCell className="border px-2 py-1">{variant.unit}</TableCell> {/* <-- Add this */}
+                              <TableCell className="border px-2 py-1">{variant.unit}</TableCell>
+                              <TableCell className="border px-2 py-1">₹{variant.mrp}</TableCell>
                               <TableCell className="border px-2 py-1">₹{variant.retailPrice}</TableCell>
                               <TableCell className="border px-2 py-1">₹{variant.wholesalePrice}</TableCell>
                               <TableCell className="border px-2 py-1">₹{variant.purchasePrice}</TableCell>
@@ -320,7 +324,7 @@ export default function NewProductPage() {
                                   type="button"
                                   variant="destructive"
                                   size="sm"
-                                  onClick={() => handleDelete(idx)} // <-- use idx
+                                  onClick={() => handleDelete(idx)}
                                 >
                                   <Delete className="h-4 w-4" />
                                 </Button>
@@ -349,7 +353,7 @@ export default function NewProductPage() {
                           ))
                         ) : (
                           <TableRow>
-                            <TableCell className="border px-2 py-1 text-center" colSpan={10}>
+                            <TableCell className="border px-2 py-1 text-center" colSpan={11}>
                               No Data
                             </TableCell>
                           </TableRow>
@@ -391,6 +395,16 @@ export default function NewProductPage() {
                         </div>
                         {variantErrors.barcode && (
                           <div className="text-red-500 text-sm">{variantErrors.barcode}</div>
+                        )}
+                      </div>
+                      <div className="space-y-2">
+                        <Label>MRP</Label>
+                        <div className="relative">
+                          <IndianRupee className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                          <Field as={Input} name="newVariant.mrp" type="number" placeholder="MRP" className="pl-8" />
+                        </div>
+                        {variantErrors.mrp && (
+                          <div className="text-red-500 text-sm">{variantErrors.mrp}</div>
                         )}
                       </div>
                       <div className="space-y-2">
@@ -477,10 +491,10 @@ export default function NewProductPage() {
                           try {
                             await newVariantSchema.validate(values.newVariant, { abortEarly: false })
                             if (editVariantIndex !== null) {
-                              // Edit mode: update existing variant
                               const updatedVariants = [...values.variants]
                               updatedVariants[editVariantIndex] = {
                                 ...values.newVariant,
+                                mrp: Number(values.newVariant.mrp),
                                 retailPrice: Number(values.newVariant.retailPrice),
                                 wholesalePrice: Number(values.newVariant.wholesalePrice),
                                 purchasePrice: Number(values.newVariant.purchasePrice),
@@ -490,11 +504,11 @@ export default function NewProductPage() {
                               }
                               setFieldValue("variants", updatedVariants)
                             } else {
-                              // Add mode: add new variant
                               setFieldValue("variants", [
                                 ...values.variants,
                                 {
                                   ...values.newVariant,
+                                  mrp: Number(values.newVariant.mrp),
                                   retailPrice: Number(values.newVariant.retailPrice),
                                   wholesalePrice: Number(values.newVariant.wholesalePrice),
                                   purchasePrice: Number(values.newVariant.purchasePrice),
@@ -508,7 +522,8 @@ export default function NewProductPage() {
                               packingSize: "",
                               sku: "",
                               barcode: "",
-                              unit: "", // <-- Add here
+                              unit: "",
+                              mrp: "",
                               retailPrice: "",
                               wholesalePrice: "",
                               purchasePrice: "",
@@ -540,7 +555,8 @@ export default function NewProductPage() {
                             packingSize: "",
                             sku: "",
                             barcode: "",
-                            unit: "", // <-- Add here
+                            unit: "",
+                            mrp: "",
                             retailPrice: "",
                             wholesalePrice: "",
                             purchasePrice: "",

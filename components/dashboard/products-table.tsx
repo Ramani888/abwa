@@ -229,6 +229,7 @@ export function ProductsTable({ setRefreshFunction }: { setRefreshFunction?: (fn
                                 <TableHead>Unit</TableHead>
                                 <TableHead>SKU</TableHead>
                                 <TableHead>Barcode</TableHead>
+                                <TableHead>MRP</TableHead>
                                 <TableHead>Retail Price</TableHead>
                                 <TableHead>Wholesale</TableHead>
                                 <TableHead>Purchase</TableHead>
@@ -245,6 +246,7 @@ export function ProductsTable({ setRefreshFunction }: { setRefreshFunction?: (fn
                                   <TableCell>{variant.unit}</TableCell>
                                   <TableCell>{variant.sku}</TableCell>
                                   <TableCell>{variant.barcode}</TableCell>
+                                  <TableCell>₹{variant.mrp}</TableCell>
                                   <TableCell>₹{variant.retailPrice}</TableCell>
                                   <TableCell>₹{variant.wholesalePrice}</TableCell>
                                   <TableCell>₹{variant.purchasePrice}</TableCell>
