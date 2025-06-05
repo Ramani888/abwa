@@ -229,7 +229,7 @@ export function ProductsTable({ setRefreshFunction }: { setRefreshFunction?: (fn
                   </TableRow>
                   {expandedProductId === product._id && (
                     <TableRow>
-                      <TableCell colSpan={6}>
+                      <TableCell colSpan={7}>
                         <div className="p-4 bg-muted rounded">
                           <div className="font-semibold mb-2">Variants</div>
                           <Table>
