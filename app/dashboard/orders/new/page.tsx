@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Trash, Plus, Search, ArrowLeft } from "lucide-react"
+import { Trash, Plus, Search, ArrowLeft, Calendar } from "lucide-react"
 import { serverAddOrder, serverGetCustomers, serverGetProduct } from "@/services/serverApi"
 import { ICustomer } from "@/types/customer"
 import { IProduct } from "@/types/product"
@@ -49,6 +49,7 @@ export default function NewOrderPage() {
   const [customerData, setCustomerData] = useState<ICustomer[]>([])
   const [productData, setProductData] = useState<IProduct[]>([])
   const [paymentStatus, setPaymentStatus] = useState("paid")
+  const [captureDate, setCaptureDate] = useState(new Date().toISOString().slice(0, 10)) // <-- Add state for captureDate
   const router = useRouter()
 
   const filteredProducts = productData?.filter((product) => product?.name.toLowerCase().includes(searchQuery.toLowerCase()))
@@ -229,6 +230,7 @@ export default function NewOrderPage() {
       paymentMethod,
       paymentStatus,
       notes,
+      captureDate, // <-- Add captureDate here
       products: orderItems
     }
 
@@ -265,7 +267,6 @@ export default function NewOrderPage() {
         <h2 className="text-3xl font-bold tracking-tight">Create New Order</h2>
       </div>
 
-      {/* Removed <form> and replaced with <div> */}
       <div>
         <div className="grid gap-6 mb-6">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -280,6 +281,7 @@ export default function NewOrderPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
+                    {/* --- End date input --- */}
                     <div className="relative">
                       <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                       <Input
@@ -314,6 +316,22 @@ export default function NewOrderPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
+                    {/* --- Date input placed here --- */}
+                    <div>
+                      <Label htmlFor="captureDate">Order Date</Label>
+                      <div className="relative">
+                        <Calendar className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                        <Input
+                          id="captureDate"
+                          name="captureDate"
+                          type="date"
+                          className="pl-8"
+                          value={captureDate}
+                          onChange={e => setCaptureDate(e.target.value)}
+                        />
+                      </div>
+                    </div>
+                    {/* --- End date input --- */}
                     <div className="relative">
                       <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                       <Input
@@ -627,15 +645,34 @@ export default function NewOrderPage() {
                   </div>
                 </div>
 
-                <div className="space-y-2 mt-4">
-                  <Label htmlFor="notes">Notes / Delivery Instructions (optional)</Label>
-                  <Input
-                    id="notes"
-                    type="text"
-                    placeholder="Add any notes or delivery instructions..."
-                    value={notes}
-                    onChange={e => setNotes(e.target.value)}
-                  />
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="notes">Notes / Delivery Instructions (optional)</Label>
+                    <Input
+                      id="notes"
+                      type="text"
+                      placeholder="Add any notes or delivery instructions..."
+                      value={notes}
+                      onChange={e => setNotes(e.target.value)}
+                    />
+                  </div>
+
+                  {/* --- Move date input here, below notes --- */}
+                  <div className="space-y-2">
+                    <Label htmlFor="captureDate">Order Date</Label>
+                    <div className="relative">
+                      <Calendar className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <Input
+                        id="captureDate"
+                        name="captureDate"
+                        type="date"
+                        className="pl-8"
+                        value={captureDate}
+                        onChange={e => setCaptureDate(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                  {/* --- End date input --- */}
                 </div>
               </div>
             </CardContent>

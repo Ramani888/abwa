@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Trash, Plus, Search, ArrowLeft } from "lucide-react"
+import { Trash, Plus, Search, ArrowLeft, Calendar } from "lucide-react"
 import { serverGetCustomers, serverGetProduct, serverUpdateOrder, serverGetOrder } from "@/services/serverApi"
 import { ICustomer } from "@/types/customer"
 import { IProduct } from "@/types/product"
@@ -49,6 +49,7 @@ export default function EditOrderPage({ params }: { params: { id: string } }) {
   const [customerData, setCustomerData] = useState<ICustomer[]>([])
   const [productData, setProductData] = useState<IProduct[]>([])
   const [paymentStatus, setPaymentStatus] = useState("paid")
+  const [captureDate, setCaptureDate] = useState(new Date().toISOString().slice(0, 10)) // <-- Add state for captureDate
   const router = useRouter()
 
   // Fetch customers and products
@@ -66,6 +67,10 @@ export default function EditOrderPage({ params }: { params: { id: string } }) {
           setPaymentStatus(orderData?.paymentStatus)
           setNotes(orderData?.notes || "")
           setManualRoundOff(orderData?.roundOff ?? 0)
+          setCaptureDate(orderData?.captureDate
+            ? new Date(orderData.captureDate).toISOString().slice(0, 10)
+            : new Date().toISOString().slice(0, 10)
+          ) // <-- Set captureDate from order
           setOrderItems(
             orderData?.products?.map((item: any) => {
               return {
@@ -281,6 +286,7 @@ export default function EditOrderPage({ params }: { params: { id: string } }) {
       paymentMethod,
       paymentStatus,
       notes,
+      captureDate, // <-- Include captureDate
       products: orderItems,
     }
     try {
@@ -675,15 +681,33 @@ export default function EditOrderPage({ params }: { params: { id: string } }) {
                   </div>
                 </div>
 
-                <div className="space-y-2 mt-4">
-                  <Label htmlFor="notes">Notes / Delivery Instructions (optional)</Label>
-                  <Input
-                    id="notes"
-                    type="text"
-                    placeholder="Add any notes or delivery instructions..."
-                    value={notes}
-                    onChange={e => setNotes(e.target.value)}
-                  />
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="notes">Notes / Delivery Instructions (optional)</Label>
+                    <Input
+                      id="notes"
+                      type="text"
+                      placeholder="Add any notes or delivery instructions..."
+                      value={notes}
+                      onChange={e => setNotes(e.target.value)}
+                    />
+                  </div>
+                  {/* --- Date input below notes --- */}
+                  <div className="space-y-2">
+                    <Label htmlFor="captureDate">Order Date</Label>
+                    <div className="relative">
+                      <Calendar className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <Input
+                        id="captureDate"
+                        name="captureDate"
+                        type="date"
+                        className="pl-8"
+                        value={captureDate}
+                        onChange={e => setCaptureDate(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                  {/* --- End date input --- */}
                 </div>
               </div>
             </CardContent>

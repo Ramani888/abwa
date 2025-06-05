@@ -31,6 +31,7 @@ export interface IPurchaseOrder {
     invoiceNumber?: string; // Optional invoice number for the order
     notes?: string; // Optional notes for the order
     isDeleted?: boolean; // Flag to indicate if the order is deleted
+    captureDate?: Date; // Date when the order was captured
     createdAt?: Date;
     updatedAt?: Date;
 }

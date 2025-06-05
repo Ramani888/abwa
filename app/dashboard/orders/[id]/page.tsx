@@ -84,7 +84,7 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
                 <div className="space-y-2">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Order Date:</span>
-                    <span>{order?.createdAt ? new Date(order.createdAt).toLocaleDateString() : ""}</span>
+                    <span>{order?.captureDate ? new Date(order?.captureDate).toLocaleDateString() : ""}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Status:</span>
