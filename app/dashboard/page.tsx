@@ -15,11 +15,11 @@ export default function DashboardPage() {
   const dispatch = useDispatch<AppDispatch>()
   const { customers, loading, error } = useSelector((state: RootState) => state.customers)
 
-  useEffect(() => {
-    dispatch(getCustomers())
-  }, [dispatch])
+  // useEffect(() => {
+  //   dispatch(getCustomers())
+  // }, [dispatch])
 
-  console.log("Customers:", customers)
+  // console.log("Customers:", customers)
   return (
     <div className="flex flex-col gap-6 w-full">
       <div>

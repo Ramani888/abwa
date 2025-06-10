@@ -2,14 +2,80 @@
 
 import { Pie, PieChart, Cell, Legend, ResponsiveContainer } from "recharts"
 import { Card, CardContent } from "@/components/ui/card"
-
-// Mock data for customer types
-const customerData = [
-  { name: "Retail Customers", value: 150, color: "hsl(var(--chart-1))" },
-  { name: "Wholesale Customers", value: 60, color: "hsl(var(--chart-2))" },
-]
+import { useDispatch, useSelector } from "react-redux"
+import { AppDispatch, RootState } from "@/lib/store"
+import { useEffect } from "react"
+import { getCustomers } from "@/lib/features/customerSlice"
 
 export function CustomerStats() {
+  const dispatch = useDispatch<AppDispatch>()
+  const { customers, loading, error } = useSelector((state: RootState) => state.customers)
+
+  const retailCustomers = customers.filter(customer => customer?.customerType === "retail").length;
+  const wholesaleCustomers = customers.filter(customer => customer?.customerType === "wholesale").length;
+  const totalCustomers = customers?.length;  
+
+  const customerData = [
+    { name: "Retail Customers", value: retailCustomers, color: "hsl(var(--chart-1))" },
+    { name: "Wholesale Customers", value: wholesaleCustomers, color: "hsl(var(--chart-2))" },
+  ]
+
+  useEffect(() => {
+    dispatch(getCustomers())
+  }, [dispatch])
+
+  if (loading) {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Card>
+          <CardContent className="pt-6">
+            <div className="h-8 bg-muted animate-pulse rounded mb-4 w-1/2" />
+            <div className="h-[300px] bg-muted animate-pulse rounded" />
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="h-8 bg-muted animate-pulse rounded mb-4 w-1/2" />
+            <div className="space-y-4">
+              {/* Skeleton for Total Customers */}
+              <div>
+                <div className="flex justify-between mb-1">
+                  <div className="h-4 bg-muted animate-pulse rounded w-1/3" />
+                  <div className="h-4 bg-muted animate-pulse rounded w-1/6" />
+                </div>
+                <div className="w-full bg-muted rounded-full h-2.5 animate-pulse" />
+              </div>
+              {/* Skeleton for Retail Customers */}
+              <div>
+                <div className="flex justify-between mb-1">
+                  <div className="h-4 bg-muted animate-pulse rounded w-1/3" />
+                  <div className="h-4 bg-muted animate-pulse rounded w-1/6" />
+                </div>
+                <div className="w-full bg-muted rounded-full h-2.5 animate-pulse" />
+              </div>
+              {/* Skeleton for Wholesale Customers */}
+              <div>
+                <div className="flex justify-between mb-1">
+                  <div className="h-4 bg-muted animate-pulse rounded w-1/3" />
+                  <div className="h-4 bg-muted animate-pulse rounded w-1/6" />
+                </div>
+                <div className="w-full bg-muted rounded-full h-2.5 animate-pulse" />
+              </div>
+              {/* Skeleton for Active This Month */}
+              <div>
+                <div className="flex justify-between mb-1">
+                  <div className="h-4 bg-muted animate-pulse rounded w-1/3" />
+                  <div className="h-4 bg-muted animate-pulse rounded w-1/6" />
+                </div>
+                <div className="w-full bg-muted rounded-full h-2.5 animate-pulse" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       <Card>
@@ -46,37 +112,37 @@ export function CustomerStats() {
             <div>
               <div className="flex justify-between mb-1">
                 <span className="text-sm font-medium">Total Customers</span>
-                <span className="text-sm font-medium">210</span>
+                <span className="text-sm font-medium">{totalCustomers}</span>
               </div>
               <div className="w-full bg-muted rounded-full h-2.5">
-                <div className="bg-primary h-2.5 rounded-full" style={{ width: "100%" }}></div>
+                <div className="bg-primary h-2.5 rounded-full" style={{ width: `${((totalCustomers / totalCustomers) * 100).toFixed(2)}%` }}></div>
               </div>
             </div>
             <div>
               <div className="flex justify-between mb-1">
                 <span className="text-sm font-medium">Retail Customers</span>
-                <span className="text-sm font-medium">150</span>
+                <span className="text-sm font-medium">{retailCustomers}</span>
               </div>
               <div className="w-full bg-muted rounded-full h-2.5">
-                <div className="bg-primary h-2.5 rounded-full" style={{ width: "71%" }}></div>
+                <div className="bg-primary h-2.5 rounded-full" style={{ width: `${((retailCustomers / totalCustomers) * 100).toFixed(2)}%` }}></div>
               </div>
             </div>
             <div>
               <div className="flex justify-between mb-1">
                 <span className="text-sm font-medium">Wholesale Customers</span>
-                <span className="text-sm font-medium">60</span>
+                <span className="text-sm font-medium">{wholesaleCustomers}</span>
               </div>
               <div className="w-full bg-muted rounded-full h-2.5">
-                <div className="bg-primary h-2.5 rounded-full" style={{ width: "29%" }}></div>
+                <div className="bg-primary h-2.5 rounded-full" style={{ width: `${((wholesaleCustomers / totalCustomers) * 100).toFixed(2)}%` }}></div>
               </div>
             </div>
             <div>
               <div className="flex justify-between mb-1">
                 <span className="text-sm font-medium">Active This Month</span>
-                <span className="text-sm font-medium">85</span>
+                <span className="text-sm font-medium">{totalCustomers}</span>
               </div>
               <div className="w-full bg-muted rounded-full h-2.5">
-                <div className="bg-primary h-2.5 rounded-full" style={{ width: "40%" }}></div>
+                <div className="bg-primary h-2.5 rounded-full" style={{ width: `${((totalCustomers / totalCustomers) * 100).toFixed(2)}%` }}></div>
               </div>
             </div>
           </div>
