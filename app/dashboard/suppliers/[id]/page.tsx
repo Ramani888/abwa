@@ -1,74 +1,41 @@
 "use client"
-import { useEffect, useState } from "react"
-import { useRouter, useParams } from "next/navigation"
-import { Formik, Form, Field, ErrorMessage } from "formik"
-import * as Yup from "yup"
+
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { ArrowLeft, User, Phone, Mail, MapPin, Landmark } from "lucide-react"
-import { serverGetSupplier, serverUpdateSupplier } from "@/services/serverApi"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { ArrowLeft, Edit, ShoppingBag } from "lucide-react"
+import Link from "next/link"
+import { serverGetSupplierDetailOrder } from "@/services/serverApi"
 
-const validationSchema = Yup.object({
-  name: Yup.string().required("Supplier name is required"),
-  number: Yup.string()
-    .matches(/^\d{10}$/, "Phone number must be exactly 10 digits")
-    .required("Phone number is required"),
-  email: Yup.string().email("Invalid email address"),
-  address: Yup.string(),
-  gstNumber: Yup.string(),
-  captureDate: Yup.date()
-    .typeError("Invalid date format")
-    .max(new Date(), "Date cannot be in the future"),
-})
-
-export default function EditSupplierPage({ params }: { params: { id: string } }) {
-  const router = useRouter();
-  const [initialValues, setInitialValues] = useState({
-    name: "",
-    number: "",
-    email: "",
-    address: "",
-    gstNumber: "",
-    captureDate: "",
-  })
-  const [loading, setLoading] = useState(true)
+export default function SupplierDetailsPage({ params }: { params: { id: string } }) {
+  const [supplierData, setSupplierData] = useState<any>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const router = useRouter()
 
   useEffect(() => {
-    async function fetchSupplier() {
+    const fetchData = async () => {
       try {
-        const res = await serverGetSupplier();
-        const supplierData = res?.data?.find((supplier: any) => supplier?._id === params.id)
-
-        if (supplierData) {
-          setInitialValues({
-            name: supplierData.name || "",
-            number: supplierData.number || "",
-            email: supplierData.email || "",
-            address: supplierData.address || "",
-            gstNumber: supplierData.gstNumber || "",
-            captureDate: supplierData.captureDate ? new Date(supplierData.captureDate).toISOString().split("T")[0] : "",
-          })
-          setLoading(false)
-        } else {
-          console.error("Supplier not found")
-        }
+        const res = await serverGetSupplierDetailOrder(params?.id);
+        setSupplierData(res?.data);
+        setIsLoading(false)
       } catch (error) {
-        console.error("Error fetching supplier data:", error)
-        setLoading(false)
+        console.error("Failed to fetch supplier data:", error)
+        setIsLoading(false)
       }
     }
-    fetchSupplier()
+
+    fetchData();
   }, [params.id])
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center h-[50vh]">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-2">Loading supplier data...</p>
+          <p className="mt-2">Loading supplier details...</p>
         </div>
       </div>
     )
@@ -76,96 +43,121 @@ export default function EditSupplierPage({ params }: { params: { id: string } })
 
   return (
     <div className="w-full">
-      <div className="flex items-center mb-6">
-        <Button variant="outline" size="icon" onClick={() => router.back()} className="mr-4">
-          <ArrowLeft className="h-4 w-4" />
-        </Button>
-        <h2 className="text-3xl font-bold tracking-tight">Edit Supplier</h2>
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center">
+          <Button variant="outline" size="icon" onClick={() => router.back()} className="mr-4">
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <h2 className="text-3xl font-bold tracking-tight">Supplier Details</h2>
+        </div>
+        <div className="flex gap-2">
+          <Link href={`/dashboard/suppliers/${params.id}/edit`}>
+            <Button variant="outline">
+              <Edit className="mr-2 h-4 w-4" />
+              Edit Supplier
+            </Button>
+          </Link>
+          <Link href={`/dashboard/suppliers/${params.id}/orders`}>
+            <Button>
+              <ShoppingBag className="mr-2 h-4 w-4" />
+              View All Purchase Orders
+            </Button>
+          </Link>
+        </div>
       </div>
-      <Card className="w-full">
-        <Formik
-          initialValues={initialValues}
-          enableReinitialize
-          validationSchema={validationSchema}
-          onSubmit={async (values, { setSubmitting, setErrors }) => {
-            try {
-              await serverUpdateSupplier({
-                ...values,
-                _id: params.id,
-                captureDate: values.captureDate ? new Date(values.captureDate) : undefined
-              })
-              router.push("/dashboard/suppliers")
-            } catch (error: any) {
-              setErrors({ name: error?.message || "Failed to update supplier" })
-            } finally {
-              setSubmitting(false)
-            }
-          }}
-        >
-          {({ isSubmitting }) => (
-            <Form>
-                <CardHeader>
-                    <CardTitle>Supplier Information</CardTitle>
-                    <CardDescription>Update the supplier details</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    <div className="space-y-2">
-                    <Label htmlFor="name">Name</Label>
-                    <div className="relative">
-                        <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Field as={Input} id="name" name="name" placeholder="Supplier Name" className="pl-10" />
-                    </div>
-                    <ErrorMessage name="name" component="p" className="text-red-500 text-sm" />
-                    </div>
-                    <div className="space-y-2">
-                    <Label htmlFor="number">Phone Number</Label>
-                    <div className="relative">
-                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Field as={Input} id="number" name="number" placeholder="10 digit number" className="pl-10" />
-                    </div>
-                    <ErrorMessage name="number" component="p" className="text-red-500 text-sm" />
-                    </div>
-                    <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
-                    <div className="relative">
-                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Field as={Input} id="email" name="email" placeholder="supplier@email.com" className="pl-10" />
-                    </div>
-                    <ErrorMessage name="email" component="p" className="text-red-500 text-sm" />
-                    </div>
-                    <div className="space-y-2">
-                    <Label htmlFor="address">Address</Label>
-                    <div className="relative">
-                        <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                        <Field as={Textarea} id="address" name="address" placeholder="Supplier address" className="pl-10" />
-                    </div>
-                    <ErrorMessage name="address" component="p" className="text-red-500 text-sm" />
-                    </div>
-                    <div className="space-y-2">
-                    <Label htmlFor="gstNumber">GST Number</Label>
-                    <div className="relative">
-                        <Landmark className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Field as={Input} id="gstNumber" name="gstNumber" placeholder="22AAAAA0000A1Z5" className="pl-10" />
-                    </div>
-                    <ErrorMessage name="gstNumber" component="p" className="text-red-500 text-sm" />
-                    </div>
-                    <div className="space-y-2">
-                    <Label htmlFor="captureDate">Date</Label>
-                    <div>
-                        <Field as={Input} type="date" id="captureDate" name="captureDate" />
-                    </div>
-                    <ErrorMessage name="captureDate" component="p" className="text-red-500 text-sm" />
-                    </div>
-                </CardContent>
-                <CardFooter>
-                    <Button type="submit" disabled={isSubmitting}>
-                    {isSubmitting ? "Saving..." : "Save Changes"}
-                    </Button>
-                </CardFooter>
-            </Form>
-          )}
-        </Formik>
-      </Card>
+
+      <div className="grid gap-6">
+        <Card className="w-full">
+          <CardHeader>
+            <CardTitle>Supplier Information</CardTitle>
+            <CardDescription>Basic details and contact information</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <h3 className="text-lg font-semibold mb-2">Basic Details</h3>
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Name:</span>
+                    <span>{supplierData?.name}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Email:</span>
+                    <span>{supplierData?.email}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Phone:</span>
+                    <span>{supplierData?.number}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Address:</span>
+                    <span>{supplierData?.address}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-semibold mb-2">Purchase History</h3>
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Total Orders:</span>
+                    <span>{supplierData?.totalOrder}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Total Spent:</span>
+                    <span>₹{supplierData?.totalSpent?.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Last Order:</span>
+                    <span>{supplierData?.lastOrderDate ? new Date(supplierData?.lastOrderDate).toLocaleDateString() : ""}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="w-full">
+          <CardHeader>
+            <CardTitle>Recent Orders</CardTitle>
+            <CardDescription>Last few orders placed by this customer</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Order ID</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Total</TableHead>
+                    <TableHead>Payment</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {supplierData?.orders?.map((order: any) => (
+                    <TableRow key={order?._id}>
+                      <TableCell className="font-medium">{order?._id}</TableCell>
+                      <TableCell>{order?.captureDate ? new Date(order?.captureDate).toLocaleDateString() : ""}</TableCell>
+                      <TableCell>₹{order?.total?.toFixed(2)}</TableCell>
+                      <TableCell>
+                        <Badge className="capitalize" variant={order?.paymentStatus === "paid" ? "default" : "destructive"}>{order?.paymentStatus}</Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Link href={`/dashboard/purchase-order/${order?._id}`}>
+                          <Button variant="outline" size="sm">
+                            View
+                          </Button>
+                        </Link>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   )
 }

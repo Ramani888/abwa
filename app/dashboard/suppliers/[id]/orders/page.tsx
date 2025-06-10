@@ -9,11 +9,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { ArrowLeft, FileText } from "lucide-react"
 import Link from "next/link"
 import { Input } from "@/components/ui/input"
-import { serverGetAllOrdersByCustomerId, serverGetCustomers } from "@/services/serverApi"
+import { serverGetAllPurchaseOrdersBySupplierId, serverGetSupplier } from "@/services/serverApi"
 
-export default function CustomerOrdersPage({ params }: { params: { id: string } }) {
-  const [customerData, setCustomerData] = useState<any>(null)
-  const [ordersData, setOrdersData] = useState<any[]>([])
+export default function SupplierPurchaseOrdersPage({ params }: { params: { id: string } }) {
+  const [supplierData, setSupplierData] = useState<any>(null)
+  const [purchaseOrdersData, setPurchaseOrdersData] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [statusFilter, setStatusFilter] = useState("all")
   const [searchQuery, setSearchQuery] = useState("")
@@ -22,14 +22,14 @@ export default function CustomerOrdersPage({ params }: { params: { id: string } 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const customerRes = await serverGetCustomers();
-        const customer = customerRes?.data?.find((c: any) => c?._id === params.id);
-        setCustomerData(customer);
-        const res = await serverGetAllOrdersByCustomerId(params?.id);
-        setOrdersData(res?.data);
+        const supplierRes = await serverGetSupplier();
+        const supplier = supplierRes?.data?.find((c: any) => c?._id === params.id);
+        setSupplierData(supplier);
+        const res = await serverGetAllPurchaseOrdersBySupplierId(params?.id);
+        setPurchaseOrdersData(res?.data);
         setIsLoading(false)
       } catch (error) {
-        console.error("Failed to fetch customer data:", error)
+        console.error("Failed to fetch supplier data:", error)
         setIsLoading(false)
       }
     }
@@ -37,7 +37,7 @@ export default function CustomerOrdersPage({ params }: { params: { id: string } 
     fetchData();
   }, [params.id])
 
-  const filteredOrders = ordersData?.filter((order) => {
+  const filteredOrders = purchaseOrdersData?.filter((order) => {
     const matchesSearch = order?._id?.toLowerCase().includes(searchQuery.toLowerCase())
 
     // const matchesStatus = statusFilter === "all" || order.status.toLowerCase() === statusFilter.toLowerCase()
@@ -50,7 +50,7 @@ export default function CustomerOrdersPage({ params }: { params: { id: string } 
       <div className="flex items-center justify-center h-[50vh]">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-2">Loading customer orders...</p>
+          <p className="mt-2">Loading supplier purchase orders...</p>
         </div>
       </div>
     )
@@ -63,17 +63,17 @@ export default function CustomerOrdersPage({ params }: { params: { id: string } 
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Customer Orders</h2>
+          <h2 className="text-3xl font-bold tracking-tight">Supplier Purchase Orders</h2>
           <p className="text-muted-foreground">
-            All orders for {customerData?.name} ({customerData?.customerType === "wholesale" ? "Wholesale" : "Retail"})
+            All purchase orders for {supplierData?.name}
           </p>
         </div>
       </div>
 
       <Card className="w-full">
         <CardHeader>
-          <CardTitle>Order History</CardTitle>
-          <CardDescription>View and manage all orders for this customer</CardDescription>
+          <CardTitle>Purchase Order History</CardTitle>
+          <CardDescription>View and manage all purchase orders for this supplier</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-6">
@@ -138,12 +138,12 @@ export default function CustomerOrdersPage({ params }: { params: { id: string } 
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
-                          <Link href={`/dashboard/orders/${order?._id}`}>
+                          <Link href={`/dashboard/purchase-order/${order?._id}`}>
                             <Button variant="outline" size="sm">
                               View
                             </Button>
                           </Link>
-                          <Link href={`/dashboard/orders/${order?._id}/invoice`}>
+                          <Link href={`/dashboard/purchase-order/${order?._id}/invoice`}>
                             <Button variant="outline" size="sm">
                               <FileText className="h-4 w-4" />
                             </Button>
@@ -155,7 +155,7 @@ export default function CustomerOrdersPage({ params }: { params: { id: string } 
                 ) : (
                   <TableRow>
                     <TableCell colSpan={7} className="h-24 text-center">
-                      No orders found.
+                      No purchase orders found.
                     </TableCell>
                   </TableRow>
                 )}

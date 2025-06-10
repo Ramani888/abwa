@@ -136,6 +136,10 @@ export const serverDeleteCustomer = async (_id: string) => {
   return await serverRequest(`/customer?_id=${_id}`, "DELETE", null, true);
 }
 
+export const serverGetCustomerDetailOrder = async (_id: string) => {
+  return await serverRequest(`/customer/detail/order?_id=${_id}`, "GET", null, true);
+}
+
 /// Category ///
 export const serverGetCategory = async () => {
   return await serverRequest(`/category`, "GET", null, true);
@@ -191,6 +195,10 @@ export const serverDeleteOrder = async (_id: string) => {
   return await serverRequest(`/order?_id=${_id}`, "DELETE", null, true);
 }
 
+export const serverGetAllOrdersByCustomerId = async (_id: string) => {
+  return await serverRequest(`/order/customer/all?_id=${_id}`, "GET", null, true);
+}
+
 /// Supplier ///
 export const serverAddSupplier = async (data: ISupplier) => {
   return await serverRequest(`/supplier`, "POST", data, true);
@@ -208,6 +216,10 @@ export const serverDeleteSupplier = async (_id: string) => {
   return await serverRequest(`/supplier?_id=${_id}`, "DELETE", null, true);
 }
 
+export const serverGetSupplierDetailOrder = async (_id: string) => {
+  return await serverRequest(`/supplier/detail/order?_id=${_id}`, "GET", null, true);
+}
+
 /// Purchase Order ///
 export const serverGetPurchaseOrder = async () => {
   return await serverRequest(`/purchase-order`, "GET", null, true);
@@ -223,4 +235,8 @@ export const serverUpdatePurchaseOrder = async (data: any) => {
 
 export const serverDeletePurchaseOrder = async (_id: string) => {
   return await serverRequest(`/purchase-order?_id=${_id}`, "DELETE", null, true);
+}
+
+export const serverGetAllPurchaseOrdersBySupplierId = async (_id: string) => {
+  return await serverRequest(`/purchase-order/supplier/all?_id=${_id}`, "GET", null, true);
 }

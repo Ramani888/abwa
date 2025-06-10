@@ -108,7 +108,7 @@ export default function PurchaseOrderDetailsPage({ params }: { params: { id: str
                 <div className="space-y-2">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Name:</span>
-                    <Link href={`/dashboard/suppliers`} className="text-primary hover:underline capitalize">
+                    <Link href={`/dashboard/suppliers/${purchaseOrder?.supplierData?._id}`} className="text-primary hover:underline capitalize">
                       {purchaseOrder?.supplierData?.name}
                     </Link>
                   </div>

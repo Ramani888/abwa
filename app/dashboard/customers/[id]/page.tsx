@@ -8,57 +8,27 @@ import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { ArrowLeft, Edit, ShoppingBag } from "lucide-react"
 import Link from "next/link"
-
-// Mock data for the customer
-const customerData = {
-  id: "1",
-  name: "Rahul Sharma",
-  email: "rahul@example.com",
-  phone: "+91 9876543210",
-  address: "123 Main St, Agricity",
-  type: "retail",
-  gstNumber: "",
-  creditLimit: "",
-  paymentTerms: "cod",
-  totalOrders: 12,
-  totalSpent: "₹15,200.00",
-  lastOrderDate: "2023-03-15",
-  // Recent orders
-  recentOrders: [
-    {
-      id: "ORD-001",
-      date: "2023-03-15",
-      total: "₹2,500.00",
-      status: "Completed",
-      payment: "Paid",
-    },
-    {
-      id: "ORD-008",
-      date: "2023-03-10",
-      total: "₹1,800.00",
-      status: "Completed",
-      payment: "Paid",
-    },
-    {
-      id: "ORD-015",
-      date: "2023-03-05",
-      total: "₹3,200.00",
-      status: "Completed",
-      payment: "Paid",
-    },
-  ],
-}
+import { serverGetCustomerDetailOrder } from "@/services/serverApi"
 
 export default function CustomerDetailsPage({ params }: { params: { id: string } }) {
-  const [customer, setCustomer] = useState<any>(null)
+  const [customerData, setCustomerData] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
 
   useEffect(() => {
-    // In a real app, you would fetch the customer data from an API
-    // For now, we'll just use the mock data
-    setCustomer(customerData)
-    setIsLoading(false)
+    const fetchData = async () => {
+      try {
+        const res = await serverGetCustomerDetailOrder(params?.id);
+        console.log("Customer Data:", res?.data);
+        setCustomerData(res?.data);
+        setIsLoading(false)
+      } catch (error) {
+        console.error("Failed to fetch customer data:", error)
+        setIsLoading(false)
+      }
+    }
+
+    fetchData();
   }, [params.id])
 
   if (isLoading) {
@@ -110,25 +80,25 @@ export default function CustomerDetailsPage({ params }: { params: { id: string }
                 <div className="space-y-2">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Name:</span>
-                    <span>{customer.name}</span>
+                    <span>{customerData?.name}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Type:</span>
-                    <Badge variant={customer.type === "wholesale" ? "default" : "secondary"}>
-                      {customer.type === "wholesale" ? "Wholesale" : "Retail"}
+                    <Badge variant={customerData?.customerType === "wholesale" ? "default" : "secondary"}>
+                      {customerData?.customerType === "wholesale" ? "Wholesale" : "Retail"}
                     </Badge>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Email:</span>
-                    <span>{customer.email}</span>
+                    <span>{customerData?.email}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Phone:</span>
-                    <span>{customer.phone}</span>
+                    <span>{customerData?.number}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Address:</span>
-                    <span>{customer.address}</span>
+                    <span>{customerData?.address}</span>
                   </div>
                 </div>
               </div>
@@ -138,29 +108,29 @@ export default function CustomerDetailsPage({ params }: { params: { id: string }
                 <div className="space-y-2">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Total Orders:</span>
-                    <span>{customer.totalOrders}</span>
+                    <span>{customerData?.totalOrder}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Total Spent:</span>
-                    <span>{customer.totalSpent}</span>
+                    <span>₹{customerData?.totalSpent?.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Last Order:</span>
-                    <span>{customer.lastOrderDate}</span>
+                    <span>{customerData?.lastOrderDate ? new Date(customerData?.lastOrderDate).toLocaleDateString() : ""}</span>
                   </div>
-                  {customer.type === "wholesale" && (
+                  {customerData?.customerType === "wholesale" && (
                     <>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">GST Number:</span>
-                        <span>{customer.gstNumber || "Not provided"}</span>
+                        <span>{customerData?.gstNumber || "Not provided"}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Credit Limit:</span>
-                        <span>{customer.creditLimit || "Not set"}</span>
+                        <span>{customerData?.creditLimit || "Not set"}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Payment Terms:</span>
-                        <span>{customer.paymentTerms === "cod" ? "Cash on Delivery" : customer.paymentTerms}</span>
+                        <span>{customerData?.paymentTerms === "cod" ? "Cash on Delivery" : customerData?.paymentTerms}</span>
                       </div>
                     </>
                   )}
@@ -183,35 +153,21 @@ export default function CustomerDetailsPage({ params }: { params: { id: string }
                     <TableHead>Order ID</TableHead>
                     <TableHead>Date</TableHead>
                     <TableHead>Total</TableHead>
-                    <TableHead>Status</TableHead>
                     <TableHead>Payment</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {customer.recentOrders.map((order: any) => (
-                    <TableRow key={order.id}>
-                      <TableCell className="font-medium">{order.id}</TableCell>
-                      <TableCell>{order.date}</TableCell>
-                      <TableCell>{order.total}</TableCell>
+                  {customerData?.orders?.map((order: any) => (
+                    <TableRow key={order?._id}>
+                      <TableCell className="font-medium">{order?._id}</TableCell>
+                      <TableCell>{order?.captureDate ? new Date(order?.captureDate).toLocaleDateString() : ""}</TableCell>
+                      <TableCell>₹{order?.total?.toFixed(2)}</TableCell>
                       <TableCell>
-                        <Badge
-                          variant={
-                            order.status === "Completed"
-                              ? "default"
-                              : order.status === "Processing"
-                                ? "outline"
-                                : "secondary"
-                          }
-                        >
-                          {order.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={order.payment === "Paid" ? "default" : "destructive"}>{order.payment}</Badge>
+                        <Badge className="capitalize" variant={order?.paymentStatus === "paid" ? "default" : "destructive"}>{order?.paymentStatus}</Badge>
                       </TableCell>
                       <TableCell className="text-right">
-                        <Link href={`/dashboard/orders/${order.id}`}>
+                        <Link href={`/dashboard/orders/${order?._id}`}>
                           <Button variant="outline" size="sm">
                             View
                           </Button>
