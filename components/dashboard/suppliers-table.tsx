@@ -13,7 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Edit, Loader2, MoreHorizontal, Search, Trash } from "lucide-react"
+import { Edit, Eye, Loader2, MoreHorizontal, Search, ShoppingBag, Trash } from "lucide-react"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -113,13 +113,15 @@ export function SuppliersTable({ setRefreshFunction }: { setRefreshFunction?: (f
               <TableHead>Email</TableHead>
               <TableHead>GST Number</TableHead>
               <TableHead>Address</TableHead>
+              <TableHead>Orders</TableHead>
+              <TableHead>Total Spent</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {loading ? (
               <TableRow>
-                <TableCell colSpan={6} className="h-24 text-center">
+                <TableCell colSpan={8} className="h-24 text-center">
                   <div className="flex justify-center items-center space-x-2">
                     <Loader2 className="h-5 w-5 animate-spin text-primary" />
                     <span>Loading Supplier...</span>
@@ -135,6 +137,13 @@ export function SuppliersTable({ setRefreshFunction }: { setRefreshFunction?: (f
                   <TableCell>{supplier?.email ?? 'N/A'}</TableCell>
                   <TableCell>{supplier?.gstNumber ?? 'N/A'}</TableCell>
                   <TableCell>{supplier?.address ?? 'N/A'}</TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-1">
+                      <ShoppingBag className="h-4 w-4 text-muted-foreground" />
+                      {supplier?.totalOrder ?? 0}
+                    </div>
+                  </TableCell>
+                  <TableCell>₹{supplier?.totalSpent?.toFixed(2) ?? '0.00'}</TableCell>
                   {hasAnyPermission([Permissions.UPDATE_SUPPLIER, Permissions.DELETE_SUPPLIER]) && (
                     <TableCell className="text-right">
                       <DropdownMenu>
@@ -147,6 +156,12 @@ export function SuppliersTable({ setRefreshFunction }: { setRefreshFunction?: (f
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>Actions</DropdownMenuLabel>
                           <DropdownMenuSeparator />
+                          <DropdownMenuItem asChild>
+                            <Link href={`/dashboard/suppliers/${supplier?._id}`}>
+                              <Eye className="mr-2 h-4 w-4" />
+                              View Details
+                            </Link>
+                          </DropdownMenuItem>
                           {hasPermission(Permissions.UPDATE_SUPPLIER) && (
                             <DropdownMenuItem asChild>
                               <Link href={`/dashboard/suppliers/${supplier?._id}`}>
@@ -155,8 +170,15 @@ export function SuppliersTable({ setRefreshFunction }: { setRefreshFunction?: (f
                               </Link>
                             </DropdownMenuItem>
                           )}
+                          <DropdownMenuItem asChild>
+                            <Link href={`/dashboard/suppliers/${supplier?._id?.toString()}/orders`}>
+                              <ShoppingBag className="mr-2 h-4 w-4" />
+                              View Orders
+                            </Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
                           {hasPermission(Permissions.DELETE_SUPPLIER) && (
-                            <DropdownMenuItem onClick={() => handleDeleteClick(supplier?._id ?? '')}>
+                            <DropdownMenuItem className="text-destructive" onClick={() => handleDeleteClick(supplier?._id ?? '')}>
                               <Trash className="mr-2 h-4 w-4" />
                               Delete
                             </DropdownMenuItem>

@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
-import { Edit, MoreHorizontal, Search, ShoppingBag, Trash, Loader2 } from "lucide-react"
+import { Edit, MoreHorizontal, Search, ShoppingBag, Trash, Loader2, Eye } from "lucide-react"
 import { serverDeleteCustomer, serverGetCustomers } from "@/services/serverApi"
 import { ICustomer } from "@/types/customer"
 import {
@@ -179,10 +179,10 @@ export function CustomersTable({ setRefreshFunction }: { setRefreshFunction?: (f
                   <TableCell>
                     <div className="flex items-center gap-1">
                       <ShoppingBag className="h-4 w-4 text-muted-foreground" />
-                      {'11'}
+                      {customer?.totalOrder ?? 0}
                     </div>
                   </TableCell>
-                  <TableCell>{'12,000'}</TableCell>
+                  <TableCell>₹{customer?.totalSpent?.toFixed(2) ?? '0.00'}</TableCell>
                   {hasAnyPermission([Permissions.UPDATE_CUSTOMER, Permissions.DELETE_CUSTOMER, Permissions.VIEW_CUSTOMER]) && (
                     <TableCell className="text-right">
                       <DropdownMenu>
@@ -195,6 +195,12 @@ export function CustomersTable({ setRefreshFunction }: { setRefreshFunction?: (f
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>Actions</DropdownMenuLabel>
                           <DropdownMenuSeparator />
+                          <DropdownMenuItem asChild>
+                            <Link href={`/dashboard/customers/${customer?._id}`}>
+                              <Eye className="mr-2 h-4 w-4" />
+                              View Details
+                            </Link>
+                          </DropdownMenuItem>
                           {hasPermission(Permissions.UPDATE_CUSTOMER) && (
                             <DropdownMenuItem asChild>
                               <Link href={`/dashboard/customers/${customer._id?.toString()}/edit`}>

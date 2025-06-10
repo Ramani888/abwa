@@ -9,6 +9,8 @@ export interface ISupplier {
     gstNumber?: string;
     captureDate?: Date;
     isDeleted?: boolean;
+    totalOrder?: number;
+    totalSpent?: number;
     createdAt?: Date;
     updatedAt?: Date;
 }

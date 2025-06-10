@@ -10,6 +10,8 @@ export interface ICustomer {
     gstNumber?: string;
     creditLimit?: number;
     paymentTerms?: string;
+    totalOrder?: number;
+    totalSpent?: number;
     createdAt?: Date;
     updatedAt?: Date;
 }

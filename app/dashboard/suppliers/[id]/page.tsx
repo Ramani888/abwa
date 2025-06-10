@@ -119,8 +119,8 @@ export default function SupplierDetailsPage({ params }: { params: { id: string }
 
         <Card className="w-full">
           <CardHeader>
-            <CardTitle>Recent Orders</CardTitle>
-            <CardDescription>Last few orders placed by this customer</CardDescription>
+            <CardTitle>Recent Purchase Orders</CardTitle>
+            <CardDescription>Last few purchase orders placed by this supplier</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto">

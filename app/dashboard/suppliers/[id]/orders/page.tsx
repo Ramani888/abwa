@@ -65,7 +65,7 @@ export default function SupplierPurchaseOrdersPage({ params }: { params: { id: s
         <div>
           <h2 className="text-3xl font-bold tracking-tight">Supplier Purchase Orders</h2>
           <p className="text-muted-foreground">
-            All purchase orders for {supplierData?.name}
+            All purchase orders from {supplierData?.name}
           </p>
         </div>
       </div>
