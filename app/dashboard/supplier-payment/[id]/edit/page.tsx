@@ -11,20 +11,20 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "@/components/ui/use-toast";
 import { ArrowLeft, User, FileText, List, DollarSign } from "lucide-react";
-import { serverGetCustomerPayment, serverGetCustomers, serverUpdateCustomerPayment } from "@/services/serverApi";
+import { serverGetCustomerPayment, serverGetCustomers, serverGetSupplier, serverGetSupplierPayment, serverUpdateCustomerPayment, serverUpdateSupplierPayment } from "@/services/serverApi";
 
-interface CustomerPaymentData {
+interface SupplierPaymentData {
   _id: string;
-  customerId: string;
+  supplierId: string;
   captureDate: string;
   amount: number;
   paymentType: string;
   paymentMode: string;
 }
 
-const defaultFormState: CustomerPaymentData = {
+const defaultFormState: SupplierPaymentData = {
   _id: "",
-  customerId: "",
+  supplierId: "",
   captureDate: "",
   amount: 0,
   paymentType: "",
@@ -32,75 +32,75 @@ const defaultFormState: CustomerPaymentData = {
 };
 
 const validationSchema = Yup.object({
-  customerId: Yup.string().required("Customer is required"),
+  supplierId: Yup.string().required("Supplier is required"),
   captureDate: Yup.string().required("Date is required"),
   amount: Yup.number().required("Amount is required"),
   paymentType: Yup.string().required("Payment Type is required"),
   paymentMode: Yup.string().required("Payment Mode is required"),
 });
 
-export default function EditCustomerPaymentPage({ params }: { params: { id: string } }) {
-  const [initialValues, setInitialValues] = useState<CustomerPaymentData>(defaultFormState);
-  const [customerData, setCustomerData] = useState<any[]>([]);
-  const [selectedCustomer, setSelectedCustomer] = useState<string>("");
+export default function EditSupplierPaymentPage({ params }: { params: { id: string } }) {
+  const [initialValues, setInitialValues] = useState<SupplierPaymentData>(defaultFormState);
+  const [supplierData, setSupplierData] = useState<any[]>([]);
+  const [selectedSupplier, setSelectedSupplier] = useState<string>("");
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
   useEffect(() => {
-    const fetchCustomerPayment = async () => {
+    const fetchSupplierPayment = async () => {
       setIsLoading(true);
       setError(null);
 
       try {
-        const res = await serverGetCustomerPayment();
-        const customerPaymentData = res?.data?.find((item: any) => item?._id === params?.id);
+        const res = await serverGetSupplierPayment();
+        const supplierPaymentData = res?.data?.find((item: any) => item?._id === params?.id);
 
-        if (!customerPaymentData) {
-          setError("Customer payment not found");
+        if (!supplierPaymentData) {
+          setError("Supplier payment not found");
           setIsLoading(false);
           return;
         }
 
         setInitialValues({
-          _id: customerPaymentData?._id || "",
-          customerId: customerPaymentData?.customerId || "",
-          captureDate: customerPaymentData?.captureDate?.slice(0, 10) || "",
-          amount: customerPaymentData?.amount || 0,
-          paymentType: customerPaymentData?.paymentType || "",
-          paymentMode: customerPaymentData?.paymentMode || "",
+          _id: supplierPaymentData?._id || "",
+          supplierId: supplierPaymentData?.supplierId || "",
+          captureDate: supplierPaymentData?.captureDate?.slice(0, 10) || "",
+          amount: supplierPaymentData?.amount || 0,
+          paymentType: supplierPaymentData?.paymentType || "",
+          paymentMode: supplierPaymentData?.paymentMode || "",
         });
-        setSelectedCustomer(customerPaymentData?.customerId || "");
+        setSelectedSupplier(supplierPaymentData?.supplierId || "");
         setIsLoading(false);
       } catch (error) {
-        console.error("Error fetching customer:", error);
-        setError("Failed to load customer data");
+        console.error("Error fetching supplier:", error);
+        setError("Failed to load supplier  data");
         setIsLoading(false);
       }
     };
 
-    fetchCustomerPayment();
+    fetchSupplierPayment();
   }, [params.id]);
 
-  const getCustomerData = async () => {
+  const getSupplierData = async () => {
     try {
       setIsLoading(true);
-      const res = await serverGetCustomers();
-      setCustomerData(res?.data || []);
+      const res = await serverGetSupplier();
+      setSupplierData(res?.data || []);
       setIsLoading(false);
     } catch (error) {
       setIsLoading(false);
-      setCustomerData([]);
-      console.error("Error fetching customers:", error);
+      setSupplierData([]);
+      console.error("Error fetching suppliers:", error);
     }
   };
 
   useEffect(() => {
-    getCustomerData();
+    getSupplierData();
   }, []);
 
   const handleSubmit = async (
-    values: CustomerPaymentData,
+    values: SupplierPaymentData,
     { setSubmitting }: { setSubmitting: (isSubmitting: boolean) => void }
   ) => {
     setError(null);
@@ -112,24 +112,24 @@ export default function EditCustomerPaymentPage({ params }: { params: { id: stri
         captureDate: values.captureDate ? new Date(values.captureDate) : new Date(),
       };
 
-      const res = await serverUpdateCustomerPayment(dataToSubmit);
+      const res = await serverUpdateSupplierPayment(dataToSubmit);
 
       if (res?.success) {
         toast({
           title: "Success",
-          description: "Customer payment updated successfully",
+          description: "Supplier payment updated successfully",
           variant: "default",
         });
-        router.push(`/dashboard/customer-payment`);
+        router.push(`/dashboard/supplier-payment`);
       } else {
-        setError("Failed to update customer payment");
+        setError("Failed to update supplier payment");
       }
 
       setSubmitting(false);
     } catch (error) {
       setSubmitting(false);
-      setError("An error occurred while updating the customer payment");
-      console.error("Error updating customer payment:", error);
+      setError("An error occurred while updating the supplier payment");
+      console.error("Error updating supplier payment:", error);
     }
   };
 
@@ -140,7 +140,7 @@ export default function EditCustomerPaymentPage({ params }: { params: { id: stri
           <Button variant="outline" size="icon" onClick={() => router.back()} className="mr-4">
             <ArrowLeft className="h-4 w-4" />
           </Button>
-          <h2 className="text-3xl font-bold tracking-tight">Edit Customer Payment</h2>
+          <h2 className="text-3xl font-bold tracking-tight">Edit Supplier Payment</h2>
         </div>
 
         <Card className="border-destructive">
@@ -161,7 +161,7 @@ export default function EditCustomerPaymentPage({ params }: { params: { id: stri
       <div className="flex items-center justify-center h-[50vh]">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-2">Loading customer payment data...</p>
+          <p className="mt-2">Loading supplier payment data...</p>
         </div>
       </div>
     );
@@ -173,7 +173,7 @@ export default function EditCustomerPaymentPage({ params }: { params: { id: stri
         <Button variant="outline" size="icon" onClick={() => router.back()} className="mr-4">
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <h2 className="text-3xl font-bold tracking-tight">Edit Customer Payment</h2>
+        <h2 className="text-3xl font-bold tracking-tight">Edit Supplier Payment</h2>
       </div>
 
       <Card>
@@ -186,35 +186,35 @@ export default function EditCustomerPaymentPage({ params }: { params: { id: stri
           {({ isSubmitting, values, setFieldValue }) => (
             <Form>
               <CardHeader>
-                <CardTitle>Customer Payment Information</CardTitle>
-                <CardDescription>Edit customer payment details</CardDescription>
+                <CardTitle>Supplier Payment Information</CardTitle>
+                <CardDescription>Edit supplier payment details</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {/* Customer Dropdown with icon */}
+                {/* Supplier Dropdown with icon */}
                 <div className="space-y-2">
-                  <Label htmlFor="customerId">Select Customer</Label>
+                  <Label htmlFor="supplierId">Select Supplier</Label>
                   <div className="relative">
                     <User className="absolute left-2.5 top-3 h-4 w-4 text-muted-foreground" />
                     <Select
-                      value={values.customerId}
+                      value={values.supplierId}
                       onValueChange={(val) => {
-                        setSelectedCustomer(val);
-                        setFieldValue("customerId", val);
+                        setSelectedSupplier(val);
+                        setFieldValue("supplierId", val);
                       }}
                     >
                       <SelectTrigger className="pl-8">
-                        <SelectValue placeholder="Select a customer" />
+                        <SelectValue placeholder="Select a supplier" />
                       </SelectTrigger>
                       <SelectContent>
-                        {customerData?.map((customer) => (
-                          <SelectItem key={customer?._id} value={customer?._id}>
-                            {customer?.name} - {customer?.number}
+                        {supplierData?.map((supplier) => (
+                          <SelectItem key={supplier?._id} value={supplier?._id}>
+                            {supplier?.name} - {supplier?.number}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   </div>
-                  <ErrorMessage name="customerId" component="p" className="text-red-500 text-sm" />
+                  <ErrorMessage name="supplierId" component="p" className="text-red-500 text-sm" />
                 </div>
 
                 {/* Amount and Date in one row */}

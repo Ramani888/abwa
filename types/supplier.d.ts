@@ -14,3 +14,18 @@ export interface ISupplier {
     createdAt?: Date;
     updatedAt?: Date;
 }
+
+export interface ISupplierPayment {
+    _id?: ObjectId;
+    ownerId?: string;
+    userId?: string;
+    supplierId: string;
+    amount: number;
+    paymentType: string; // e.g., 'cash', 'credit', 'debit'
+    paymentMode: string; // e.g., 'online', 'offline'
+    captureDate?: Date;
+    isDeleted?: boolean;
+    supplierData?: ISupplier;
+    createdAt?: Date;
+    updatedAt?: Date;
+}

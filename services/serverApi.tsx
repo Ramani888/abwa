@@ -5,7 +5,7 @@ import { ICustomer, ICustomerPayment } from "@/types/customer";
 import { ICategory } from "@/types/category";
 import { IProduct } from "@/types/product";
 import { toast } from "sonner";
-import { ISupplier } from "@/types/supplier";
+import { ISupplier, ISupplierPayment } from "@/types/supplier";
 import { IOrder } from "@/types/order";
 import { IPurchaseOrder } from "@/types/purchaseOrder";
 
@@ -256,4 +256,21 @@ export const serverUpdateCustomerPayment = async (data: ICustomerPayment) => {
 
 export const serverDeleteCustomerPayment = async (_id: string) => {
   return await serverRequest(`/customer-payment?_id=${_id}`, "DELETE", null, true);
+}
+
+/// Supplier Payment ///
+export const serverGetSupplierPayment = async () => {
+  return await serverRequest(`/supplier-payment`, "GET", null, true);
+}
+
+export const serverAddSupplierPayment = async (data: ISupplierPayment) => {
+  return await serverRequest(`/supplier-payment`, "POST", data, true);
+}
+
+export const serverUpdateSupplierPayment = async (data: ISupplierPayment) => {
+  return await serverRequest(`/supplier-payment`, "PUT", data, true);
+}
+
+export const serverDeleteSupplierPayment = async (_id: string) => {
+  return await serverRequest(`/supplier-payment?_id=${_id}`, "DELETE", null, true);
 }

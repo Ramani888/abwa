@@ -66,6 +66,12 @@ export function DashboardSidebar({ isMobile = false, closeMobileMenu }: Dashboar
       permission: hasPermission(Permissions.VIEW_SUPPLIER),
     },
     {
+      title: "Supplier Payments",
+      href: "/dashboard/supplier-payment",
+      icon: Store,
+      permission: hasPermission(Permissions.VIEW_SUPPLIER),
+    },
+    {
       title: "Products",
       href: "/dashboard/products",
       icon: Package,

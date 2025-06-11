@@ -13,35 +13,35 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ArrowLeft, User, FileText, List, IndianRupeeIcon } from "lucide-react"
 import { useState, useEffect, use } from "react"
 import { set } from "date-fns"
-import { serverAddCustomerPayment, serverGetCustomers } from "@/services/serverApi"
+import { serverAddCustomerPayment, serverAddSupplierPayment, serverGetCustomers, serverGetSupplier } from "@/services/serverApi"
 
-export default function NewCustomerPaymentPage() {
+export default function NewSupplierPaymentPage() {
   const router = useRouter()
-  const [customerData, setCustomerData] = useState<any[]>([])
-  const [selectedCustomer, setSelectedCustomer] = useState("")
+  const [supplierData, setSupplierData] = useState<any[]>([])
+  const [selectedSupplier, setSelectedSupplier] = useState("")
   const [loading, setLoading] = useState(false);
 
-  const getCustomerData = async () => {
+  const getSupplierData = async () => {
     try {
       setLoading(true);
-      const res = await serverGetCustomers();
-      setCustomerData(res?.data || []);
+      const res = await serverGetSupplier();
+      setSupplierData(res?.data || []);
       setLoading(false);
     } catch (error) {
       setLoading(false);
-      setCustomerData([]);
-      console.error("Error fetching customers:", error)
+      setSupplierData([]);
+      console.error("Error fetching suppliers:", error)
     }
   }
 
   useEffect(() => {
-    getCustomerData();
+    getSupplierData();
   }, []);
 
   const today = new Date().toISOString().split("T")[0];
 
   const initialValues = {
-    customerId: "",
+    supplierId: "",
     captureDate: today, // set default to today
     amount: "",
     paymentType: "",
@@ -49,7 +49,7 @@ export default function NewCustomerPaymentPage() {
   }
 
   const validationSchema = Yup.object({
-    customerId: Yup.string().required("Customer is required"),
+    supplierId: Yup.string().required("Supplier is required"),
     captureDate: Yup.string().required("Date is required"), // changed from date
     amount: Yup.number().required("Amount is required"),
     paymentType: Yup.string().required("Payment Type is required"),
@@ -58,9 +58,9 @@ export default function NewCustomerPaymentPage() {
 
   const handleSubmit = async (values: typeof initialValues, { setSubmitting }: { setSubmitting: (isSubmitting: boolean) => void }) => {
     try {
-      const res = await serverAddCustomerPayment({...values, amount: Number(values.amount), captureDate: new Date(values.captureDate)});
+      const res = await serverAddSupplierPayment({...values, amount: Number(values.amount), captureDate: new Date(values.captureDate)});
       if (res?.success) {
-        router.push("/dashboard/customer-payment")
+        router.push("/dashboard/supplier-payment")
       }
     } catch (error) {
       console.error("Error creating payment:", error)
@@ -75,7 +75,7 @@ export default function NewCustomerPaymentPage() {
         <Button variant="outline" size="icon" onClick={() => router.back()} className="mr-4">
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <h2 className="text-3xl font-bold tracking-tight">Add New Customer Payment</h2>
+        <h2 className="text-3xl font-bold tracking-tight">Add New Supplier Payment</h2>
       </div>
 
       <Card className="w-full">
@@ -83,42 +83,42 @@ export default function NewCustomerPaymentPage() {
           initialValues={initialValues}
           validationSchema={validationSchema}
           onSubmit={(values, actions) => {
-            // Use selectedCustomer for customer field
-            handleSubmit({ ...values, customerId: selectedCustomer }, actions)
+            // Use selectedSupplier for supplier field
+            handleSubmit({ ...values, supplierId: selectedSupplier }, actions)
           }}
         >
           {({ values, setFieldValue, isSubmitting }) => (
             <Form>
               <CardHeader>
-                <CardTitle>Customer Payment Information</CardTitle>
-                <CardDescription>Add a new customer payment to your agro shop</CardDescription>
+                <CardTitle>Supplier Payment Information</CardTitle>
+                <CardDescription>Add a new supplier payment to your agro shop</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {/* Customer Dropdown with icon */}
+                {/* Supplier Dropdown with icon */}
                 <div className="space-y-2">
-                  <Label htmlFor="customerId">Select Customer</Label>
+                  <Label htmlFor="supplierId">Select Supplier</Label>
                   <div className="relative">
                     <User className="absolute left-2.5 top-3 h-4 w-4 text-muted-foreground" />
                     <Select
-                      value={selectedCustomer}
+                      value={selectedSupplier}
                       onValueChange={(val) => {
-                        setSelectedCustomer(val)
-                        setFieldValue("customerId", val)
+                        setSelectedSupplier(val)
+                        setFieldValue("supplierId", val)
                       }}
                     >
                       <SelectTrigger className="pl-8">
-                        <SelectValue placeholder="Select a customer" />
+                        <SelectValue placeholder="Select a supplier" />
                       </SelectTrigger>
                       <SelectContent>
-                        {customerData?.map((customer) => (
-                          <SelectItem key={customer?._id} value={customer?._id}>
-                            {customer?.name} - {customer?.number}
+                        {supplierData?.map((supplier) => (
+                          <SelectItem key={supplier?._id} value={supplier?._id}>
+                            {supplier?.name} - {supplier?.number}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   </div>
-                  <ErrorMessage name="customerId" component="p" className="text-red-500 text-sm" />
+                  <ErrorMessage name="supplierId" component="p" className="text-red-500 text-sm" />
                 </div>
 
                 {/* Amount and Date in one row */}

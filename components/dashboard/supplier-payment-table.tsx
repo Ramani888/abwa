@@ -15,9 +15,8 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
-import { Edit, MoreHorizontal, Search, ShoppingBag, Trash, Loader2, Eye } from "lucide-react"
-import { serverDeleteCustomerPayment, serverGetCustomerPayment } from "@/services/serverApi"
-import { ICustomerPayment } from "@/types/customer"
+import { Edit, MoreHorizontal, Search, Trash, Loader2 } from "lucide-react"
+import { serverDeleteSupplierPayment, serverGetSupplierPayment } from "@/services/serverApi"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,66 +29,64 @@ import {
 } from "@/components/ui/alert-dialog"
 import { usePermission } from "@/hooks/usePermission"
 import { Permissions } from "@/utils/consts/permission"
+import { ISupplierPayment } from "@/types/supplier"
 
-export function CustomerPaymentTable({ setRefreshFunction }: { setRefreshFunction?: (fn: () => Promise<void>) => void }) {
+export function SupplierPaymentTable({ setRefreshFunction }: { setRefreshFunction?: (fn: () => Promise<void>) => void }) {
   const { hasPermission, hasAnyPermission } = usePermission();
   const [searchQuery, setSearchQuery] = useState("")
-  const [customerType, setCustomerType] = useState("all") // all, retail, wholesale
   const [loading, setLoading] = useState<boolean>(false)
-  const [customerPaymentData, setCustomerPaymentData] = useState<ICustomerPayment[]>([])
+  const [supplierPaymentData, setSupplierPaymentData] = useState<ISupplierPayment[]>([])
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
-  const [customerPaymentToDelete, setCustomerPaymentToDelete] = useState<string | null>(null)
+  const [supplierPaymentToDelete, setSupplierPaymentToDelete] = useState<string | null>(null)
 
-  const filteredCustomerPayment = customerPaymentData?.filter((item) => {
+  const filteredSupplierPayment = supplierPaymentData?.filter((item) => {
     const matchesSearch =
-      item.customerData?.name.toLowerCase().includes(searchQuery.toLowerCase())
+      item?.supplierData?.name?.toLowerCase()?.includes(searchQuery.toLowerCase())
 
-    const matchesType = customerType === "all" || item.customerData?.customerType === customerType
-
-    return matchesSearch && matchesType
+    return matchesSearch
   })
 
-  const getCustomerPaymentData = async () => {
+  const getSupplierPaymentData = async () => {
     try {
       setLoading(true)
-      const res = await serverGetCustomerPayment();
-      setCustomerPaymentData(res?.data)
+      const res = await serverGetSupplierPayment();
+      setSupplierPaymentData(res?.data)
       setLoading(false)
     } catch (error) {
       setLoading(false)
-      console.error("Error fetching customer payment data:", error)
+      console.error("Error fetching supplier payment data:", error)
     }
   }
 
   const handleDelete = (id: string) => {
-    setCustomerPaymentToDelete(id)
+    setSupplierPaymentToDelete(id)
     setDeleteDialogOpen(true)
   }
 
   const handleConfirmDelete = async () => {
     try {
       setLoading(true)
-      const res = await serverDeleteCustomerPayment(customerPaymentToDelete ?? '');
+      const res = await serverDeleteSupplierPayment(supplierPaymentToDelete ?? '');
       if (res?.success) {
         setDeleteDialogOpen(false)
-        setCustomerPaymentToDelete(null)
-        getCustomerPaymentData();
+        setSupplierPaymentToDelete(null)
+        getSupplierPaymentData();
       }
       setLoading(false)
     } catch (error) {
       setLoading(false)
-      console.error("Error deleting customer payment:", error)
+      console.error("Error deleting supplier payment:", error)
     }
   }
 
   useEffect(() => {
     if (setRefreshFunction) {
-      setRefreshFunction(getCustomerPaymentData);
+      setRefreshFunction(getSupplierPaymentData);
     }
   }, [setRefreshFunction]);
 
   useEffect(() => {
-    getCustomerPaymentData();
+    getSupplierPaymentData();
   }, [])
 
   return (
@@ -99,34 +96,11 @@ export function CustomerPaymentTable({ setRefreshFunction }: { setRefreshFunctio
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             type="search"
-            placeholder="Search customers..."
+            placeholder="Search suppliers..."
             className="pl-8"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
-        </div>
-        <div className="flex items-center gap-2">
-          <Button
-            variant={customerType === "all" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setCustomerType("all")}
-          >
-            All
-          </Button>
-          <Button
-            variant={customerType === "retail" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setCustomerType("retail")}
-          >
-            Retail
-          </Button>
-          <Button
-            variant={customerType === "wholesale" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setCustomerType("wholesale")}
-          >
-            Wholesale
-          </Button>
         </div>
       </div>
 
@@ -134,7 +108,7 @@ export function CustomerPaymentTable({ setRefreshFunction }: { setRefreshFunctio
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Customer Name</TableHead>
+              <TableHead>Supplier Name</TableHead>
               <TableHead>Amount</TableHead>
               <TableHead>Payment Type</TableHead>
               <TableHead>Payment Mode</TableHead>
@@ -148,21 +122,21 @@ export function CustomerPaymentTable({ setRefreshFunction }: { setRefreshFunctio
                 <TableCell colSpan={6} className="h-24 text-center">
                   <div className="flex justify-center items-center space-x-2">
                     <Loader2 className="h-5 w-5 animate-spin text-primary" />
-                    <span>Loading customer payments ...</span>
+                    <span>Loading supplier payments ...</span>
                   </div>
                 </TableCell>
               </TableRow>
-            ) : filteredCustomerPayment?.length > 0 ? (
-              filteredCustomerPayment?.map((item) => (
+            ) : filteredSupplierPayment?.length > 0 ? (
+              filteredSupplierPayment?.map((item) => (
                 <TableRow key={item?._id?.toString()}>
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <Avatar className="h-9 w-9">
                         <AvatarFallback>
-                          {(item?.customerData?.name?.[0] ?? "") + (item?.customerData?.name?.[1] ?? "")}
+                          {(item?.supplierData?.name?.[0] ?? "") + (item?.supplierData?.name?.[1] ?? "")}
                         </AvatarFallback>
                       </Avatar>
-                      <div className="font-medium">{item?.customerData?.name}</div>
+                      <div className="font-medium">{item?.supplierData?.name}</div>
                     </div>
                   </TableCell>
                   <TableCell>
@@ -195,7 +169,7 @@ export function CustomerPaymentTable({ setRefreshFunction }: { setRefreshFunctio
                           <DropdownMenuSeparator />
                           {hasPermission(Permissions.UPDATE_CUSTOMER) && (
                             <DropdownMenuItem asChild>
-                              <Link href={`/dashboard/customer-payment/${item?._id?.toString()}/edit`}>
+                              <Link href={`/dashboard/supplier-payment/${item?._id?.toString()}/edit`}>
                                 <Edit className="mr-2 h-4 w-4" />
                                 Edit
                               </Link>
@@ -217,7 +191,7 @@ export function CustomerPaymentTable({ setRefreshFunction }: { setRefreshFunctio
             ) : (
               <TableRow>
                 <TableCell colSpan={6} className="h-24 text-center">
-                  No customer payments found.
+                  No supplier payments found.
                 </TableCell>
               </TableRow>
             )}
@@ -230,7 +204,7 @@ export function CustomerPaymentTable({ setRefreshFunction }: { setRefreshFunctio
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete this customer payment. This action cannot be undone.
+              This will permanently delete this supplier payment. This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
