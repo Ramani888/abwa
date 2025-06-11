@@ -19,6 +19,7 @@ import {
   Crown,
   ChevronDown,
   ChevronUp,
+  ChevronRight,
 } from "lucide-react"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { PlanBadge } from "./plan-badge"
@@ -64,24 +65,36 @@ export function DashboardSidebar({ isMobile = false, closeMobileMenu }: Dashboar
       href: "/dashboard/suppliers",
       icon: Store,
       permission: hasPermission(Permissions.VIEW_SUPPLIER),
-    },
-    {
-      title: "Supplier Payments",
-      href: "/dashboard/supplier-payment",
-      icon: Store,
-      permission: hasPermission(Permissions.VIEW_SUPPLIER),
+      children: [
+        {
+          title: "All Suppliers",
+          href: "/dashboard/suppliers",
+          permission: hasPermission(Permissions.VIEW_SUPPLIER),
+        },
+        {
+          title: "Supplier Payments",
+          href: "/dashboard/supplier-payment",
+          permission: hasPermission(Permissions.VIEW_SUPPLIER),
+        },
+      ],
     },
     {
       title: "Products",
       href: "/dashboard/products",
       icon: Package,
       permission: hasPermission(Permissions.VIEW_PRODUCT),
-    },
-    {
-      title: "Categories",
-      href: "/dashboard/categories",
-      icon: Layers,
-      permission: hasPermission(Permissions.VIEW_CATEGORY)
+      children: [
+        {
+          title: "All Products",
+          href: "/dashboard/products",
+          permission: hasPermission(Permissions.VIEW_PRODUCT),
+        },
+        {
+          title: "Categories",
+          href: "/dashboard/categories",
+          permission: hasPermission(Permissions.VIEW_CATEGORY),
+        },
+      ],
     },
     {
       title: "Sales Orders",
@@ -100,18 +113,24 @@ export function DashboardSidebar({ isMobile = false, closeMobileMenu }: Dashboar
       href: "/dashboard/customers",
       icon: Users,
       permission: hasPermission(Permissions.VIEW_CUSTOMER),
-    },
-    {
-      title: "Customer Payments",
-      href: "/dashboard/customer-payment",
-      icon: Users,
-      permission: hasPermission(Permissions.VIEW_CUSTOMER),
+      children: [
+        {
+          title: "All Customers",
+          href: "/dashboard/customers",
+          permission: hasPermission(Permissions.VIEW_CUSTOMER),
+        },
+        {
+          title: "Customer Payments",
+          href: "/dashboard/customer-payment",
+          permission: hasPermission(Permissions.VIEW_CUSTOMER),
+        },
+      ],
     },
     {
       title: "Stock",
       href: "/dashboard/stock",
       icon: Database,
-      permission: true
+      permission: true,
     },
     {
       title: "Users",
@@ -123,13 +142,13 @@ export function DashboardSidebar({ isMobile = false, closeMobileMenu }: Dashboar
       title: "Reports",
       href: "/dashboard/reports",
       icon: FileText,
-      permission: true
+      permission: true,
     },
     {
       title: "Analytics",
       href: "/dashboard/analytics",
       icon: BarChart,
-      permission: true
+      permission: true,
     },
     {
       title: "Notifications",
@@ -170,19 +189,19 @@ export function DashboardSidebar({ isMobile = false, closeMobileMenu }: Dashboar
             if (item?.children && item?.children.length > 0) {
               const isOpen = openSubmenu === item.href;
               return (
-                <div key={index}>
+                <div key={index} className="mb-1">
                   <button
                     type="button"
                     onClick={() => handleSubmenuToggle(item.href)}
                     className={cn(
-                      "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary hover:bg-muted/50",
+                      "flex w-full items-center gap-3 rounded-lg px-3 py-2 mb-1 text-muted-foreground transition-all hover:text-primary hover:bg-muted/50",
                       (pathname === item.href || pathname.startsWith(item.href) && item.href !== "/dashboard") && "bg-muted font-medium text-primary",
                     )}
                   >
                     <item.icon className="h-4 w-4" />
                     <span>{item.title}</span>
                     <span className="ml-auto flex items-center">
-                      {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                      {isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                     </span>
                   </button>
                   {isOpen && (
@@ -195,7 +214,7 @@ export function DashboardSidebar({ isMobile = false, closeMobileMenu }: Dashboar
                             href={child.href}
                             onClick={handleClick}
                             className={cn(
-                              "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary hover:bg-muted/50",
+                              "flex items-center gap-3 rounded-lg px-3 py-2 mb-1 text-muted-foreground transition-all hover:text-primary hover:bg-muted/50",
                               pathname === child.href && "bg-muted font-medium text-primary"
                             )}
                           >
@@ -214,7 +233,7 @@ export function DashboardSidebar({ isMobile = false, closeMobileMenu }: Dashboar
                 href={item.href}
                 onClick={handleClick}
                 className={cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary hover:bg-muted/50",
+                  "flex items-center gap-3 rounded-lg px-3 py-2 mb-1 text-muted-foreground transition-all hover:text-primary hover:bg-muted/50",
                   pathname === item.href && "bg-muted font-medium text-primary",
                   pathname.startsWith(item.href) && item.href !== "/dashboard" && "bg-muted font-medium text-primary",
                 )}
