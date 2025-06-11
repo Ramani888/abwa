@@ -1,0 +1,229 @@
+"use client"
+
+import type React from "react"
+
+import { Formik, Form, Field, ErrorMessage } from "formik"
+import * as Yup from "yup"
+import { useRouter } from "next/navigation"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { ArrowLeft, User, FileText, List, IndianRupeeIcon } from "lucide-react"
+import { useState, useEffect, use } from "react"
+import { set } from "date-fns"
+import { serverAddCustomerPayment, serverGetCustomers } from "@/services/serverApi"
+
+export default function NewCustomerPaymentPage() {
+  const router = useRouter()
+  const [customerData, setCustomerData] = useState<any[]>([])
+  const [selectedCustomer, setSelectedCustomer] = useState("")
+  const [loading, setLoading] = useState(false);
+
+  const getCustomerData = async () => {
+    try {
+      setLoading(true);
+      const res = await serverGetCustomers();
+      setCustomerData(res?.data || []);
+      setLoading(false);
+    } catch (error) {
+      setLoading(false);
+      setCustomerData([]);
+      console.error("Error fetching customers:", error)
+    }
+  }
+
+  useEffect(() => {
+    getCustomerData();
+  }, []);
+
+  const today = new Date().toISOString().split("T")[0];
+
+  const initialValues = {
+    customerId: "",
+    captureDate: today, // set default to today
+    amount: "",
+    paymentType: "",
+    paymentMode: "",
+  }
+
+  const validationSchema = Yup.object({
+    customerId: Yup.string().required("Customer is required"),
+    captureDate: Yup.string().required("Date is required"), // changed from date
+    amount: Yup.number().required("Amount is required"),
+    paymentType: Yup.string().required("Payment Type is required"),
+    paymentMode: Yup.string().required("Payment Mode is required"),
+  })
+
+  const handleSubmit = async (values: typeof initialValues, { setSubmitting }: { setSubmitting: (isSubmitting: boolean) => void }) => {
+    try {
+      const res = await serverAddCustomerPayment({...values, amount: Number(values.amount), captureDate: new Date(values.captureDate)});
+      if (res?.success) {
+        router.push("/dashboard/customer-payment")
+      }
+    } catch (error) {
+      console.error("Error creating payment:", error)
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  return (
+    <div className="w-full">
+      <div className="flex items-center mb-6">
+        <Button variant="outline" size="icon" onClick={() => router.back()} className="mr-4">
+          <ArrowLeft className="h-4 w-4" />
+        </Button>
+        <h2 className="text-3xl font-bold tracking-tight">Add New Customer Payment</h2>
+      </div>
+
+      <Card className="w-full">
+        <Formik
+          initialValues={initialValues}
+          validationSchema={validationSchema}
+          onSubmit={(values, actions) => {
+            // Use selectedCustomer for customer field
+            handleSubmit({ ...values, customerId: selectedCustomer }, actions)
+          }}
+        >
+          {({ values, setFieldValue, isSubmitting }) => (
+            <Form>
+              <CardHeader>
+                <CardTitle>Customer Payment Information</CardTitle>
+                <CardDescription>Add a new customer payment to your agro shop</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Customer Dropdown with icon */}
+                <div className="space-y-2">
+                  <Label htmlFor="customerId">Select Customer</Label>
+                  <div className="relative">
+                    <User className="absolute left-2.5 top-3 h-4 w-4 text-muted-foreground" />
+                    <Select
+                      value={selectedCustomer}
+                      onValueChange={(val) => {
+                        setSelectedCustomer(val)
+                        setFieldValue("customerId", val)
+                      }}
+                    >
+                      <SelectTrigger className="pl-8">
+                        <SelectValue placeholder="Select a customer" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {customerData?.map((customer) => (
+                          <SelectItem key={customer?._id} value={customer?._id}>
+                            {customer?.name} - {customer?.number}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <ErrorMessage name="customer" component="p" className="text-red-500 text-sm" />
+                </div>
+
+                {/* Amount and Date in one row */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Date with icon */}
+                  <div className="space-y-2">
+                    <Label htmlFor="captureDate">Date</Label>
+                    <div className="relative">
+                      <FileText className="absolute left-2.5 top-3 h-4 w-4 text-muted-foreground" />
+                      <Field
+                        as={Input}
+                        id="captureDate"
+                        name="captureDate"
+                        type="date"
+                        className="pl-8"
+                      />
+                    </div>
+                    <ErrorMessage name="captureDate" component="p" className="text-red-500 text-sm" />
+                  </div>
+                  {/* Amount with icon */}
+                  <div className="space-y-2">
+                    <Label htmlFor="amount">Amount (₹)</Label>
+                    <div className="relative">
+                      <IndianRupeeIcon className="absolute left-2.5 top-3 h-4 w-4 text-muted-foreground" />
+                      <Field
+                        as={Input}
+                        id="amount"
+                        name="amount"
+                        type="number"
+                        placeholder="Enter amount"
+                        className="pl-8"
+                      />
+                    </div>
+                    <ErrorMessage name="amount" component="p" className="text-red-500 text-sm" />
+                  </div>
+                </div>
+
+                {/* Payment Type and Payment Mode in one row */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Payment Type with icon */}
+                  <div className="space-y-2">
+                    <Label htmlFor="paymentType">Payment Type</Label>
+                    <div className="relative">
+                      <List className="absolute left-2.5 top-3 h-4 w-4 text-muted-foreground" />
+                      <Select
+                        value={values.paymentType}
+                        onValueChange={(val) => setFieldValue("paymentType", val)}
+                      >
+                        <SelectTrigger className="pl-8">
+                          <SelectValue placeholder="Select payment type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="advance">Advance</SelectItem>
+                          <SelectItem value="full">Full</SelectItem>
+                          <SelectItem value="partial">Partial</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <ErrorMessage name="paymentType" component="p" className="text-red-500 text-sm" />
+                  </div>
+                  {/* Payment Mode with icon */}
+                  <div className="space-y-2">
+                    <Label htmlFor="paymentMode">Payment Mode</Label>
+                    <div className="relative">
+                      <IndianRupeeIcon className="absolute left-2.5 top-3 h-4 w-4 text-muted-foreground" />
+                      <Select
+                        value={values.paymentMode}
+                        onValueChange={(val) => setFieldValue("paymentMode", val)}
+                      >
+                        <SelectTrigger className="pl-8">
+                          <SelectValue placeholder="Select payment mode" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="cash">Cash</SelectItem>
+                          <SelectItem value="card">Card</SelectItem>
+                          <SelectItem value="upi">UPI</SelectItem>
+                          <SelectItem value="bank">Bank Transfer</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <ErrorMessage name="paymentMode" component="p" className="text-red-500 text-sm" />
+                  </div>
+                </div>
+              </CardContent>
+              <CardFooter className="flex justify-between">
+                <Button type="button" variant="outline" onClick={() => router.back()}>
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={isSubmitting}>
+                  {isSubmitting ? (
+                    <div className="flex items-center justify-center gap-2">
+                      <div className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      <span>Adding....</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-center gap-2">
+                      <span>Add Payment</span>
+                    </div>
+                  )}
+                </Button>
+              </CardFooter>
+            </Form>
+          )}
+        </Formik>
+      </Card>
+    </div>
+  )
+}

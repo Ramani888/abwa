@@ -17,6 +17,8 @@ import {
   Store,
   Bell,
   Crown,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { PlanBadge } from "./plan-badge"
@@ -24,6 +26,7 @@ import { usePlan } from "./plan-context"
 import { useAuth } from "../auth-provider"
 import { usePermission } from "@/hooks/usePermission"
 import { Permissions } from "@/utils/consts/permission"
+import { useState } from "react"
 
 interface DashboardSidebarProps {
   isMobile?: boolean
@@ -35,8 +38,21 @@ export function DashboardSidebar({ isMobile = false, closeMobileMenu }: Dashboar
   const { currentPlan } = usePlan()
   const { owner } = useAuth();
   const { hasPermission } = usePermission();
+  const [openSubmenu, setOpenSubmenu] = useState<string | null>(null);
 
-  const navItems = [
+  type NavItem = {
+    title: string;
+    href: string;
+    icon: React.ElementType;
+    permission: boolean;
+    children?: {
+      title: string;
+      href: string;
+      permission: boolean;
+    }[];
+  };
+
+  const navItems: NavItem[] = [
     {
       title: "Dashboard",
       href: "/dashboard",
@@ -76,6 +92,12 @@ export function DashboardSidebar({ isMobile = false, closeMobileMenu }: Dashboar
     {
       title: "Customers",
       href: "/dashboard/customers",
+      icon: Users,
+      permission: hasPermission(Permissions.VIEW_CUSTOMER),
+    },
+    {
+      title: "Customer Payments",
+      href: "/dashboard/customer-payment",
       icon: Users,
       permission: hasPermission(Permissions.VIEW_CUSTOMER),
     },
@@ -129,12 +151,57 @@ export function DashboardSidebar({ isMobile = false, closeMobileMenu }: Dashboar
     }
   }
 
+  const handleSubmenuToggle = (href: string) => {
+    setOpenSubmenu(openSubmenu === href ? null : href);
+  };
+
   return (
     <div className={cn("flex h-full w-64 flex-col border-r bg-background", isMobile ? "w-full" : "hidden md:flex")}>
       <div className="flex-1 overflow-y-auto py-2">
         <nav className="grid items-start px-2 text-sm">
           {navItems.map((item, index) => {
             if (!item.permission) return null
+            if (item?.children && item?.children.length > 0) {
+              const isOpen = openSubmenu === item.href;
+              return (
+                <div key={index}>
+                  <button
+                    type="button"
+                    onClick={() => handleSubmenuToggle(item.href)}
+                    className={cn(
+                      "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary hover:bg-muted/50",
+                      (pathname === item.href || pathname.startsWith(item.href) && item.href !== "/dashboard") && "bg-muted font-medium text-primary",
+                    )}
+                  >
+                    <item.icon className="h-4 w-4" />
+                    <span>{item.title}</span>
+                    <span className="ml-auto flex items-center">
+                      {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                    </span>
+                  </button>
+                  {isOpen && (
+                    <div className="ml-6">
+                      {item?.children.map((child, childIdx) => {
+                        if (!child.permission) return null
+                        return (
+                          <Link
+                            key={childIdx}
+                            href={child.href}
+                            onClick={handleClick}
+                            className={cn(
+                              "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary hover:bg-muted/50",
+                              pathname === child.href && "bg-muted font-medium text-primary"
+                            )}
+                          >
+                            <span>{child.title}</span>
+                          </Link>
+                        )
+                      })}
+                    </div>
+                  )}
+                </div>
+              )
+            }
             return (
               <Link
                 key={index}

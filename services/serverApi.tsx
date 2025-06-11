@@ -1,7 +1,7 @@
 import { StatusCodes } from "http-status-codes";
 import axios, { AxiosError, Method } from "axios";
 import { ILogin, IRegister, IUser } from "@/types/user";
-import { ICustomer } from "@/types/customer";
+import { ICustomer, ICustomerPayment } from "@/types/customer";
 import { ICategory } from "@/types/category";
 import { IProduct } from "@/types/product";
 import { toast } from "sonner";
@@ -239,4 +239,21 @@ export const serverDeletePurchaseOrder = async (_id: string) => {
 
 export const serverGetAllPurchaseOrdersBySupplierId = async (_id: string) => {
   return await serverRequest(`/purchase-order/supplier/all?_id=${_id}`, "GET", null, true);
+}
+
+/// Customer Payment ///
+export const serverGetCustomerPayment = async () => {
+  return await serverRequest(`/customer-payment`, "GET", null, true);
+}
+
+export const serverAddCustomerPayment = async (data: ICustomerPayment) => {
+  return await serverRequest(`/customer-payment`, "POST", data, true);
+}
+
+export const serverUpdateCustomerPayment = async (data: ICustomerPayment) => {
+  return await serverRequest(`/customer-payment`, "PUT", data, true);
+}
+
+export const serverDeleteCustomerPayment = async (_id: string) => {
+  return await serverRequest(`/customer-payment?_id=${_id}`, "DELETE", null, true);
 }

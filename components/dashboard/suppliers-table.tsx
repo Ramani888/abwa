@@ -93,10 +93,10 @@ export function SuppliersTable({ setRefreshFunction }: { setRefreshFunction?: (f
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
         <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute left-2.5 top-3 h-4 w-4 text-muted-foreground" />
           <Input
             type="search"
-            placeholder="Search categories..."
+            placeholder="Search here..."
             className="pl-8"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
