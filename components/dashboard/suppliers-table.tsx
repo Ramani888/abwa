@@ -191,7 +191,7 @@ export function SuppliersTable({ setRefreshFunction }: { setRefreshFunction?: (f
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={5} className="h-24 text-center">
+                <TableCell colSpan={10} className="h-24 text-center">
                   No suppliers found.
                 </TableCell>
               </TableRow>
