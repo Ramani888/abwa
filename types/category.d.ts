@@ -5,6 +5,7 @@ export interface ICategory {
     name: string;
     description?: string;
     isActive?: boolean;
+    captureDate?: Date;
     productCount?: number;
     createdAt?: Date;
     updatedAt?: Date;

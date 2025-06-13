@@ -21,6 +21,7 @@ export default function EditCategoryPage({ params }: { params: { id: string } })
     name: "",
     description: "",
     isActive: true,
+    captureDate: '' // Default to today's date
   })
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
@@ -30,6 +31,8 @@ export default function EditCategoryPage({ params }: { params: { id: string } })
     name: Yup.string().required("Category name is required"),
     description: Yup.string().required("Description is required"),
     isActive: Yup.boolean(),
+    captureDate: Yup.date()
+      .required("Capture date is required")
   })
 
   useEffect(() => {
@@ -43,8 +46,9 @@ export default function EditCategoryPage({ params }: { params: { id: string } })
           name: categoryData.name,
           description: categoryData.description,
           isActive: categoryData.isActive,
+          captureDate: categoryData.captureDate ? new Date(categoryData.captureDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0] // Format date for input
         })
-  
+
         setIsLoading(false);
       } catch (error) {
         console.error("Error fetching category:", error);
@@ -83,7 +87,10 @@ export default function EditCategoryPage({ params }: { params: { id: string } })
           onSubmit={async (values, { setSubmitting }) => {
             try {
               setIsSaving(true);
-              const res = await serverUpdateCategory(values); // Use Formik's values
+              const res = await serverUpdateCategory({
+                ...values,
+                captureDate: new Date(values.captureDate),
+              }); // Use Formik's values, convert captureDate to Date
               if (res?.success) {
                 router.push(`/dashboard/categories`);
               }
@@ -131,6 +138,18 @@ export default function EditCategoryPage({ params }: { params: { id: string } })
                     <FileText className="absolute left-3 top-3 h-4 w-4 text-gray-500" />
                   </div>
                   <ErrorMessage name="description" component="div" className="text-red-500 text-sm" />
+                </div>
+
+                {/* Capture Date Field */}
+                <div className="space-y-2">
+                  <Label htmlFor="captureDate">Capture Date</Label>
+                  <Field
+                    as={Input}
+                    id="captureDate"
+                    name="captureDate"
+                    type="date"
+                  />
+                  <ErrorMessage name="captureDate" component="p" className="text-red-500 text-sm" />
                 </div>
 
                 <div className="flex items-center space-x-2">

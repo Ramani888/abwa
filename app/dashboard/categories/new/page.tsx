@@ -21,17 +21,24 @@ export default function NewCategoryPage() {
     name: "",
     description: "",
     isActive: true,
+    captureDate: new Date().toISOString().split("T")[0], // Default to today's date
   }
 
   const validationSchema = Yup.object({
     name: Yup.string().required("Category name is required"),
     description: Yup.string().required("Description is required"),
     isActive: Yup.boolean(),
+    captureDate: Yup.date()
+      .required("Capture date is required")
   })
 
   const handleSubmit = async (values: typeof initialValues, { setSubmitting }: { setSubmitting: (isSubmitting: boolean) => void }) => {
     try {
-      const res = await serverAddCategory(values)
+      const payload = {
+        ...values,
+        captureDate: new Date(values.captureDate),
+      }
+      const res = await serverAddCategory(payload)
       if (res?.success) {
         router.push("/dashboard/categories")
       }
@@ -89,6 +96,18 @@ export default function NewCategoryPage() {
                     <FileText className="absolute left-3 top-3 h-4 w-4 text-gray-500" />
                   </div>
                   <ErrorMessage name="description" component="div" className="text-red-500 text-sm" />
+                </div>
+
+                {/* Capture Date Field */}
+                <div className="space-y-2">
+                  <Label htmlFor="captureDate">Capture Date</Label>
+                  <Field
+                    as={Input}
+                    id="captureDate"
+                    name="captureDate"
+                    type="date"
+                  />
+                  <ErrorMessage name="captureDate" component="p" className="text-red-500 text-sm" />
                 </div>
 
                 <div className="flex items-center space-x-2">
