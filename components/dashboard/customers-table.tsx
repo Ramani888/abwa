@@ -139,6 +139,7 @@ export function CustomersTable({ setRefreshFunction }: { setRefreshFunction?: (f
               <TableHead>Customer</TableHead>
               <TableHead>Type</TableHead>
               <TableHead>Contact</TableHead>
+              <TableHead>Date</TableHead>
               <TableHead>Orders</TableHead>
               <TableHead>Total Spent</TableHead>
               <TableHead className="text-right">Actions</TableHead>
@@ -175,6 +176,13 @@ export function CustomersTable({ setRefreshFunction }: { setRefreshFunction?: (f
                       <span className="text-sm">{customer.number}</span>
                       <span className="text-xs text-muted-foreground">{customer.email}</span>
                     </div>
+                  </TableCell>
+                  <TableCell>
+                    {new Date(customer?.captureDate ?? "").toLocaleDateString("en-IN", {
+                      day: "2-digit",
+                      month: "2-digit",
+                      year: "numeric",
+                    })}
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-1">
