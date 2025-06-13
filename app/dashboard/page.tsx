@@ -6,20 +6,20 @@ import { SalesOverview } from "@/components/dashboard/sales-overview"
 import { RecentSales } from "@/components/dashboard/recent-sales"
 import { CustomerStats } from "@/components/dashboard/customer-stats"
 import { StockSummary } from "@/components/dashboard/stock-summary"
-import { useDispatch, useSelector } from 'react-redux'
-import { AppDispatch, RootState } from "@/lib/store"
-import { useEffect } from "react"
-import { getCustomers } from "@/lib/features/customerSlice"
+import { useSelector } from 'react-redux'
+import { RootState } from "@/lib/store"
 
 export default function DashboardPage() {
-  const dispatch = useDispatch<AppDispatch>()
-  const { customers, loading, error } = useSelector((state: RootState) => state.customers)
+  const { customers } = useSelector((state: RootState) => state.customers)
+  const { products } = useSelector((state: RootState) => state.products)
+  const { orders } = useSelector((state: RootState) => state.orders)
 
-  // useEffect(() => {
-  //   dispatch(getCustomers())
-  // }, [dispatch])
+  const totalOrders = orders?.length;
+  const totalCustomers = customers?.length;
+  const totalProducts = products?.reduce((acc, product) => acc + product?.variants?.length, 0);
+  const totalRevenue = orders?.reduce((acc, order) => acc + order?.total, 0).toFixed(2);
 
-  // console.log("Customers:", customers)
+
   return (
     <div className="flex flex-col gap-6 w-full">
       <div>
@@ -33,7 +33,7 @@ export default function DashboardPage() {
             <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">₹45,231.89</div>
+            <div className="text-2xl font-bold">₹{totalRevenue}</div>
             <p className="text-xs text-muted-foreground">+20.1% from last month</p>
           </CardContent>
         </Card>
@@ -42,7 +42,7 @@ export default function DashboardPage() {
             <CardTitle className="text-sm font-medium">Orders</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">+573</div>
+            <div className="text-2xl font-bold">+{totalOrders}</div>
             <p className="text-xs text-muted-foreground">+201 since last week</p>
           </CardContent>
         </Card>
@@ -51,7 +51,7 @@ export default function DashboardPage() {
             <CardTitle className="text-sm font-medium">Products</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">1,324</div>
+            <div className="text-2xl font-bold">{totalProducts}</div>
             <p className="text-xs text-muted-foreground">86 low stock items</p>
           </CardContent>
         </Card>
@@ -60,7 +60,7 @@ export default function DashboardPage() {
             <CardTitle className="text-sm font-medium">Active Customers</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">210</div>
+            <div className="text-2xl font-bold">{totalCustomers}</div>
             <p className="text-xs text-muted-foreground">+18 this week</p>
           </CardContent>
         </Card>

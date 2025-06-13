@@ -2,13 +2,10 @@
 
 import { Pie, PieChart, Cell, Legend, ResponsiveContainer } from "recharts"
 import { Card, CardContent } from "@/components/ui/card"
-import { useDispatch, useSelector } from "react-redux"
-import { AppDispatch, RootState } from "@/lib/store"
-import { useEffect } from "react"
-import { getCustomers } from "@/lib/features/customerSlice"
+import { useSelector } from "react-redux"
+import { RootState } from "@/lib/store"
 
 export function CustomerStats() {
-  const dispatch = useDispatch<AppDispatch>()
   const { customers, loading, error } = useSelector((state: RootState) => state.customers)
 
   const retailCustomers = customers.filter(customer => customer?.customerType === "retail").length;
@@ -19,10 +16,6 @@ export function CustomerStats() {
     { name: "Retail Customers", value: retailCustomers, color: "hsl(var(--chart-1))" },
     { name: "Wholesale Customers", value: wholesaleCustomers, color: "hsl(var(--chart-2))" },
   ]
-
-  useEffect(() => {
-    dispatch(getCustomers())
-  }, [dispatch])
 
   if (loading) {
     return (
