@@ -12,6 +12,9 @@ export interface ICustomer {
     paymentTerms?: string;
     totalOrder?: number;
     totalSpent?: number;
+    captureDate?: Date;
+    isActive?: boolean;
+    isDeleted?: boolean;
     createdAt?: Date;
     updatedAt?: Date;
 }

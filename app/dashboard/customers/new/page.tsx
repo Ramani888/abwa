@@ -14,6 +14,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ArrowLeft, User, Mail, Phone, MapPin, DollarSign, FileText, List } from "lucide-react"
 import { serverAddCustomer } from "@/services/serverApi"
+import { Switch } from "@/components/ui/switch"
 
 export default function NewCustomerPage() {
   const router = useRouter()
@@ -27,6 +28,8 @@ export default function NewCustomerPage() {
     gstNumber: "",
     creditLimit: "",
     paymentTerms: "cod",
+    captureDate: new Date().toISOString().slice(0, 10), // default to today
+    isActive: true,    // new field
   }
 
   const validationSchema = Yup.object({
@@ -45,6 +48,8 @@ export default function NewCustomerPage() {
       then: (schema) => schema.required("Credit Limit is required for wholesale customers"),
     }),
     paymentTerms: Yup.string().required("Payment Terms are required"),
+    captureDate: Yup.string().required("Capture Date is required"), // new validation
+    isActive: Yup.boolean(), // new field
   })
 
   const handleSubmit = async (values: typeof initialValues, { setSubmitting }: { setSubmitting: (isSubmitting: boolean) => void }) => {
@@ -53,6 +58,8 @@ export default function NewCustomerPage() {
         ...values,
         number: Number(values.number),
         creditLimit: Number(values.creditLimit),
+        captureDate: new Date(values.captureDate),
+        isActive: values.isActive,
       })
       if (res?.success) {
         router.push("/dashboard/customers")
@@ -221,6 +228,28 @@ export default function NewCustomerPage() {
                     </div>
                   </>
                 )}
+
+                {/* Capture Date Field */}
+                <div className="space-y-2">
+                  <Label htmlFor="captureDate">Capture Date</Label>
+                  <Field
+                    as={Input}
+                    id="captureDate"
+                    name="captureDate"
+                    type="date"
+                  />
+                  <ErrorMessage name="captureDate" component="p" className="text-red-500 text-sm" />
+                </div>
+
+                {/* Active Switch */}
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="isActive"
+                    checked={values.isActive}
+                    onCheckedChange={(checked) => setFieldValue("isActive", checked)}
+                  />
+                  <Label htmlFor="isActive">Active</Label>
+                </div>
               </CardContent>
               <CardFooter className="flex justify-between">
                 <Button type="button" variant="outline" onClick={() => router.back()}>

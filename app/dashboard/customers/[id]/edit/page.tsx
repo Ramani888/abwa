@@ -1,7 +1,7 @@
 "use client";
 
 import type React from "react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Formik, Field, Form, ErrorMessage } from "formik";
 import * as Yup from "yup";
@@ -15,6 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "@/components/ui/use-toast";
 import { ArrowLeft, Mail, Phone, MapPin, User, DollarSign, FileText, List } from "lucide-react";
 import { serverGetCustomers, serverUpdateCustomer } from "@/services/serverApi";
+import { Switch } from "@/components/ui/switch";
 
 interface CustomerData {
   _id: string;
@@ -26,6 +27,8 @@ interface CustomerData {
   gstNumber: string;
   creditLimit: string | number;
   paymentTerms: "cod" | "net15" | "net30" | "net45";
+  captureDate: string;
+  isActive: boolean;
 }
 
 const defaultFormState: CustomerData = {
@@ -38,6 +41,8 @@ const defaultFormState: CustomerData = {
   gstNumber: "",
   creditLimit: "",
   paymentTerms: "cod",
+  captureDate: "",
+  isActive: true,
 };
 
 const validationSchema = Yup.object({
@@ -56,7 +61,9 @@ const validationSchema = Yup.object({
     then: (schema) => schema.required("Credit Limit is required for wholesale customers"),
   }),
   paymentTerms: Yup.string().required("Payment Terms are required"),
-})
+  captureDate: Yup.string().required("Capture Date is required"),
+  isActive: Yup.boolean(),
+});
 
 export default function EditCustomerPage({ params }: { params: { id: string } }) {
   const [initialValues, setInitialValues] = useState<CustomerData>(defaultFormState);
@@ -64,74 +71,78 @@ export default function EditCustomerPage({ params }: { params: { id: string } })
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
-  useEffect(() => {
-    const fetchCustomer = async () => {
-      setIsLoading(true);
-      setError(null);
-
-      try {
-        const res = await serverGetCustomers();
-        const customerData = res?.data?.find((customer: any) => customer?._id === params?.id);
-
-        if (!customerData) {
-          setError("Customer not found");
-          setIsLoading(false);
-          return;
-        }
-
-        setInitialValues({
-          _id: customerData._id || "",
-          name: customerData.name || "",
-          email: customerData.email || "",
-          number: customerData.number?.toString() || "",
-          address: customerData.address || "",
-          customerType: customerData.customerType || "retail",
-          gstNumber: customerData.gstNumber || "",
-          creditLimit: customerData.creditLimit?.toString() || "",
-          paymentTerms: customerData.paymentTerms || "cod",
-        });
-
-        setIsLoading(false);
-      } catch (error) {
-        console.error("Error fetching customer:", error);
-        setError("Failed to load customer data");
-        setIsLoading(false);
-      }
-    };
-
-    fetchCustomer();
-  }, [params.id]);
-
-  const handleSubmit = async (values: CustomerData, { setSubmitting }: { setSubmitting: (isSubmitting: boolean) => void }) => {
+  const fetchCustomer = useCallback(async () => {
+    setIsLoading(true);
     setError(null);
-
     try {
-      const dataToSubmit = {
-        ...values,
-        number: values.number ? Number(values.number) : 0,
-        creditLimit: values.creditLimit ? Number(values.creditLimit) : 0,
-      };
-
-      const res = await serverUpdateCustomer(dataToSubmit);
-
-      if (res?.success) {
-        toast({
-          title: "Success",
-          description: "Customer updated successfully",
-          variant: "default",
-        });
-        router.push(`/dashboard/customers`);
-      } else {
-        setError("Failed to update customer");
+      const res = await serverGetCustomers();
+      if (!res?.data || !Array.isArray(res.data)) {
+        setError("Invalid server response");
+        return;
       }
-
-      setSubmitting(false);
-    } catch (error) {
-      setSubmitting(false);
-      setError("An error occurred while updating the customer");
-      console.error("Error updating customer:", error);
+      const customerData = res.data.find((customer: any) => customer?._id === params?.id);
+      if (!customerData) {
+        setError("Customer not found");
+        return;
+      }
+      setInitialValues({
+        _id: customerData._id || "",
+        name: customerData.name || "",
+        email: customerData.email || "",
+        number: customerData.number?.toString() || "",
+        address: customerData.address || "",
+        customerType: customerData.customerType || "retail",
+        gstNumber: customerData.gstNumber || "",
+        creditLimit: customerData.creditLimit?.toString() || "",
+        paymentTerms: customerData.paymentTerms || "cod",
+        captureDate: customerData.captureDate
+          ? (typeof customerData.captureDate === "string"
+              ? customerData.captureDate.slice(0, 10)
+              : new Date(customerData.captureDate).toISOString().slice(0, 10))
+          : "",
+        isActive: typeof customerData.isActive === "boolean" ? customerData.isActive : true,
+      });
+    } catch (err: any) {
+      setError("Failed to load customer data: " + (err?.message || "Unknown error"));
+    } finally {
+      setIsLoading(false);
     }
-  };
+  }, [params?.id]);
+
+  useEffect(() => {
+    fetchCustomer();
+  }, [fetchCustomer]);
+
+  const handleSubmit = useCallback(
+    async (values: CustomerData, { setSubmitting }: { setSubmitting: (isSubmitting: boolean) => void }) => {
+      setError(null);
+      try {
+        const dataToSubmit = {
+          ...values,
+          number: values.number ? Number(values.number) : 0,
+          creditLimit: values.creditLimit ? Number(values.creditLimit) : 0,
+          captureDate: values.captureDate ? new Date(values.captureDate) : new Date(),
+          isActive: values.isActive,
+        };
+        const res = await serverUpdateCustomer(dataToSubmit);
+        if (res?.success) {
+          toast({
+            title: "Success",
+            description: "Customer updated successfully",
+            variant: "default",
+          });
+          router.push(`/dashboard/customers`);
+        } else {
+          setError("Failed to update customer");
+        }
+      } catch (err: any) {
+        setError("An error occurred while updating the customer: " + (err?.message || "Unknown error"));
+      } finally {
+        setSubmitting(false);
+      }
+    },
+    [router]
+  );
 
   if (error) {
     return (
@@ -142,7 +153,6 @@ export default function EditCustomerPage({ params }: { params: { id: string } })
           </Button>
           <h2 className="text-3xl font-bold tracking-tight">Edit Customer</h2>
         </div>
-
         <Card className="border-destructive">
           <CardHeader>
             <CardTitle className="text-destructive">Error</CardTitle>
@@ -329,6 +339,28 @@ export default function EditCustomerPage({ params }: { params: { id: string } })
                     </div>
                   </>
                 )}
+
+                {/* Capture Date Field */}
+                <div className="space-y-2">
+                  <Label htmlFor="captureDate">Capture Date</Label>
+                  <Field
+                    as={Input}
+                    id="captureDate"
+                    name="captureDate"
+                    type="date"
+                  />
+                  <ErrorMessage name="captureDate" component="p" className="text-red-500 text-sm" />
+                </div>
+
+                {/* Active Switch */}
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="isActive"
+                    checked={values.isActive}
+                    onCheckedChange={(checked) => setFieldValue("isActive", checked)}
+                  />
+                  <Label htmlFor="isActive">Active</Label>
+                </div>
               </CardContent>
               <CardFooter className="flex justify-between">
                 <Button type="button" variant="outline" onClick={() => router.back()}>
