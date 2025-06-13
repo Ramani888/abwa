@@ -27,5 +27,13 @@ export const Permissions = {
     ADD_PURCHASE_ORDER: 'add-purchase-order',
     UPDATE_PURCHASE_ORDER: 'update-purchase-order',
     DELETE_PURCHASE_ORDER: 'delete-purchase-order',
-    VIEW_PURCHASE_ORDER: 'view-purchase-order'
+    VIEW_PURCHASE_ORDER: 'view-purchase-order',
+    ADD_CUSTOMER_PAYMENT: 'add-customer-payment',
+    UPDATE_CUSTOMER_PAYMENT: 'update-customer-payment',
+    DELETE_CUSTOMER_PAYMENT: 'delete-customer-payment',
+    VIEW_CUSTOMER_PAYMENT: 'view-customer-payment',
+    ADD_SUPPLIER_PAYMENT: 'add-supplier-payment',
+    UPDATE_SUPPLIER_PAYMENT: 'update-supplier-payment',
+    DELETE_SUPPLIER_PAYMENT: 'delete-supplier-payment',
+    VIEW_SUPPLIER_PAYMENT: 'view-supplier-payment'
 };

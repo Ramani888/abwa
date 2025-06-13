@@ -155,7 +155,7 @@ export function SupplierPaymentTable({ setRefreshFunction }: { setRefreshFunctio
                     </Badge>
                   </TableCell>
                   <TableCell>{item?.captureDate ? new Date(item?.captureDate).toLocaleDateString() : 'N/A'}</TableCell>
-                  {hasAnyPermission([Permissions.UPDATE_CUSTOMER, Permissions.DELETE_CUSTOMER, Permissions.VIEW_CUSTOMER]) && (
+                  {hasAnyPermission([Permissions.UPDATE_SUPPLIER_PAYMENT, Permissions.DELETE_SUPPLIER_PAYMENT]) && (
                     <TableCell className="text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -167,7 +167,7 @@ export function SupplierPaymentTable({ setRefreshFunction }: { setRefreshFunctio
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>Actions</DropdownMenuLabel>
                           <DropdownMenuSeparator />
-                          {hasPermission(Permissions.UPDATE_CUSTOMER) && (
+                          {hasPermission(Permissions.UPDATE_SUPPLIER_PAYMENT) && (
                             <DropdownMenuItem asChild>
                               <Link href={`/dashboard/supplier-payment/${item?._id?.toString()}/edit`}>
                                 <Edit className="mr-2 h-4 w-4" />
@@ -176,7 +176,7 @@ export function SupplierPaymentTable({ setRefreshFunction }: { setRefreshFunctio
                             </DropdownMenuItem>
                           )}
                           <DropdownMenuSeparator />
-                          {hasPermission(Permissions.DELETE_CUSTOMER) && (
+                          {hasPermission(Permissions.DELETE_SUPPLIER_PAYMENT) && (
                             <DropdownMenuItem className="text-destructive" onClick={() => handleDelete(item?._id)}>
                               <Trash className="mr-2 h-4 w-4" />
                               Delete

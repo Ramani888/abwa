@@ -41,7 +41,7 @@ export default function CustomerPaymentPage() {
             <RefreshCw className={`mr-2 h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
             Refresh
           </Button>
-          {hasPermission(Permissions.ADD_CUSTOMER) && (
+          {hasPermission(Permissions.ADD_CUSTOMER_PAYMENT) && (
             <Link href="/dashboard/customer-payment/new" className="flex items-center">
               <Button>
                 <PlusCircle className="mr-2 h-4 w-4" />

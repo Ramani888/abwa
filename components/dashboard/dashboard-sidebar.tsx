@@ -74,7 +74,7 @@ export function DashboardSidebar({ isMobile = false, closeMobileMenu }: Dashboar
         {
           title: "Supplier Payments",
           href: "/dashboard/supplier-payment",
-          permission: hasPermission(Permissions.VIEW_SUPPLIER),
+          permission: hasPermission(Permissions.VIEW_SUPPLIER_PAYMENT),
         },
       ],
     },
@@ -122,7 +122,7 @@ export function DashboardSidebar({ isMobile = false, closeMobileMenu }: Dashboar
         {
           title: "Customer Payments",
           href: "/dashboard/customer-payment",
-          permission: hasPermission(Permissions.VIEW_CUSTOMER),
+          permission: hasPermission(Permissions.VIEW_CUSTOMER_PAYMENT),
         },
       ],
     },
