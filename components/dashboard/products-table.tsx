@@ -252,7 +252,7 @@ export function ProductsTable({ setRefreshFunction }: { setRefreshFunction?: (fn
                             <TableBody>
                               {product.variants.map((variant, idx) => (
                                 <TableRow key={idx}>
-                                  <TableCell>{variant.packingSize}</TableCell>
+                                  <TableCell>{variant.packingSize} {variant.unit}</TableCell>
                                   <TableCell>{variant.unit}</TableCell>
                                   <TableCell>{variant.sku}</TableCell>
                                   <TableCell>{variant.barcode}</TableCell>
@@ -263,7 +263,7 @@ export function ProductsTable({ setRefreshFunction }: { setRefreshFunction?: (fn
                                   <TableCell>{variant.minStockLevel}</TableCell>
                                   <TableCell>{variant.taxRate}%</TableCell>
                                   <TableCell>
-                                    {variant.quantity} {variant.unit}
+                                    {variant.quantity}
                                   </TableCell>
                                   <TableCell>
                                     <Badge variant={variant.status === "In Stock" ? "default" : "destructive"}>
