@@ -23,12 +23,76 @@ const newVariantSchema = Yup.object({
   sku: Yup.string().required("SKU is required"),
   barcode: Yup.string().required("Barcode is required"),
   unit: Yup.string().required("Unit is required"),
-  mrp: Yup.number().typeError("MRP must be a number").required("MRP is required").positive("Must be positive"),
-  retailPrice: Yup.number().typeError("Retail price must be a number").required("Retail price is required").positive("Must be positive"),
-  wholesalePrice: Yup.number().typeError("Wholesale price must be a number").required("Wholesale price is required").positive("Must be positive"),
-  purchasePrice: Yup.number().typeError("Purchase price must be a number").required("Purchase price is required").positive("Must be positive"),
-  minStockLevel: Yup.number().typeError("Minimum stock level must be a number").required("Minimum stock level is required").min(0, "Cannot be negative"),
-  taxRate: Yup.number().typeError("Tax rate must be a number").required("Tax rate is required"),
+  mrp: Yup.number()
+    .typeError("MRP must be a number")
+    .required("MRP is required")
+    .positive("Must be positive")
+    .test(
+      "mrp-greater",
+      "MRP must be greater than Retail, Wholesale, and Purchase Price",
+      function (value) {
+        const { retailPrice, wholesalePrice, purchasePrice } = this.parent;
+        if (
+          value === undefined ||
+          retailPrice === undefined ||
+          wholesalePrice === undefined ||
+          purchasePrice === undefined
+        )
+          return true;
+        return (
+          value > Number(retailPrice) &&
+          value > Number(wholesalePrice) &&
+          value > Number(purchasePrice)
+        );
+      }
+    ),
+  retailPrice: Yup.number()
+    .typeError("Retail price must be a number")
+    .required("Retail price is required")
+    .positive("Must be positive")
+    .test(
+      "retail-greater",
+      "Retail price must be greater than Wholesale and Purchase Price",
+      function (value) {
+        const { wholesalePrice, purchasePrice } = this.parent;
+        if (
+          value === undefined ||
+          wholesalePrice === undefined ||
+          purchasePrice === undefined
+        )
+          return true;
+        return (
+          value > Number(wholesalePrice) &&
+          value > Number(purchasePrice)
+        );
+      }
+    ),
+  wholesalePrice: Yup.number()
+    .typeError("Wholesale price must be a number")
+    .required("Wholesale price is required")
+    .positive("Must be positive")
+    .test(
+      "wholesale-greater",
+      "Wholesale price must be greater than Purchase Price",
+      function (value) {
+        const { purchasePrice } = this.parent;
+        if (value === undefined || purchasePrice === undefined) return true;
+        return value > Number(purchasePrice);
+      }
+    ),
+  purchasePrice: Yup.number()
+    .typeError("Purchase price must be a number")
+    .required("Purchase price is required")
+    .positive("Must be positive"),
+  minStockLevel: Yup.number()
+    .typeError("Minimum stock level must be a number")
+    .required("Minimum stock level is required")
+    .min(0, "Cannot be negative"),
+  taxRate: Yup.number()
+    .typeError("Tax rate must be a number")
+    .required("Tax rate is required")
+    .min(0, "Tax rate must be at least 0")
+    .max(100, "Tax rate cannot exceed 100"),
 })
 
 export default function EditProductPage({ params }: { params: { id: string } }) {
@@ -47,21 +111,77 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
     name: Yup.string().required("Product name is required"),
     categoryId: Yup.string().required("Category is required"),
     description: Yup.string().required("Description is required"),
-    captureDate: Yup.string().required("Date is required"), // <-- Add validation
-    variants: Yup.array().of(
-      Yup.object({
-        packingSize: Yup.string().required("Packing size is required"),
-        sku: Yup.string().required("SKU is required"),
-        barcode: Yup.string().required("Barcode is required"),
-        unit: Yup.string().required("Unit is required"),
-        mrp: Yup.number().required("MRP is required").positive("Must be positive"),
-        retailPrice: Yup.number().required("Retail price is required").positive("Must be positive"),
-        wholesalePrice: Yup.number().required("Wholesale price is required").positive("Must be positive"),
-        purchasePrice: Yup.number().required("Purchase price is required").positive("Must be positive"),
-        minStockLevel: Yup.number().required("Minimum stock level is required").min(0, "Cannot be negative"),
-        taxRate: Yup.number().required("Tax rate is required"),
-      })
-    ).min(1, "At least one variant is required"),
+    captureDate: Yup.string().required("Date is required"),
+    variants: Yup.array()
+      .of(
+        Yup.object({
+          packingSize: Yup.string().required("Packing size is required"),
+          sku: Yup.string().required("SKU is required"),
+          barcode: Yup.string().required("Barcode is required"),
+          unit: Yup.string().required("Unit is required"),
+          mrp: Yup.number()
+            .required("MRP is required")
+            .positive("Must be positive")
+            .test(
+              "mrp-greater",
+              "MRP must be greater than Retail, Wholesale, and Purchase Price",
+              function (value) {
+                const { retailPrice, wholesalePrice, purchasePrice } = this.parent;
+                if (
+                  value === undefined ||
+                  retailPrice === undefined ||
+                  wholesalePrice === undefined ||
+                  purchasePrice === undefined
+                )
+                  return true;
+                return (
+                  value > Number(retailPrice) &&
+                  value > Number(wholesalePrice) &&
+                  value > Number(purchasePrice)
+                );
+              }
+            ),
+          retailPrice: Yup.number()
+            .required("Retail price is required")
+            .positive("Must be positive")
+            .test(
+              "retail-greater",
+              "Retail price must be greater than Wholesale and Purchase Price",
+              function (value) {
+                const { wholesalePrice, purchasePrice } = this.parent;
+                if (
+                  value === undefined ||
+                  wholesalePrice === undefined ||
+                  purchasePrice === undefined
+                )
+                  return true;
+                return (
+                  value > Number(wholesalePrice) &&
+                  value > Number(purchasePrice)
+                );
+              }
+            ),
+          wholesalePrice: Yup.number()
+            .required("Wholesale price is required")
+            .positive("Must be positive")
+            .test(
+              "wholesale-greater",
+              "Wholesale price must be greater than Purchase Price",
+              function (value) {
+                const { purchasePrice } = this.parent;
+                if (value === undefined || purchasePrice === undefined) return true;
+                return value > Number(purchasePrice);
+              }
+            ),
+          purchasePrice: Yup.number().required("Purchase price is required").positive("Must be positive"),
+          minStockLevel: Yup.number().required("Minimum stock level is required").min(0, "Cannot be negative"),
+          taxRate: Yup.number()
+            .required("Tax rate is required")
+            .min(0, "Tax rate must be at least 0")
+            .max(100, "Tax rate cannot exceed 100"),
+        })
+      )
+      .min(1, "At least one variant is required"),
     newVariant: Yup.object({
       packingSize: Yup.string(),
       sku: Yup.string(),
