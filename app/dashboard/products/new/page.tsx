@@ -16,6 +16,7 @@ import { serverAddProduct, serverGetActiveCategory } from "@/services/serverApi"
 import { ICategory } from "@/types/category"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { units } from "@/utils/consts/product"
 
 const newVariantSchema = Yup.object({
   packingSize: Yup.string().required("Packing size is required"),
@@ -526,6 +527,36 @@ export default function NewProductPage() {
                         )}
                       </div>
                       <div className="space-y-2">
+                        <Label>Unit</Label>
+                        <div className="relative">
+                          <Package className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                          <Field name="newVariant.unit">
+                            {({ field }: any) => (
+                              <Select
+                                value={field.value}
+                                onValueChange={(value) => field.onChange({ target: { name: field.name, value } })}
+                              >
+                                <SelectTrigger className="pl-8 border rounded w-full h-10">
+                                  <SelectValue placeholder="Select unit" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {units?.map((item) => {
+                                    return (
+                                      <SelectItem key={item.symbol} value={item.symbol}>
+                                        {item.name} ({item.symbol})
+                                      </SelectItem>
+                                    )
+                                  })}
+                                </SelectContent>
+                              </Select>
+                            )}
+                          </Field>
+                        </div>
+                        {variantErrors.unit && (
+                          <div className="text-red-500 text-sm">{variantErrors.unit}</div>
+                        )}
+                      </div>
+                      <div className="space-y-2">
                         <Label>Barcode</Label>
                         <div className="relative">
                           <Barcode className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -593,32 +624,6 @@ export default function NewProductPage() {
                         </div>
                         {variantErrors.taxRate && (
                           <div className="text-red-500 text-sm">{variantErrors.taxRate}</div>
-                        )}
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Unit</Label>
-                        <div className="relative">
-                          <Package className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                          <Field name="newVariant.unit">
-                            {({ field }: any) => (
-                              <Select
-                                value={field.value}
-                                onValueChange={(value) => field.onChange({ target: { name: field.name, value } })}
-                              >
-                                <SelectTrigger className="pl-8 border rounded w-full h-10">
-                                  <SelectValue placeholder="Select unit" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="kg">Kilogram (kg)</SelectItem>
-                                  <SelectItem value="litre">Litre</SelectItem>
-                                  <SelectItem value="box">Box</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            )}
-                          </Field>
-                        </div>
-                        {variantErrors.unit && (
-                          <div className="text-red-500 text-sm">{variantErrors.unit}</div>
                         )}
                       </div>
                     </div>
