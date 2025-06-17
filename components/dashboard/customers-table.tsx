@@ -148,7 +148,7 @@ export function CustomersTable({ setRefreshFunction }: { setRefreshFunction?: (f
           <TableBody>
             {loading ? (
               <TableRow>
-                <TableCell colSpan={6} className="h-24 text-center">
+                <TableCell colSpan={7} className="h-24 text-center">
                   <div className="flex justify-center items-center space-x-2">
                     <Loader2 className="h-5 w-5 animate-spin text-primary" />
                     <span>Loading customers...</span>
@@ -238,7 +238,7 @@ export function CustomersTable({ setRefreshFunction }: { setRefreshFunction?: (f
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={6} className="h-24 text-center">
+                <TableCell colSpan={7} className="h-24 text-center">
                   No customers found.
                 </TableCell>
               </TableRow>
