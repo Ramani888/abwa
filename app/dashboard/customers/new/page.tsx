@@ -217,7 +217,6 @@ export default function NewCustomerPage() {
                               <SelectValue placeholder="Select payment terms" />
                             </SelectTrigger>
                             <SelectContent>
-                              {/* in this i want to add advance payment option */}
                               <SelectItem value="cod">Cash on Delivery</SelectItem>
                               <SelectItem value="net15">Net 15 Days</SelectItem>
                               <SelectItem value="net30">Net 30 Days</SelectItem>

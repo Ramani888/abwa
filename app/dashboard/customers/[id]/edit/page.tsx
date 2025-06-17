@@ -332,6 +332,9 @@ export default function EditCustomerPage({ params }: { params: { id: string } })
                               <SelectItem value="net15">Net 15 Days</SelectItem>
                               <SelectItem value="net30">Net 30 Days</SelectItem>
                               <SelectItem value="net45">Net 45 Days</SelectItem>
+                              <SelectItem value="net60">Net 60 Days</SelectItem>
+                              <SelectItem value="advance">Advance Payment</SelectItem>
+                              <SelectItem value="credit">Credit</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
