@@ -198,7 +198,7 @@ export function UsersTable({ setRefreshFunction }: { setRefreshFunction?: (fn: (
                     ) : ( */}
                       {hasAnyPermission([Permissions.DELETE_USER, Permissions.UPDATE_USER]) && (
                         <TableCell className="text-right">
-                          {isOwner ? (
+                          {isOwner && !isCurrentUser ? (
                             <Badge variant={"default"}>
                               OWNER
                             </Badge>
