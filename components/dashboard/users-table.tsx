@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
-import { Edit, Loader2, MoreHorizontal, Search, Shield, Trash, UserCog } from "lucide-react"
+import { CheckCheckIcon, CheckSquare, CrownIcon, Edit, Loader2, MoreHorizontal, Search, Shield, Trash, UserCog } from "lucide-react"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -50,11 +50,11 @@ export function UsersTable({ setRefreshFunction }: { setRefreshFunction?: (fn: (
 
   const getRoleBadgeVariant = (role: string) => {
     switch (role) {
-      case "admin":
+      case "Administrator":
         return "default"
-      case "manager":
+      case "Manager":
         return "outline"
-      case "salesperson":
+      case "Salesperson":
         return "secondary"
       default:
         return "outline"
@@ -63,13 +63,13 @@ export function UsersTable({ setRefreshFunction }: { setRefreshFunction?: (fn: (
 
   const getRoleLabel = (role: string) => {
     switch (role) {
-      case "admin":
+      case "Administrator":
         return "Administrator"
-      case "manager":
+      case "Manager":
         return "Manager"
-      case "salesperson":
+      case "Salesperson":
         return "Salesperson"
-      case "inventory":
+      case "Inventory Manager":
         return "Inventory Manager"
       default:
         return role
@@ -155,95 +155,104 @@ export function UsersTable({ setRefreshFunction }: { setRefreshFunction?: (fn: (
                 </TableCell>
               </TableRow>
             ) : filteredUsers.length > 0 ? (
-              filteredUsers.map((item) => (
-                <TableRow key={item?._id}>
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <Avatar className="h-9 w-9">
-                        <AvatarFallback>{item?.name?.[0]}</AvatarFallback>
+              filteredUsers.map((item) => {
+                const isOwner = owner?.number === item?.number;
+                const isCurrentUser = user?.number === item?.number;
+                return (
+                  <TableRow key={item?._id} className={`${isCurrentUser ? 'bg-muted' : ''}`}>
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-9 w-9">
+                          <AvatarFallback>{item?.name?.[0]}</AvatarFallback>
                       </Avatar>
                       <div className="font-medium">{item?.name}</div>
                     </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={getRoleBadgeVariant(item.roleName ?? '')}>{getRoleLabel(item.roleName ?? '')}</Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-col">
-                      <span className="text-sm">{item.email}</span>
-                      <span className="text-xs text-muted-foreground">{item?.number}</span>
-                    </div>
-                  </TableCell>
-                  {/* <TableCell>
-                    <Badge variant={user === "active" ? "outline" : "secondary"}>
-                      {user.status === "active" ? "Active" : "Inactive"}
-                    </Badge>
-                  </TableCell> */}
-                  {/* <TableCell>{user.lastActive}</TableCell> */}
-                  {/* {owner?._id === item?._id ? (
-                    // because this is main user so we need to show another message here
-                    <TableCell className="text-right">
-                      <Badge variant={"default"}>
-                        Owner
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={getRoleBadgeVariant(item.roleName ?? '')} className="pl-5 pr-5 pt-1.5 pb-1.5">
+                        {isOwner && (
+                          <CrownIcon className="mr-1 h-4 w-4" />
+                        )}
+                        {getRoleLabel(item.roleName ?? '')}
                       </Badge>
                     </TableCell>
-                  ) : ( */}
-                    {hasAnyPermission([Permissions.DELETE_USER, Permissions.UPDATE_USER]) && (
+                    <TableCell>
+                      <div className="flex flex-col">
+                        <span className="text-sm">{item.email}</span>
+                        <span className="text-xs text-muted-foreground">{item?.number}</span>
+                      </div>
+                    </TableCell>
+                    {/* <TableCell>
+                      <Badge variant={user === "active" ? "outline" : "secondary"}>
+                        {user.status === "active" ? "Active" : "Inactive"}
+                      </Badge>
+                    </TableCell> */}
+                    {/* <TableCell>{user.lastActive}</TableCell> */}
+                    {/* {owner?._id === item?._id ? (
+                      // because this is main user so we need to show another message here
                       <TableCell className="text-right">
-                        {(Number(owner?.number) === Number(item?.number) && user?.number !== item?.number) ? (
-                          <Badge variant={"default"}>
-                            OWNER
-                          </Badge>
-                        ) : (
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon">
-                                <MoreHorizontal className="h-4 w-4" />
-                                <span className="sr-only">Open menu</span>
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                              <DropdownMenuSeparator />
-                              {hasPermission(Permissions.UPDATE_USER) && (
-                                <DropdownMenuItem asChild>
-                                  <Link href={`/dashboard/users/${item?._id}`}>
-                                    <Edit className="mr-2 h-4 w-4" />
-                                    Edit User
-                                  </Link>
-                                </DropdownMenuItem>
-                              )}
-                              {hasPermission(Permissions.UPDATE_USER) && (
-                                <DropdownMenuItem asChild>
-                                  <Link href={`/dashboard/users/permissions/${item?._id}`}>
-                                    <Shield className="mr-2 h-4 w-4" />
-                                    Manage Permissions
-                                  </Link>
-                                </DropdownMenuItem>
-                              )}
-                              {hasPermission(Permissions.UPDATE_USER) && (
-                                <DropdownMenuItem asChild>
-                                  <Link href={`/dashboard/users/reset-password/${item?._id}`}>
-                                    <UserCog className="mr-2 h-4 w-4" />
-                                    Reset Password
-                                  </Link>
-                                </DropdownMenuItem>
-                              )}
-                              <DropdownMenuSeparator />
-                              {hasPermission(Permissions.DELETE_USER) && (
-                                <DropdownMenuItem onClick={() => handleDeleteClick(item?._id)} className="text-destructive">
-                                  <Trash className="mr-2 h-4 w-4" />
-                                  Delete User
-                                </DropdownMenuItem>
-                              )}
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        )}
+                        <Badge variant={"default"}>
+                          Owner
+                        </Badge>
                       </TableCell>
-                    )}
-                  {/* )} */}
-                </TableRow>
-              ))
+                    ) : ( */}
+                      {hasAnyPermission([Permissions.DELETE_USER, Permissions.UPDATE_USER]) && (
+                        <TableCell className="text-right">
+                          {isOwner ? (
+                            <Badge variant={"default"}>
+                              OWNER
+                            </Badge>
+                          ) : (
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon">
+                                  <MoreHorizontal className="h-4 w-4" />
+                                  <span className="sr-only">Open menu</span>
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                <DropdownMenuSeparator />
+                                {hasPermission(Permissions.UPDATE_USER) && (
+                                  <DropdownMenuItem asChild>
+                                    <Link href={`/dashboard/users/${item?._id}`}>
+                                      <Edit className="mr-2 h-4 w-4" />
+                                      Edit User
+                                    </Link>
+                                  </DropdownMenuItem>
+                                )}
+                                {hasPermission(Permissions.UPDATE_USER) && (
+                                  <DropdownMenuItem asChild>
+                                    <Link href={`/dashboard/users/permissions/${item?._id}`}>
+                                      <Shield className="mr-2 h-4 w-4" />
+                                      Manage Permissions
+                                    </Link>
+                                  </DropdownMenuItem>
+                                )}
+                                {hasPermission(Permissions.UPDATE_USER) && (
+                                  <DropdownMenuItem asChild>
+                                    <Link href={`/dashboard/users/reset-password/${item?._id}`}>
+                                      <UserCog className="mr-2 h-4 w-4" />
+                                      Reset Password
+                                    </Link>
+                                  </DropdownMenuItem>
+                                )}
+                                <DropdownMenuSeparator />
+                                {hasPermission(Permissions.DELETE_USER) && (
+                                  <DropdownMenuItem onClick={() => handleDeleteClick(item?._id)} className="text-destructive">
+                                    <Trash className="mr-2 h-4 w-4" />
+                                    Delete User
+                                  </DropdownMenuItem>
+                                )}
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          )}
+                        </TableCell>
+                      )}
+                    {/* )} */}
+                  </TableRow>
+                )
+              })
             ) : (
               <TableRow>
                 <TableCell colSpan={6} className="h-24 text-center">
