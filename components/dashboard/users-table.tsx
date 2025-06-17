@@ -26,7 +26,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { serverGetUser } from "@/services/serverApi"
+import { serverDeleteUser, serverGetUser } from "@/services/serverApi"
 import { IUser } from "@/types/user"
 import { useAuth } from "../auth-provider"
 import { usePermission } from "@/hooks/usePermission"
@@ -93,10 +93,18 @@ export function UsersTable({ setRefreshFunction }: { setRefreshFunction?: (fn: (
     setDeleteDialogOpen(true)
   }
 
-  const handleConfirmDelete = () => {
-    // Here you would implement actual delete logic
-    setDeleteDialogOpen(false)
-    setUserToDelete(null)
+  const handleConfirmDelete = async () => {
+    try {
+      setLoading(true)
+      await serverDeleteUser(userToDelete ?? '');
+      setDeleteDialogOpen(false)
+      setUserToDelete(null)
+      getUserData();
+      setLoading(false)
+    } catch (error) {
+      setLoading(false)
+      console.error("Error deleting user:", error)
+    }
   }
 
   useEffect(() => {

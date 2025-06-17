@@ -119,6 +119,10 @@ export const serverGetUserRolePermissionData = async () => {
   return await serverRequest("/user/role/permission", "GET", null, true);
 }
 
+export const serverDeleteUser = async (_id: string) => {
+  return await serverRequest(`/user?_id=${_id}`, "DELETE", null, true);
+}
+
 /// Customer ///
 export const serverAddCustomer = async (data: ICustomer) => {
   return await serverRequest("/customer", "POST", data, true);
