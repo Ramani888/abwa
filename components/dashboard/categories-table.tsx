@@ -29,6 +29,7 @@ import { ICategory } from "@/types/category"
 import { serverDeleteCategory, serverGetCategory } from "@/services/serverApi"
 import { usePermission } from "@/hooks/usePermission"
 import { Permissions } from "@/utils/consts/permission"
+import { Switch } from "../ui/switch"
 
 export function CategoriesTable({ setRefreshFunction }: { setRefreshFunction?: (fn: () => Promise<void>) => void }) {
   const { hasPermission, hasAnyPermission } = usePermission();
@@ -133,7 +134,7 @@ export function CategoriesTable({ setRefreshFunction }: { setRefreshFunction?: (
                   <TableCell>{category?.description}</TableCell>
                   <TableCell>{category?.productCount}</TableCell>
                   <TableCell>
-                    <Badge variant="outline">{category?.isActive ? 'Active' : 'InActive'}</Badge>
+                    <Badge variant={category?.isActive ? 'default' : 'secondary'} className="mb-2">{category?.isActive ? 'Active' : 'Deactive'}</Badge>
                   </TableCell>
                   {hasAnyPermission([Permissions.UPDATE_CATEGORY, Permissions.DELETE_CATEGORY]) && (
                     <TableCell className="text-right">
