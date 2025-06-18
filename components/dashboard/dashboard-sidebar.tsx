@@ -38,7 +38,7 @@ export function DashboardSidebar({ isMobile = false, closeMobileMenu }: Dashboar
   const pathname = usePathname()
   const { currentPlan } = usePlan()
   const { owner } = useAuth();
-  const { hasPermission } = usePermission();
+  const { hasPermission, hasAnyPermission } = usePermission();
   const [openSubmenu, setOpenSubmenu] = useState<string | null>(null);
 
   type NavItem = {
@@ -64,7 +64,7 @@ export function DashboardSidebar({ isMobile = false, closeMobileMenu }: Dashboar
       title: "Suppliers",
       href: "/dashboard/suppliers",
       icon: Store,
-      permission: hasPermission(Permissions.VIEW_SUPPLIER),
+      permission: hasAnyPermission([Permissions.VIEW_SUPPLIER, Permissions.VIEW_SUPPLIER_PAYMENT]),
       children: [
         {
           title: "All Suppliers",
@@ -82,7 +82,7 @@ export function DashboardSidebar({ isMobile = false, closeMobileMenu }: Dashboar
       title: "Products",
       href: "/dashboard/products",
       icon: Package,
-      permission: hasPermission(Permissions.VIEW_PRODUCT),
+      permission: hasAnyPermission([Permissions.VIEW_PRODUCT, Permissions.VIEW_CATEGORY]),
       children: [
         {
           title: "All Products",
@@ -112,7 +112,7 @@ export function DashboardSidebar({ isMobile = false, closeMobileMenu }: Dashboar
       title: "Customers",
       href: "/dashboard/customers",
       icon: Users,
-      permission: hasPermission(Permissions.VIEW_CUSTOMER),
+      permission: hasAnyPermission([Permissions.VIEW_CUSTOMER, Permissions.VIEW_CUSTOMER_PAYMENT]),
       children: [
         {
           title: "All Customers",
