@@ -93,6 +93,7 @@ export default function NewSupplierPage() {
                             name="number"
                             placeholder="10 digit number"
                             className="pl-10"
+                            type="number"
                           />
                         </div>
                         <ErrorMessage name="number" component="p" className="text-red-500 text-sm" />

@@ -121,7 +121,7 @@ export default function EditSupplierPage({ params }: { params: { id: string } })
                     <Label htmlFor="number">Phone Number</Label>
                     <div className="relative">
                         <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Field as={Input} id="number" name="number" placeholder="10 digit number" className="pl-10" />
+                        <Field as={Input} id="number" type="number" name="number" placeholder="10 digit number" className="pl-10" />
                     </div>
                     <ErrorMessage name="number" component="p" className="text-red-500 text-sm" />
                     </div>
