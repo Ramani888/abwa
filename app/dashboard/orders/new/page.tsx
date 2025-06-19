@@ -15,6 +15,7 @@ import { Trash, Plus, Search, ArrowLeft, Calendar } from "lucide-react"
 import { serverAddOrder, serverGetCustomers, serverGetProduct } from "@/services/serverApi"
 import { ICustomer } from "@/types/customer"
 import { IProduct } from "@/types/product"
+import { paymentMethods, paymentStatuses } from "@/utils/consts/product"
 
 export default function NewOrderPage() {
   const [activeTab, setActiveTab] = useState("retail")
@@ -622,9 +623,11 @@ export default function NewOrderPage() {
                         <SelectValue placeholder="Select payment status" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="paid">Paid</SelectItem>
-                        <SelectItem value="unpaid">Unpaid</SelectItem>
-                        <SelectItem value="partial">Partial</SelectItem>
+                        {paymentStatuses?.map((status) => (
+                          <SelectItem key={status.value} value={status.value}>
+                            {status.label}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
@@ -636,10 +639,11 @@ export default function NewOrderPage() {
                         <SelectValue placeholder="Select payment method" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="cash">Cash</SelectItem>
-                        <SelectItem value="upi">UPI</SelectItem>
-                        <SelectItem value="card">Card</SelectItem>
-                        <SelectItem value="credit">Credit (For Wholesale)</SelectItem>
+                        {paymentMethods?.map((method) => (
+                          <SelectItem key={method.value} value={method.value}>
+                            {method.label}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>

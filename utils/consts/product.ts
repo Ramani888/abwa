@@ -11,3 +11,23 @@ export const units = [
   { name: "Unit", symbol: "unit", description: "Used for tools/equipment (e.g., pump)." },
   { name: "Piece", symbol: "pcs", description: "For individual small items." }
 ];
+
+export const paymentMethods = [
+  { label: "Cash", value: "cash", note: "Walk-in or cash-based transactions" },
+  { label: "Card", value: "card", note: "Credit/debit card via POS machine" },
+  { label: "UPI", value: "upi", note: "Google Pay, PhonePe, etc." },
+  { label: "NEFT/RTGS", value: "neft_rtgs", note: "Bank transfer methods" },
+  { label: "Cheque", value: "cheque", note: "Used by traders for bulk orders" },
+  { label: "Credit", value: "credit", note: "No immediate payment; buy now, pay later" },
+  { label: "Online Payment", value: "online_payment", note: "Generic for Razorpay/Paytm/etc. gateways" },
+  { label: "Wallet", value: "wallet", note: "Paytm wallet, Amazon Pay, etc." },
+  { label: "Other", value: "other", note: "Fallback for unsupported types" }
+];
+
+export const paymentStatuses = [
+  { label: "Paid", value: "paid", description: "Full amount has been paid" },
+  { label: "Unpaid", value: "unpaid", description: "No payment has been made yet" },
+  { label: "Partial", value: "partial", description: "Partially paid; some balance remains" },
+  { label: "Overpaid", value: "overpaid", description: "Paid more than required (rare but may occur)" },
+  { label: "Refunded", value: "refunded", description: "Payment has been returned (for returns/cancellations)" }
+];

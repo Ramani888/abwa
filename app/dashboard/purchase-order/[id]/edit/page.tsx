@@ -14,6 +14,7 @@ import { Trash, Plus, Search, ArrowLeft, Calendar } from "lucide-react"
 import { serverGetProduct, serverGetPurchaseOrder, serverGetSupplier, serverUpdatePurchaseOrder } from "@/services/serverApi"
 import { IProduct } from "@/types/product"
 import { ISupplier } from "@/types/supplier"
+import { paymentMethods, paymentStatuses } from "@/utils/consts/product"
 
 export default function EditPurchaseOrderPage({ params }: { params: { id: string } }) {
   const [orderItems, setOrderItems] = useState<
@@ -608,9 +609,11 @@ export default function EditPurchaseOrderPage({ params }: { params: { id: string
                         <SelectValue placeholder="Select payment status" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="paid">Paid</SelectItem>
-                        <SelectItem value="unpaid">Unpaid</SelectItem>
-                        <SelectItem value="partial">Partial</SelectItem>
+                        {paymentStatuses?.map((status) => (
+                          <SelectItem key={status.value} value={status.value}>
+                            {status.label}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
@@ -622,10 +625,11 @@ export default function EditPurchaseOrderPage({ params }: { params: { id: string
                         <SelectValue placeholder="Select payment method" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="cash">Cash</SelectItem>
-                        <SelectItem value="upi">UPI</SelectItem>
-                        <SelectItem value="card">Card</SelectItem>
-                        <SelectItem value="credit">Credit (For Wholesale)</SelectItem>
+                        {paymentMethods?.map((method) => (
+                          <SelectItem key={method.value} value={method.value}>
+                            {method.label}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
