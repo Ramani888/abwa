@@ -105,9 +105,9 @@ export function StockTable({ stockFilter }: StockTableProps) {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Product</TableHead>
+              <TableHead className="whitespace-nowrap">Product</TableHead>
               <TableHead>Category</TableHead>
-              <TableHead>Current Stock</TableHead>
+              <TableHead className="whitespace-nowrap">Current Stock</TableHead>
               <TableHead>Min Stock</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Stock Level</TableHead>
