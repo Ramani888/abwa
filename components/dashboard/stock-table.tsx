@@ -129,14 +129,14 @@ export function StockTable({ stockFilter }: StockTableProps) {
               filteredProducts?.map((product) => (
                 <TableRow key={product?._id}>
                   <TableCell className="font-medium whitespace-nowrap">{product?.name} - {product?.packingSize}</TableCell>
-                  <TableCell>{product?.categoryName}</TableCell>
-                  <TableCell>
+                  <TableCell className="whitespace-nowrap">{product?.categoryName}</TableCell>
+                  <TableCell className="whitespace-nowrap">
                     {product?.quantity} {product?.unit}
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="whitespace-nowrap">
                     {product?.minStockLevel} {product?.unit}
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="whitespace-nowrap">
                     <Badge
                       variant={
                         product?.status === "In Stock"
@@ -149,7 +149,7 @@ export function StockTable({ stockFilter }: StockTableProps) {
                       {product.status}
                     </Badge>
                   </TableCell>
-                  <TableCell className="w-[200px]">
+                  <TableCell className="w-[200px] whitespace-nowrap">
                     <div className="flex flex-col gap-1">
                       <Progress
                         value={getStockPercentage(product?.quantity ?? 0, product?.minStockLevel ?? 1)}
@@ -184,7 +184,7 @@ export function StockTable({ stockFilter }: StockTableProps) {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={7} className="h-24 text-center">
+                <TableCell colSpan={7} className="h-24 text-center whitespace-nowrap">
                   No products found.
                 </TableCell>
               </TableRow>
