@@ -138,18 +138,17 @@
 import { useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { Button } from "@/components/ui/button"
-import { Label } from "@/components/ui/label"
-import { ShoppingBag, ArrowRight, Lock, Phone, EyeOff, Eye } from "lucide-react"
-import { serverLogin } from "@/services/serverApi"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { useAuth } from "@/components/auth-provider"
-import LoginImage from "@/assets/images/Galcon_Login_Image.png"
 import { Formik, Form, Field, ErrorMessage } from "formik"
 import * as Yup from "yup"
+import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { ShoppingBag, ArrowRight, Phone, Lock, EyeOff, Eye } from "lucide-react"
+import { useAuth } from "@/components/auth-provider"
+import { serverLogin } from "@/services/serverApi"
+import LoginImage from "@/assets/images/Galcon_Login_Image.png"
 
-// Validation schema using Yup
 const loginSchema = Yup.object().shape({
   number: Yup.string()
     .required("Phone number is required")
@@ -158,60 +157,6 @@ const loginSchema = Yup.object().shape({
     .required("Password is required")
     .min(6, "Password must be at least 6 characters"),
 })
-
-// Reusable TextInput Component
-const TextInput = ({ id, name, type, placeholder, icon: Icon }: any) => (
-  <div className="space-y-1.5">
-    <Label htmlFor={id} className="text-sm font-medium text-slate-700">
-      {name === "number" ? "Phone Number" : "Password"}
-    </Label>
-    <div className="relative">
-      {Icon && <Icon className="absolute left-3 top-3.5 h-5 w-5 text-slate-400" />}
-      <Field
-        as={Input}
-        id={id}
-        name={name}
-        type={type}
-        placeholder={placeholder}
-        className="w-full pl-12 h-12 rounded-lg border border-slate-300 bg-white focus:border-green-500 focus:ring-1 focus:ring-green-500"
-      />
-    </div>
-    <ErrorMessage name={name} component="p" className="text-sm text-red-500 mt-1" />
-  </div>
-)
-
-// Reusable PasswordInput Component
-const PasswordInput = ({ id, name, placeholder, isPasswordVisible, toggleVisibility }: any) => (
-  <div className="space-y-1.5">
-    <div className="flex items-center justify-between">
-      <Label htmlFor={id} className="text-sm font-medium text-slate-700">
-        Password
-      </Label>
-      <Link href="/forgot-password" className="text-sm text-green-600 font-medium hover:text-green-700">
-        Forgot password?
-      </Link>
-    </div>
-    <div className="relative">
-      <Lock className="absolute left-3 top-3.5 h-5 w-5 text-slate-400" />
-      <Field
-        as={Input}
-        id={id}
-        name={name}
-        type={isPasswordVisible ? "text" : "password"}
-        placeholder={placeholder}
-        className="w-full pl-12 h-12 rounded-lg border border-slate-300 bg-white focus:border-green-500 focus:ring-1 focus:ring-green-500"
-      />
-      <button
-        type="button"
-        onClick={toggleVisibility}
-        className="absolute right-3 top-3.5 text-slate-400 hover:text-slate-600"
-      >
-        {isPasswordVisible ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-      </button>
-    </div>
-    <ErrorMessage name={name} component="p" className="text-sm text-red-500 mt-1" />
-  </div>
-)
 
 export default function LoginPage() {
   const { login } = useAuth()
@@ -282,21 +227,54 @@ export default function LoginPage() {
                   </Alert>
                 )}
 
-                <TextInput
-                  id="number"
-                  name="number"
-                  type="tel"
-                  placeholder="Enter your phone number"
-                  icon={Phone}
-                />
+                <div className="space-y-1.5">
+                  <Label htmlFor="number" className="text-sm font-medium text-slate-700 dark:text-slate-200">
+                    Phone Number
+                  </Label>
+                  <div className="relative">
+                    <Phone className="absolute left-3 top-3.5 h-5 w-5 text-slate-400" />
+                    <Field
+                      as={Input}
+                      id="number"
+                      name="number"
+                      type="tel"
+                      placeholder="Enter your phone number"
+                      className="w-full pl-12 h-12 rounded-lg border border-slate-300 bg-white dark:bg-slate-900 focus:border-green-500 focus:ring-1 focus:ring-green-500"
+                    />
+                  </div>
+                  <ErrorMessage name="number" component="p" className="text-sm text-red-500 mt-1" />
+                </div>
 
-                <PasswordInput
-                  id="password"
-                  name="password"
-                  placeholder="Enter your password"
-                  isPasswordVisible={isPasswordVisible}
-                  toggleVisibility={() => setIsPasswordVisible((prev) => !prev)}
-                />
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="password" className="text-sm font-medium text-slate-700 dark:text-slate-200">
+                      Password
+                    </Label>
+                    <Link href="/forgot-password" className="text-sm text-green-600 font-medium hover:text-green-700">
+                      Forgot password?
+                    </Link>
+                  </div>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-3.5 h-5 w-5 text-slate-400" />
+                    <Field
+                      as={Input}
+                      id="password"
+                      name="password"
+                      type={isPasswordVisible ? "text" : "password"}
+                      placeholder="Enter your password"
+                      className="w-full pl-12 h-12 rounded-lg border border-slate-300 bg-white dark:bg-slate-900 focus:border-green-500 focus:ring-1 focus:ring-green-500"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setIsPasswordVisible((prev) => !prev)}
+                      className="absolute right-3 top-3.5 text-slate-400 hover:text-slate-600"
+                      tabIndex={-1}
+                    >
+                      {isPasswordVisible ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                    </button>
+                  </div>
+                  <ErrorMessage name="password" component="p" className="text-sm text-red-500 mt-1" />
+                </div>
 
                 <Button
                   type="submit"

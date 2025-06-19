@@ -271,7 +271,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import RegisterImage from "@/assets/images/Galcon_Login_Image.png"
 import { serverRegister } from "@/services/serverApi"
-import { is } from "date-fns/locale"
 
 export default function RegisterPage() {
   const [activeTab, setActiveTab] = useState("owner")
@@ -332,7 +331,7 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="flex min-h-screen bg-slate-50">
+    <div className="flex min-h-screen bg-slate-50 dark:bg-slate-900 transition-colors">
       {/* Left Side - Image Only */}
       <div className="hidden lg:block lg:w-2/3 relative">
         <Image 
@@ -346,19 +345,19 @@ export default function RegisterPage() {
       </div>
 
       {/* Right Side - Registration Form */}
-      <div className="w-full lg:w-1/3 relative flex flex-col justify-center px-8 py-12 lg:px-16 bg-white shadow-2xl shadow-slate-200/50">
+      <div className="w-full lg:w-1/3 relative flex flex-col justify-center px-8 py-12 lg:px-16 bg-white dark:bg-slate-800 shadow-2xl shadow-slate-200/50 transition-colors">
         <Link href="/" className="absolute left-8 top-8 flex items-center gap-2">
           <div className="bg-green-500 p-2 rounded-lg">
             <ShoppingBag className="h-5 w-5 text-white" />
           </div>
-          <span className="font-bold text-xl">AgroBill</span>
+          <span className="font-bold text-xl text-slate-900 dark:text-white">AgroBill</span>
         </Link>
         
         <div className="w-full max-w-md mx-auto mt-12">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold mb-3">Create Your Shop</h1>
+            <h1 className="text-3xl font-bold mb-3 text-slate-900 dark:text-white">Create Your Shop</h1>
             <div className="h-1 w-12 bg-green-500 rounded-full mb-3"></div>
-            <p className="text-slate-500">Register as a shop owner and start managing your agro business</p>
+            <p className="text-slate-500 dark:text-slate-300">Register as a shop owner and start managing your agro business</p>
           </div>
           
           <Formik
@@ -380,7 +379,7 @@ export default function RegisterPage() {
             {({ values, handleChange }) => (
               <Form className="space-y-6">
                 {error && (
-                  <Alert variant="destructive" className="bg-red-50 text-red-800 border-l-4 border-red-500">
+                  <Alert variant="destructive" className="bg-red-50 dark:bg-red-900 text-red-800 dark:text-red-200 border-l-4 border-red-500">
                     <AlertDescription>{error}</AlertDescription>
                   </Alert>
                 )}
@@ -393,7 +392,7 @@ export default function RegisterPage() {
                   
                   <TabsContent value="owner" className="space-y-5 pt-2">
                     <div className="space-y-1.5">
-                      <Label htmlFor="name" className="text-sm font-medium text-slate-700">
+                      <Label htmlFor="name" className="text-sm font-medium text-slate-700 dark:text-slate-200">
                         Full Name
                       </Label>
                       <div className="relative">
@@ -403,14 +402,14 @@ export default function RegisterPage() {
                           id="name"
                           name="name"
                           placeholder="John Doe"
-                          className="w-full pl-12 h-12 rounded-lg border border-slate-300 bg-white focus:border-green-500 focus:ring-1 focus:ring-green-500"
+                          className="w-full pl-12 h-12 rounded-lg border border-slate-300 bg-white dark:bg-slate-900 focus:border-green-500 focus:ring-1 focus:ring-green-500"
                         />
                         <ErrorMessage name="name" component="div" className="text-red-500 text-sm mt-1" />
                       </div>
                     </div>
                     
                     <div className="space-y-1.5">
-                      <Label htmlFor="email" className="text-sm font-medium text-slate-700">
+                      <Label htmlFor="email" className="text-sm font-medium text-slate-700 dark:text-slate-200">
                         Email
                       </Label>
                       <div className="relative">
@@ -421,14 +420,14 @@ export default function RegisterPage() {
                           name="email"
                           type="email"
                           placeholder="name@example.com"
-                          className="w-full pl-12 h-12 rounded-lg border border-slate-300 bg-white focus:border-green-500 focus:ring-1 focus:ring-green-500"
+                          className="w-full pl-12 h-12 rounded-lg border border-slate-300 bg-white dark:bg-slate-900 focus:border-green-500 focus:ring-1 focus:ring-green-500"
                         />
                         <ErrorMessage name="email" component="div" className="text-red-500 text-sm mt-1" />
                       </div>
                     </div>
                     
                     <div className="space-y-1.5">
-                      <Label htmlFor="number" className="text-sm font-medium text-slate-700">
+                      <Label htmlFor="number" className="text-sm font-medium text-slate-700 dark:text-slate-200">
                         Phone Number
                       </Label>
                       <div className="relative">
@@ -438,14 +437,14 @@ export default function RegisterPage() {
                           id="number"
                           name="number"
                           placeholder="Enter your phone number"
-                          className="w-full pl-12 h-12 rounded-lg border border-slate-300 bg-white focus:border-green-500 focus:ring-1 focus:ring-green-500"
+                          className="w-full pl-12 h-12 rounded-lg border border-slate-300 bg-white dark:bg-slate-900 focus:border-green-500 focus:ring-1 focus:ring-green-500"
                         />
                         <ErrorMessage name="number" component="div" className="text-red-500 text-sm mt-1" />
                       </div>
                     </div>
                     
                     <div className="space-y-1.5">
-                      <Label htmlFor="password" className="text-sm font-medium text-slate-700">
+                      <Label htmlFor="password" className="text-sm font-medium text-slate-700 dark:text-slate-200">
                         Password
                       </Label>
                       <div className="relative">
@@ -456,7 +455,7 @@ export default function RegisterPage() {
                           name="password"
                           type={isPasswordVisible ? "text" : "password"}
                           placeholder="Create a strong password"
-                          className="w-full pl-12 h-12 rounded-lg border border-slate-300 bg-white focus:border-green-500 focus:ring-1 focus:ring-green-500"
+                          className="w-full pl-12 h-12 rounded-lg border border-slate-300 bg-white dark:bg-slate-900 focus:border-green-500 focus:ring-1 focus:ring-green-500"
                         />
                         <button
                           type="button"
@@ -470,7 +469,7 @@ export default function RegisterPage() {
                     </div>
                     
                     <div className="space-y-1.5">
-                      <Label htmlFor="confirmPassword" className="text-sm font-medium text-slate-700">
+                      <Label htmlFor="confirmPassword" className="text-sm font-medium text-slate-700 dark:text-slate-200">
                         Confirm Password
                       </Label>
                       <div className="relative">
@@ -481,14 +480,14 @@ export default function RegisterPage() {
                           name="confirmPassword"
                           type={isConfirmPasswordVisible ? "text" : "password"}
                           placeholder="Confirm your password"
-                          className="w-full pl-12 h-12 rounded-lg border border-slate-300 bg-white focus:border-green-500 focus:ring-1 focus:ring-green-500"
+                          className="w-full pl-12 h-12 rounded-lg border border-slate-300 bg-white dark:bg-slate-900 focus:border-green-500 focus:ring-1 focus:ring-green-500"
                         />
                         <button
                           type="button"
                           onClick={() => setIsConfirmPasswordVisible(!isConfirmPasswordVisible)}
                           className="absolute right-3 top-3.5 text-slate-400 hover:text-slate-600"
                         >
-                          {isPasswordVisible ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                          {isConfirmPasswordVisible ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                         </button>
                         <ErrorMessage name="confirmPassword" component="div" className="text-red-500 text-sm mt-1" />
                       </div>
@@ -508,7 +507,7 @@ export default function RegisterPage() {
                   
                   <TabsContent value="shop" className="space-y-5 pt-2">
                     <div className="space-y-1.5">
-                      <Label htmlFor="shopName" className="text-sm font-medium text-slate-700">
+                      <Label htmlFor="shopName" className="text-sm font-medium text-slate-700 dark:text-slate-200">
                         Shop Name
                       </Label>
                       <div className="relative">
@@ -518,14 +517,14 @@ export default function RegisterPage() {
                           id="shopName"
                           name="shopName"
                           placeholder="Green Harvest Agro Shop"
-                          className="w-full pl-12 h-12 rounded-lg border border-slate-300 bg-white focus:border-green-500 focus:ring-1 focus:ring-green-500"
+                          className="w-full pl-12 h-12 rounded-lg border border-slate-300 bg-white dark:bg-slate-900 focus:border-green-500 focus:ring-1 focus:ring-green-500"
                         />
                         <ErrorMessage name="shopName" component="div" className="text-red-500 text-sm mt-1" />
                       </div>
                     </div>
                     
                     <div className="space-y-1.5">
-                      <Label htmlFor="address" className="text-sm font-medium text-slate-700">
+                      <Label htmlFor="address" className="text-sm font-medium text-slate-700 dark:text-slate-200">
                         Shop Address
                       </Label>
                       <div className="relative">
@@ -535,15 +534,14 @@ export default function RegisterPage() {
                           id="address"
                           name="address"
                           placeholder="123 Farm Road, Agricity"
-                          className="w-full pl-12 pt-3 pr-3 pb-3 h-12 min-h-[100px] rounded-lg border border-slate-300 bg-white focus:border-green-500 focus:ring-1 focus:ring-green-500"
+                          className="w-full pl-12 pt-3 pr-3 pb-3 h-12 min-h-[100px] rounded-lg border border-slate-300 bg-white dark:bg-slate-900 focus:border-green-500 focus:ring-1 focus:ring-green-500"
                         />
-
                         <ErrorMessage name="address" component="div" className="text-red-500 text-sm mt-1" />
                       </div>
                     </div>
                     
                     <div className="space-y-1.5">
-                      <Label htmlFor="shopNumber" className="text-sm font-medium text-slate-700">
+                      <Label htmlFor="shopNumber" className="text-sm font-medium text-slate-700 dark:text-slate-200">
                         Shop Phone Number
                       </Label>
                       <div className="relative">
@@ -553,14 +551,14 @@ export default function RegisterPage() {
                           id="shopNumber"
                           name="shopNumber"
                           placeholder="Enter shop phone number"
-                          className="w-full pl-12 h-12 rounded-lg border border-slate-300 bg-white focus:border-green-500 focus:ring-1 focus:ring-green-500"
+                          className="w-full pl-12 h-12 rounded-lg border border-slate-300 bg-white dark:bg-slate-900 focus:border-green-500 focus:ring-1 focus:ring-green-500"
                         />
                         <ErrorMessage name="shopNumber" component="div" className="text-red-500 text-sm mt-1" />
                       </div>
                     </div>
                     
                     <div className="space-y-1.5">
-                      <Label htmlFor="shopEmail" className="text-sm font-medium text-slate-700">
+                      <Label htmlFor="shopEmail" className="text-sm font-medium text-slate-700 dark:text-slate-200">
                         Shop Email
                       </Label>
                       <div className="relative">
@@ -571,14 +569,14 @@ export default function RegisterPage() {
                           name="shopEmail"
                           type="email"
                           placeholder="shop@example.com"
-                          className="w-full pl-12 h-12 rounded-lg border border-slate-300 bg-white focus:border-green-500 focus:ring-1 focus:ring-green-500"
+                          className="w-full pl-12 h-12 rounded-lg border border-slate-300 bg-white dark:bg-slate-900 focus:border-green-500 focus:ring-1 focus:ring-green-500"
                         />
                         <ErrorMessage name="shopEmail" component="div" className="text-red-500 text-sm mt-1" />
                       </div>
                     </div>
                     
                     <div className="space-y-1.5">
-                      <Label htmlFor="gst" className="text-sm font-medium text-slate-700">
+                      <Label htmlFor="gst" className="text-sm font-medium text-slate-700 dark:text-slate-200">
                         GST Number
                       </Label>
                       <div className="relative">
@@ -588,10 +586,10 @@ export default function RegisterPage() {
                           id="gst"
                           name="gst"
                           placeholder="22AAAAA0000A1Z5"
-                          className="w-full pl-12 h-12 rounded-lg border border-slate-300 bg-white focus:border-green-500 focus:ring-1 focus:ring-green-500"
+                          className="w-full pl-12 h-12 rounded-lg border border-slate-300 bg-white dark:bg-slate-900 focus:border-green-500 focus:ring-1 focus:ring-green-500"
                         />
+                        <ErrorMessage name="gst" component="div" className="text-red-500 text-sm mt-1" />
                       </div>
-                      <ErrorMessage name="gst" component="div" className="text-red-500 text-sm mt-1" />
                     </div>
                     
                     <Button 
@@ -614,15 +612,15 @@ export default function RegisterPage() {
                     
                     <div className="pt-4">
                       <div className="relative flex items-center">
-                        <div className="flex-grow border-t border-slate-200"></div>
-                        <span className="flex-shrink mx-3 text-slate-400 text-sm">Already have an account?</span>
-                        <div className="flex-grow border-t border-slate-200"></div>
+                        <div className="flex-grow border-t border-slate-200 dark:border-slate-700"></div>
+                        <span className="flex-shrink mx-3 text-slate-400 dark:text-slate-500 text-sm">Already have an account?</span>
+                        <div className="flex-grow border-t border-slate-200 dark:border-slate-700"></div>
                       </div>
                       
                       <div className="mt-4 text-center">
                         <Link 
                           href="/login" 
-                          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 border border-green-600 rounded-lg text-green-600 font-medium hover:bg-green-50 transition-colors"
+                          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 border border-green-600 rounded-lg text-green-600 font-medium hover:bg-green-50 dark:hover:bg-green-900 transition-colors"
                         >
                           Sign In Instead
                         </Link>
