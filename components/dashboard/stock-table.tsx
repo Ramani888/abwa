@@ -5,84 +5,60 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
-import { ArrowDownToLine, ArrowUpFromLine, Search } from "lucide-react"
+import { ArrowDownToLine, ArrowUpFromLine, Loader2, Search } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Progress } from "@/components/ui/progress"
-
-// Mock data for products
-const products = [
-  {
-    id: "1",
-    name: "Organic Fertilizer",
-    category: "Fertilizers",
-    stock: 120,
-    minStock: 20,
-    unit: "kg",
-    status: "In Stock",
-  },
-  {
-    id: "2",
-    name: "Wheat Seeds (Premium)",
-    category: "Seeds",
-    stock: 85,
-    minStock: 50,
-    unit: "kg",
-    status: "In Stock",
-  },
-  {
-    id: "3",
-    name: "Pesticide Spray",
-    category: "Pesticides",
-    stock: 42,
-    minStock: 40,
-    unit: "l",
-    status: "Low Stock",
-  },
-  {
-    id: "4",
-    name: "Garden Tools Set",
-    category: "Tools",
-    stock: 18,
-    minStock: 20,
-    unit: "pcs",
-    status: "Low Stock",
-  },
-  {
-    id: "5",
-    name: "Drip Irrigation Kit",
-    category: "Irrigation",
-    stock: 0,
-    minStock: 10,
-    unit: "set",
-    status: "Out of Stock",
-  },
-]
+import { useSelector } from "react-redux"
+import { RootState } from "@/lib/store"
+import { IProduct } from "@/types/product"
 
 interface StockTableProps {
   stockFilter: "all" | "low" | "out"
 }
 
+interface totalProductData extends IProduct {
+  packingSize?: string
+  unit?: string
+  quantity?: number
+  minStockLevel?: number
+  status?: string
+}
+
 export function StockTable({ stockFilter }: StockTableProps) {
+  const { products, loading } = useSelector((state: RootState) => state.products)
+
+  const totalProductData: totalProductData[] =
+    products?.flatMap((product) =>
+      product?.variants?.map((variant) => ({
+        ...product,
+        packingSize: variant.packingSize,
+        unit: variant.unit,
+        quantity: variant.quantity,
+        minStockLevel: variant.minStockLevel,
+        status: variant?.status
+      }))
+    ) || []
+
   const [searchQuery, setSearchQuery] = useState("")
   const [categoryFilter, setCategoryFilter] = useState("all")
 
-  const filteredProducts = products.filter((product) => {
+  const filteredProducts = totalProductData?.filter((product) => {
     const matchesSearch =
-      product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.category.toLowerCase().includes(searchQuery.toLowerCase())
+      product?.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      product?.categoryName?.toLowerCase().includes(searchQuery.toLowerCase())
 
-    const matchesCategory = categoryFilter === "all" || product.category.toLowerCase() === categoryFilter.toLowerCase()
+    const matchesCategory = categoryFilter === "all" || product?.categoryName?.toLowerCase() === categoryFilter.toLowerCase()
 
     const matchesStockFilter =
       stockFilter === "all" ||
-      (stockFilter === "low" && product.status === "Low Stock") ||
-      (stockFilter === "out" && product.status === "Out of Stock")
+      (stockFilter === "low" && product?.status === "Low Stock") ||
+      (stockFilter === "out" && product?.status === "Out of Stock")
 
     return matchesSearch && matchesCategory && matchesStockFilter
   })
 
   // Get unique categories
-  const categories = ["all", ...new Set(products.map((product) => product.category.toLowerCase()))]
+  const categories = ["all", ...new Set(totalProductData?.map((product) => product?.categoryName?.toLowerCase()))]
 
   const getStockPercentage = (current: number, min: number) => {
     if (current === 0) return 0
@@ -116,8 +92,8 @@ export function StockTable({ stockFilter }: StockTableProps) {
               {categories
                 .filter((c) => c !== "all")
                 .map((category) => (
-                  <SelectItem key={category} value={category}>
-                    {category.charAt(0).toUpperCase() + category.slice(1)}
+                  <SelectItem key={category ?? ""} value={category ?? ""}>
+                    {(category ?? "").charAt(0).toUpperCase() + (category ?? "").slice(1)}
                   </SelectItem>
                 ))}
             </SelectContent>
@@ -135,25 +111,35 @@ export function StockTable({ stockFilter }: StockTableProps) {
               <TableHead>Min Stock</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Stock Level</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              {/* <TableHead className="text-right">Actions</TableHead> */}
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredProducts.length > 0 ? (
-              filteredProducts.map((product) => (
-                <TableRow key={product.id}>
-                  <TableCell className="font-medium">{product.name}</TableCell>
-                  <TableCell>{product.category}</TableCell>
+            {loading ? (
+              <TableRow>
+                <TableCell colSpan={7} className="h-24 text-center">
+                  <div className="flex justify-center items-center space-x-2">
+                    <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                    <span>Loading Stock...</span>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ) : 
+            filteredProducts?.length > 0 ? (
+              filteredProducts?.map((product) => (
+                <TableRow key={product?._id}>
+                  <TableCell className="font-medium">{product?.name} - {product?.packingSize}</TableCell>
+                  <TableCell>{product?.categoryName}</TableCell>
                   <TableCell>
-                    {product.stock} {product.unit}
+                    {product?.quantity} {product?.unit}
                   </TableCell>
                   <TableCell>
-                    {product.minStock} {product.unit}
+                    {product?.minStockLevel} {product?.unit}
                   </TableCell>
                   <TableCell>
                     <Badge
                       variant={
-                        product.status === "In Stock"
+                        product?.status === "In Stock"
                           ? "default"
                           : product.status === "Low Stock"
                             ? "outline"
@@ -166,7 +152,7 @@ export function StockTable({ stockFilter }: StockTableProps) {
                   <TableCell className="w-[200px]">
                     <div className="flex flex-col gap-1">
                       <Progress
-                        value={getStockPercentage(product.stock, product.minStock)}
+                        value={getStockPercentage(product?.quantity ?? 0, product?.minStockLevel ?? 1)}
                         className={
                           product.status === "Out of Stock"
                             ? "bg-destructive/20"
@@ -176,13 +162,13 @@ export function StockTable({ stockFilter }: StockTableProps) {
                         }
                       />
                       <span className="text-xs text-muted-foreground">
-                        {product.stock > 0
-                          ? `${Math.round((product.stock / product.minStock) * 100)}% of minimum`
+                        {(product?.quantity ?? 0) > 0
+                          ? `${Math.round(((product?.quantity ?? 0) / (product?.minStockLevel ?? 1)) * 100)}% of minimum`
                           : "Out of stock"}
                       </span>
                     </div>
                   </TableCell>
-                  <TableCell className="text-right">
+                  {/* <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
                       <Button variant="outline" size="sm">
                         <ArrowDownToLine className="h-4 w-4" />
@@ -193,7 +179,7 @@ export function StockTable({ stockFilter }: StockTableProps) {
                         <span className="sr-only md:not-sr-only md:ml-2">Stock Out</span>
                       </Button>
                     </div>
-                  </TableCell>
+                  </TableCell> */}
                 </TableRow>
               ))
             ) : (

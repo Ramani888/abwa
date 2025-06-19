@@ -1,16 +1,67 @@
+"use client"
+
 import { Button } from "@/components/ui/button"
 import { StockTable } from "@/components/dashboard/stock-table"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ArrowDownToLine, ArrowUpFromLine, AlertTriangle } from "lucide-react"
 import Link from "next/link"
+import { useSelector } from "react-redux"
+import { RootState } from "@/lib/store"
+import { Skeleton } from "@/components/ui/skeleton"
+import { IProduct } from "@/types/product"
+
+function CardSkeleton() {
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <Skeleton className="h-4 w-24" /> {/* Title */}
+        <Skeleton className="h-4 w-4" />   {/* Icon */}
+      </CardHeader>
+      <CardContent>
+        <Skeleton className="h-8 w-16 mb-2" /> {/* Main number */}
+        <Skeleton className="h-3 w-32" />      {/* Description */}
+      </CardContent>
+    </Card>
+  );
+}
+
+interface totalProductData extends IProduct {
+  packingSize?: string
+  unit?: string
+  quantity?: number
+  minStockLevel?: number
+  status?: string
+}
 
 export default function StockPage() {
+  const { products, loading } = useSelector((state: RootState) => state.products)
+
+  const totalProductData: totalProductData[] =
+    products?.flatMap((product) =>
+      product?.variants?.map((variant) => ({
+        ...product,
+        packingSize: variant.packingSize,
+        unit: variant.unit,
+        quantity: variant.quantity,
+        minStockLevel: variant.minStockLevel,
+        status: variant?.status
+      }))
+    ) || [] 
+
+  const totalProducts = totalProductData?.length || 0;
+
+  const lowStockProduct = totalProductData?.filter(product => product.status === "Low Stock")
+  const totalLowStockProduct = lowStockProduct?.length || 0;
+
+  const outOfStockProduct = totalProductData?.filter(product => product.status === "Out of Stock")
+  const totalOutOfStockProduct = outOfStockProduct?.length || 0;
+
   return (
     <div className="flex flex-col gap-6 w-full">
       <div className="flex items-center justify-between">
         <h2 className="text-3xl font-bold tracking-tight">Stock Management</h2>
-        <div className="flex gap-2">
+        {/* <div className="flex gap-2">
           <Link href="/dashboard/stock/in">
             <Button variant="outline">
               <ArrowDownToLine className="mr-2 h-4 w-4" />
@@ -23,39 +74,56 @@ export default function StockPage() {
               Stock Out
             </Button>
           </Link>
-        </div>
+        </div> */}
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Products</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">156</div>
-            <p className="text-xs text-muted-foreground">Across all categories</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Low Stock Items</CardTitle>
-            <AlertTriangle className="h-4 w-4 text-amber-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">12</div>
-            <p className="text-xs text-muted-foreground">Below minimum stock level</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Out of Stock</CardTitle>
-            <AlertTriangle className="h-4 w-4 text-destructive" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">3</div>
-            <p className="text-xs text-muted-foreground">Need immediate restock</p>
-          </CardContent>
-        </Card>
+        {/* Total Products Card */}
+        {loading ? (
+          <CardSkeleton />
+        ) : (
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Products</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{totalProducts}</div>
+              <p className="text-xs text-muted-foreground">Across all categories</p>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Low Stock Items Card */}
+        {loading ? (
+          <CardSkeleton />
+        ) : (
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Low Stock Items</CardTitle>
+              <AlertTriangle className="h-4 w-4 text-amber-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{totalLowStockProduct}</div>
+              <p className="text-xs text-muted-foreground">Below minimum stock level</p>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Out of Stock Card */}
+        {loading ? (
+          <CardSkeleton />
+        ) : (
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Out of Stock</CardTitle>
+              <AlertTriangle className="h-4 w-4 text-destructive" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{totalOutOfStockProduct}</div>
+              <p className="text-xs text-muted-foreground">Need immediate restock</p>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       <Tabs defaultValue="all" className="space-y-4">
