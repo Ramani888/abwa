@@ -133,10 +133,6 @@ export default function EditOrderPage({ params }: { params: { id: string } }) {
     getProductData();
   }, [])
 
-  const filteredProducts = productData?.filter((product) =>
-    product?.name.toLowerCase().includes(searchQuery.toLowerCase())
-  )
-
   const filteredCustomers = customerData?.filter(
     (customer) =>
       customer?.customerType === activeTab &&
@@ -337,7 +333,7 @@ export default function EditOrderPage({ params }: { params: { id: string } }) {
                 <CardContent>
                   <div className="space-y-4">
                     <div className="relative">
-                      <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                      <Search className="absolute left-2.5 top-3 h-4 w-4 text-muted-foreground" />
                       <Input
                         type="search"
                         placeholder="Search customers..."
@@ -357,6 +353,11 @@ export default function EditOrderPage({ params }: { params: { id: string } }) {
                             {customer?.name} - {customer?.number}
                           </SelectItem>
                         ))}
+                        {filteredCustomers?.length === 0 && (
+                          <SelectItem value="-1" disabled>
+                            No customers found
+                          </SelectItem>
+                        )}
                       </SelectContent>
                     </Select>
                   </div>
@@ -371,7 +372,7 @@ export default function EditOrderPage({ params }: { params: { id: string } }) {
                 <CardContent>
                   <div className="space-y-4">
                     <div className="relative">
-                      <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                      <Search className="absolute left-2.5 top-3 h-4 w-4 text-muted-foreground" />
                       <Input
                         type="search"
                         placeholder="Search wholesale customers..."
@@ -391,6 +392,11 @@ export default function EditOrderPage({ params }: { params: { id: string } }) {
                             {customer?.name} - {customer?.number}
                           </SelectItem>
                         ))}
+                        {filteredCustomers?.length === 0 && (
+                          <SelectItem value="-1" disabled>
+                            No customers found
+                          </SelectItem>
+                        )}
                       </SelectContent>
                     </Select>
                   </div>
@@ -415,7 +421,7 @@ export default function EditOrderPage({ params }: { params: { id: string } }) {
                       <SelectValue placeholder="Select a product" />
                     </SelectTrigger>
                     <SelectContent>
-                      {filteredProducts.map((product) => (
+                      {productData?.map((product) => (
                         <SelectItem key={product?._id ?? ""} value={product?._id ?? ""}>
                           {product.name}
                         </SelectItem>

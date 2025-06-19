@@ -53,8 +53,6 @@ export default function NewOrderPage() {
   const [captureDate, setCaptureDate] = useState(new Date().toISOString().slice(0, 10)) // <-- Add state for captureDate
   const router = useRouter()
 
-  const filteredProducts = productData?.filter((product) => product?.name.toLowerCase().includes(searchQuery.toLowerCase()))
-
   const filteredCustomers = customerData?.filter(
     (customer) =>
       customer?.customerType === activeTab &&
@@ -284,7 +282,7 @@ export default function NewOrderPage() {
                   <div className="space-y-4">
                     {/* --- End date input --- */}
                     <div className="relative">
-                      <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                      <Search className="absolute left-2.5 top-3 h-4 w-4 text-muted-foreground" />
                       <Input
                         type="search"
                         placeholder="Search customers..."
@@ -304,6 +302,11 @@ export default function NewOrderPage() {
                             {customer?.name} - {customer?.number}
                           </SelectItem>
                         ))}
+                        {filteredCustomers?.length === 0 && (
+                          <SelectItem value="-1" disabled>
+                            No customers found
+                          </SelectItem>
+                        )}
                       </SelectContent>
                     </Select>
                   </div>
@@ -317,24 +320,9 @@ export default function NewOrderPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {/* --- Date input placed here --- */}
-                    <div>
-                      <Label htmlFor="captureDate">Order Date</Label>
-                      <div className="relative">
-                        <Calendar className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                        <Input
-                          id="captureDate"
-                          name="captureDate"
-                          type="date"
-                          className="pl-8"
-                          value={captureDate}
-                          onChange={e => setCaptureDate(e.target.value)}
-                        />
-                      </div>
-                    </div>
                     {/* --- End date input --- */}
                     <div className="relative">
-                      <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                      <Search className="absolute left-2.5 top-3 h-4 w-4 text-muted-foreground" />
                       <Input
                         type="search"
                         placeholder="Search wholesale customers..."
@@ -354,6 +342,11 @@ export default function NewOrderPage() {
                             {customer?.name} - {customer?.number}
                           </SelectItem>
                         ))}
+                        {filteredCustomers?.length === 0 && (
+                          <SelectItem value="-1" disabled>
+                            No customers found
+                          </SelectItem>
+                        )}
                       </SelectContent>
                     </Select>
                   </div>
@@ -378,7 +371,7 @@ export default function NewOrderPage() {
                       <SelectValue placeholder="Select a product" />
                     </SelectTrigger>
                     <SelectContent>
-                      {filteredProducts.map((product) => (
+                      {productData?.map((product) => (
                         <SelectItem key={product?._id ?? ""} value={product?._id ?? ""}>
                           {product.name}
                         </SelectItem>

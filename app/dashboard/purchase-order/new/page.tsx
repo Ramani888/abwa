@@ -51,8 +51,6 @@ export default function NewPurchaseOrderPage() {
   const [captureDate, setCaptureDate] = useState<string>(new Date().toISOString().slice(0, 10)) // <-- Add captureDate state
   const router = useRouter()
 
-  const filteredProducts = productData?.filter((product) => product?.name.toLowerCase().includes(searchQuery.toLowerCase()))
-
   const filteredSuppliers = supplierData?.filter((supplier) => supplier?.name.toLowerCase().includes(searchQuery.toLowerCase()))
 
   const getSupplierData = async () => {
@@ -266,7 +264,7 @@ export default function NewPurchaseOrderPage() {
             <CardContent>
               <div className="space-y-4">
                 <div className="relative">
-                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Search className="absolute left-2.5 top-3 h-4 w-4 text-muted-foreground" />
                   <Input
                     type="search"
                     placeholder="Search supplier..."
@@ -286,6 +284,11 @@ export default function NewPurchaseOrderPage() {
                         {supplier?.name} - {supplier?.number}
                       </SelectItem>
                     ))}
+                    {filteredSuppliers?.length === 0 && (
+                      <SelectItem value="-1" disabled>
+                        No suppliers found
+                      </SelectItem>
+                    )}
                   </SelectContent>
                 </Select>
               </div>
@@ -308,7 +311,7 @@ export default function NewPurchaseOrderPage() {
                       <SelectValue placeholder="Select a product" />
                     </SelectTrigger>
                     <SelectContent>
-                      {filteredProducts.map((product) => (
+                      {productData?.map((product) => (
                         <SelectItem key={product?._id ?? ""} value={product?._id ?? ""}>
                           {product.name}
                         </SelectItem>
