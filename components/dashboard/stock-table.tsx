@@ -117,7 +117,7 @@ export function StockTable({ stockFilter }: StockTableProps) {
           <TableBody>
             {loading ? (
               <TableRow>
-                <TableCell colSpan={7} className="h-24 text-center">
+                <TableCell colSpan={7} className="h-24 text-center whitespace-nowrap">
                   <div className="flex justify-center items-center space-x-2">
                     <Loader2 className="h-5 w-5 animate-spin text-primary" />
                     <span>Loading Stock...</span>
@@ -128,7 +128,7 @@ export function StockTable({ stockFilter }: StockTableProps) {
             filteredProducts?.length > 0 ? (
               filteredProducts?.map((product) => (
                 <TableRow key={product?._id}>
-                  <TableCell className="font-medium">{product?.name} - {product?.packingSize}</TableCell>
+                  <TableCell className="font-medium whitespace-nowrap">{product?.name} - {product?.packingSize}</TableCell>
                   <TableCell>{product?.categoryName}</TableCell>
                   <TableCell>
                     {product?.quantity} {product?.unit}
