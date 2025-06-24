@@ -15,6 +15,22 @@ export default function CustomerDetailsPage({ params }: { params: { id: string }
   const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
 
+  // Calculate totals
+  const pendingTotal = customerData?.orders?.reduce(
+    (sum: number, order: any) => order.paymentStatus !== "paid" ? sum + (order.total || 0) : sum,
+    0
+  ) || 0;
+
+  const paidTotal = customerData?.orders?.reduce(
+    (sum: number, order: any) => order.paymentStatus === "paid" ? sum + (order.total || 0) : sum,
+    0
+  ) || 0;
+
+  const totalAmount = customerData?.orders?.reduce(
+    (sum: number, order: any) => sum + (order.total || 0),
+    0
+  ) || 0;
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -65,6 +81,43 @@ export default function CustomerDetailsPage({ params }: { params: { id: string }
             </Button>
           </Link>
         </div>
+      </div>
+
+      {/* Responsive Stat Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 mb-6">
+        <Card className="border border-red-200 bg-white transition-all duration-200">
+          <CardContent className="flex items-center gap-4 py-6">
+            <div className="flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
+              <ArrowLeft className="h-6 w-6 text-red-500" />
+            </div>
+            <div>
+              <div className="text-sm text-muted-foreground font-medium">Pending Amount</div>
+              <div className="text-2xl font-bold text-red-600 break-words">₹{pendingTotal.toFixed(2)}</div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="border border-green-200 bg-white transition-all duration-200">
+          <CardContent className="flex items-center gap-4 py-6">
+            <div className="flex items-center justify-center h-12 w-12 rounded-full bg-green-100">
+              <ShoppingBag className="h-6 w-6 text-green-500" />
+            </div>
+            <div>
+              <div className="text-sm text-muted-foreground font-medium">Paid Amount</div>
+              <div className="text-2xl font-bold text-green-600 break-words">₹{paidTotal.toFixed(2)}</div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="border border-blue-200 bg-white transition-all duration-200">
+          <CardContent className="flex items-center gap-4 py-6">
+            <div className="flex items-center justify-center h-12 w-12 rounded-full bg-blue-100">
+              <Edit className="h-6 w-6 text-blue-500" />
+            </div>
+            <div>
+              <div className="text-sm text-muted-foreground font-medium">Total Amount</div>
+              <div className="text-2xl font-bold text-blue-600 break-words">₹{totalAmount.toFixed(2)}</div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       <div className="grid gap-6">

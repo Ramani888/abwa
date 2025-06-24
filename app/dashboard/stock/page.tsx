@@ -57,6 +57,9 @@ export default function StockPage() {
   const outOfStockProduct = totalProductData?.filter(product => product.status === "Out of Stock")
   const totalOutOfStockProduct = outOfStockProduct?.length || 0;
 
+  const inStockProduct = totalProductData?.filter(product => product.status === "In Stock")
+  const totalInStockProduct = inStockProduct?.length || 0;
+
   return (
     <div className="flex flex-col gap-6 w-full">
       <div className="flex items-center justify-between">
@@ -77,7 +80,7 @@ export default function StockPage() {
         </div> */}
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-4">
         {/* Total Products Card */}
         {loading ? (
           <CardSkeleton />
@@ -124,6 +127,22 @@ export default function StockPage() {
             </CardContent>
           </Card>
         )}
+        
+        {/* In Stock Card */}
+        {loading ? (
+          <CardSkeleton />
+        ) : (
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">In Stock</CardTitle>
+              <AlertTriangle className="h-4 w-4 text-green-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{totalInStockProduct}</div>
+              <p className="text-xs text-muted-foreground">Above minimum stock level</p>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       <Tabs defaultValue="all" className="space-y-4">
@@ -131,6 +150,7 @@ export default function StockPage() {
           <TabsTrigger value="all">All Stock</TabsTrigger>
           <TabsTrigger value="low">Low Stock</TabsTrigger>
           <TabsTrigger value="out">Out of Stock</TabsTrigger>
+          <TabsTrigger value="in">In Stock</TabsTrigger>
           <TabsTrigger value="history">Stock History</TabsTrigger>
         </TabsList>
         <TabsContent value="all">
@@ -141,6 +161,9 @@ export default function StockPage() {
         </TabsContent>
         <TabsContent value="out">
           <StockTable stockFilter="out" />
+        </TabsContent>
+        <TabsContent value="in">
+          <StockTable stockFilter="in" />
         </TabsContent>
         <TabsContent value="history">
           <Card>

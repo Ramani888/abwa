@@ -13,7 +13,7 @@ import { RootState } from "@/lib/store"
 import { IProduct } from "@/types/product"
 
 interface StockTableProps {
-  stockFilter: "all" | "low" | "out"
+  stockFilter: "all" | "low" | "out" | "in"
 }
 
 interface totalProductData extends IProduct {
@@ -52,7 +52,8 @@ export function StockTable({ stockFilter }: StockTableProps) {
     const matchesStockFilter =
       stockFilter === "all" ||
       (stockFilter === "low" && product?.status === "Low Stock") ||
-      (stockFilter === "out" && product?.status === "Out of Stock")
+      (stockFilter === "out" && product?.status === "Out of Stock") ||
+      (stockFilter === "in" && product?.status === "In Stock")
 
     return matchesSearch && matchesCategory && matchesStockFilter
   })
