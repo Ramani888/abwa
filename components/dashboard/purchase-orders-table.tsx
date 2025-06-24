@@ -30,6 +30,7 @@ import { usePermission } from "@/hooks/usePermission"
 import { Permissions } from "@/utils/consts/permission"
 import { serverDeletePurchaseOrder, serverGetPurchaseOrder } from "@/services/serverApi"
 import { IPurchaseOrder } from "@/types/purchaseOrder"
+import { paymentStatuses } from "@/utils/consts/product"
 
 export function PurchaseOrdersTable({ setRefreshFunction }: { setRefreshFunction?: (fn: () => Promise<void>) => void }) {
   const { hasPermission, hasAnyPermission } = usePermission();
@@ -45,7 +46,9 @@ export function PurchaseOrdersTable({ setRefreshFunction }: { setRefreshFunction
       order?._id?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       order?.supplierData?.name?.toLowerCase().includes(searchQuery.toLowerCase())
 
-    return matchesSearch
+      const matchesStatus = statusFilter === "all" || order.paymentStatus === statusFilter
+
+    return matchesSearch && matchesStatus
   })
 
   const handleDeleteClick = (id: string) => {
@@ -117,10 +120,13 @@ export function PurchaseOrdersTable({ setRefreshFunction }: { setRefreshFunction
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="pending">Pending</SelectItem>
-              <SelectItem value="processing">Processing</SelectItem>
-              <SelectItem value="completed">Completed</SelectItem>
-              <SelectItem value="cancelled">Cancelled</SelectItem>
+              {paymentStatuses?.map((item) => {
+                return (
+                  <SelectItem key={item.value} value={item.value}>
+                    {item.label}
+                  </SelectItem>
+                )
+              })}
             </SelectContent>
           </Select>
         </div>
