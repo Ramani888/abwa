@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -16,116 +16,16 @@ import { ArrowLeft, Download, Printer, Share2 } from "lucide-react"
 import jsPDF from "jspdf"
 import html2canvas from "html2canvas"
 import printJS from "print-js"
+import { serverGetOrder } from "@/services/serverApi"
+import { IOrder } from "@/types/order"
+import { useAuth } from "@/components/auth-provider"
 
-// Sample invoice data
-type InvoiceItem = {
-  id: string
-  name: string
-  batch: string
-  expiry: string
-  packing: string
-  mrp: number
-  rate: number
-  quantity: number
-  total: number
-}
-
-type Invoice = {
-  id: string
-  date: string
-  customer: {
-    name: string
-    address: string
-    gst: string
-  }
-  shop: {
-    name: string
-    address: string
-    phone: string
-    gst: string
-  }
-  items: InvoiceItem[]
-  taxPercent: number
-  paymentMethod: string
-  paymentStatus: string
-  subtotal: number
-  tax: number
-  total: number
-}
-
-const baseInvoice = {
-  id: "10",
-  date: "14-07-2020",
-  customer: {
-    name: "Rakeshbhai P. Bhutdiya",
-    address: "P.O. & Village: Podi, Ta. Maliya Hatina, Dist. Junagadh",
-    gst: "24AEDRF1245N1ZW",
-  },
-  shop: {
-    name: "MANAN AGRO AGENCY",
-    address: "Shop No. 12, Green Park, Center Point, Kodinar, Gujarat - 362720",
-    phone: "9876543210",
-    gst: "24AKPPP1434N1ZR",
-  },
-  items: [
-    {
-      id: "1",
-      name: "Phosphorus Fertilizer",
-      batch: "RX39",
-      expiry: "10/2024",
-      packing: "10 kg",
-      mrp: 1500,
-      rate: 1000,
-      quantity: 10,
-      total: 10000,
-    },
-    {
-      id: "2",
-      name: "Bio Potash 50%",
-      batch: "RX45",
-      expiry: "05/2024",
-      packing: "500 ml",
-      mrp: 1050,
-      rate: 1050,
-      quantity: 10,
-      total: 10500,
-    },
-    {
-      id: "3",
-      name: "Microbial Power Gel",
-      batch: "RX51",
-      expiry: "04/2023",
-      packing: "1 L",
-      mrp: 2500,
-      rate: 2500,
-      quantity: 10,
-      total: 25000,
-    },
-  ],
-  taxPercent: 5,
-  paymentMethod: "Cash",
-  paymentStatus: "Paid",
-}
-
-const subtotal = baseInvoice.items.reduce((sum, item) => sum + item.total, 0)
-const tax = +(subtotal * (baseInvoice.taxPercent / 100)).toFixed(2)
-const total = subtotal + tax
-
-const invoice: Invoice = {
-  ...baseInvoice,
-  subtotal,
-  tax,
-  total,
-}
-
-// Place your logo image in the public folder, e.g. /public/logo.png
-// Place your signature image in the public folder, e.g. /public/signature.png
-
-export default function InvoicePage() {
+export default function InvoicePage({ params }: { params: { id: string } }) {
+  const { owner } = useAuth();
   const [isLoading, setIsLoading] = useState(false)
-  const [invoiceType, setInvoiceType] = useState<"retail" | "challan">("retail")
   const router = useRouter()
   const printRef = useRef<HTMLDivElement>(null)
+  const [orderData, setOrderData] = useState<IOrder | null>(null)
 
   // Print using print-js library
   const handlePrint = () => {
@@ -173,9 +73,79 @@ export default function InvoicePage() {
       const pdfWidth = pageWidth
       const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width
       pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight)
-      pdf.save(`invoice-${invoice.id}.pdf`)
+      pdf.save(`invoice-${orderData?._id}.pdf`)
     }
     setIsLoading(false)
+  }
+
+  // Share as PDF using Web Share API Level 2
+  const handleShare = async () => {
+    if (!navigator.canShare || !navigator.canShare({ files: [] })) {
+      alert("Sharing PDF is not supported in this browser. Please download the PDF and share manually.");
+      return;
+    }
+    setIsLoading(true);
+    try {
+      if (printRef.current) {
+        const canvas = await html2canvas(printRef.current, { scale: 2 });
+        const imgData = canvas.toDataURL("image/png");
+        const pdf = new jsPDF({
+          orientation: "portrait",
+          unit: "pt",
+          format: "a4",
+        });
+        const pageWidth = pdf.internal.pageSize.getWidth();
+        const imgProps = pdf.getImageProperties(imgData);
+        const pdfWidth = pageWidth;
+        const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+        pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+
+        // Get PDF as Blob
+        const pdfBlob = pdf.output("blob");
+        const file = new File(
+          [pdfBlob],
+          `invoice-${orderData?._id}.pdf`,
+          { type: "application/pdf" }
+        );
+
+        await navigator.share({
+          files: [file],
+          title: orderData?.customerType === "retail" ? "Retail Invoice" : "Delivery Challan",
+          text: "Here is your invoice PDF.",
+        });
+      }
+    } catch (error) {
+      alert("Failed to share PDF: " + error);
+    }
+    setIsLoading(false);
+  };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true)
+      try {
+        const res = await serverGetOrder();
+        const findOrderData = res?.data?.find((order: any) => order?._id?.toString() === params?.id);
+        setOrderData(findOrderData || null);
+      } catch (error) {
+        console.error("Error fetching order data:", error);
+        setOrderData(null);
+      }
+      setIsLoading(false)
+    }
+    fetchData()
+  }, [params.id])
+
+  // Loading UI
+  if (isLoading && !orderData) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-emerald-700 text-xl font-bold animate-pulse">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-2">Loading invoice...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -187,24 +157,15 @@ export default function InvoicePage() {
             <ArrowLeft className="w-4 h-4" />
           </Button>
           <span className="text-2xl font-extrabold text-emerald-900 tracking-wide">
-            {invoiceType === "retail" ? "Retail Invoice" : "Delivery Challan"} #{invoice.id}
+            {orderData?.customerType === "retail" ? "Retail Invoice" : "Delivery Challan"} #{1}
           </span>
         </div>
         <div className="flex gap-2">
-          <select
-            className="border rounded px-2 py-1 text-sm focus:ring-2 focus:ring-emerald-300"
-            value={invoiceType}
-            onChange={e => setInvoiceType(e.target.value as "retail" | "challan")}
-            disabled={isLoading}
-          >
-            <option value="retail">Retail Invoice</option>
-            <option value="challan">Delivery Challan</option>
-          </select>
           <Button onClick={handlePrint} variant="outline">
             <Printer className="mr-2 h-4 w-4" />
             Print
           </Button>
-          <Button variant="outline">
+          <Button onClick={handleShare} variant="outline">
             <Share2 className="mr-2 h-4 w-4" />
             Share
           </Button>
@@ -222,7 +183,7 @@ export default function InvoicePage() {
             {/* Invoice Title at the very top, centered */}
             <div className="mb-6">
               <h2 className="text-3xl font-black text-emerald-700 text-center uppercase tracking-widest">
-                {invoiceType === "retail" ? "Retail Invoice" : "Delivery Challan"}
+                {orderData?.customerType === "retail" ? "Retail Invoice" : "Delivery Challan"}
               </h2>
               {/* Underline removed */}
             </div>
@@ -231,15 +192,14 @@ export default function InvoicePage() {
             <div className="flex flex-col md:flex-row items-center border-b pb-8 mb-8 gap-8">
               {/* Agro Details Left */}
               <div className="flex-1 text-left">
-                <h1 className="text-3xl font-extrabold uppercase text-emerald-900 tracking-wider">{invoice.shop.name}</h1>
-                <p className="text-base text-gray-700 mt-2">{invoice.shop.address}</p>
+                <h1 className="text-3xl font-extrabold uppercase text-emerald-900 tracking-wider">{owner?.shop?.name}</h1>
+                <p className="text-base text-gray-700 mt-2">{owner?.shop?.address}</p>
                 <div className="flex flex-col sm:flex-row gap-3 mt-2">
-                  <span className="text-base text-gray-700">Phone: <span className="font-semibold">{invoice.shop.phone}</span></span>
-                  <span className="text-base text-gray-700">GSTIN: <span className="font-semibold">{invoice.shop.gst}</span></span>
+                  <span className="text-base text-gray-700">Phone: <span className="font-semibold">{owner?.shop?.number}</span></span>
+                  <span className="text-base text-gray-700">GST: <span className="font-semibold">{owner?.shop?.gst}</span></span>
                 </div>
                 <div className="mt-4">
-                  <div className="text-base font-bold text-emerald-900">Owner: Manan Patel</div>
-                  <div className="text-base font-bold text-emerald-900">+91 9876543210</div>
+                  <div className="text-base font-bold text-emerald-900">{owner?.name}: {owner?.number}</div>
                   <div className="text-xs mt-2 text-emerald-800">Pesticide Licence No: 123456-PL-2025</div>
                   <div className="text-xs text-emerald-800">Seeds Licence No: 654321-SL-2025</div>
                 </div>
@@ -249,7 +209,7 @@ export default function InvoicePage() {
                 <img
                   src="/logo.png"
                   alt="Company Logo"
-                  className="h-28 w-auto object-contain rounded border border-emerald-300 bg-white"
+                  className="h-28 w-auto object-contain bg-white"
                   style={{ maxWidth: 140 }}
                 />
               </div>
@@ -258,15 +218,38 @@ export default function InvoicePage() {
             {/* Bill & Date */}
             <div className="flex flex-col md:flex-row justify-between gap-8 mt-2 border-b pb-6">
               <div>
-                <p className="font-bold text-emerald-900"><span className="text-gray-700">Bill To:</span> {invoice.customer.name}</p>
-                <p className="text-base text-gray-700">{invoice.customer.address}</p>
-                <p className="text-base text-gray-700">GST: {invoice.customer.gst}</p>
+                <p className="font-bold text-emerald-900"><span className="text-gray-700">Bill To:</span> {orderData?.customerData?.name}</p>
+                <p className="text-base text-gray-700">{orderData?.customerData?.address}</p>
+                <p className="text-base text-gray-700">Phone: {orderData?.customerData?.number}</p>
+                {orderData?.customerType !== 'retail' && (
+                  <p className="text-base text-gray-700">GST: {orderData?.customerData?.gstNumber}</p>
+                )}
               </div>
-              <div className="text-right">
-                <p className="font-bold text-emerald-900"><span className="text-gray-700">Invoice No:</span> {invoice.id}</p>
-                <p className="text-base text-gray-700"><span className="font-bold text-emerald-900">Date:</span> {invoice.date}</p>
-                <p className="text-base text-gray-700"><span className="font-bold text-emerald-900">Payment:</span> {invoice.paymentMethod}</p>
-                <p className="text-base text-gray-700"><span className="font-bold text-emerald-900">Status:</span> {invoice.paymentStatus}</p>
+              <div className="text-right space-y-1">
+                <div className="flex justify-start gap-2">
+                  <span className="font-bold text-emerald-900">
+                    <span className="text-gray-700">
+                      {orderData?.customerType === "retail" ? "Invoice No:" : "Challan No:"}
+                    </span>
+                  </span>
+                  <span>{1}</span>
+                </div>
+                <div className="flex justify-start gap-2">
+                  <span className="font-bold text-emerald-900">Date:</span>
+                  <span>
+                    {orderData?.captureDate
+                      ? new Date(orderData.captureDate).toLocaleDateString()
+                      : "-"}
+                  </span>
+                </div>
+                <div className="flex justify-start gap-2">
+                  <span className="font-bold text-emerald-900">Payment:</span>
+                  <span className="capitalize">{orderData?.paymentMethod || "-"}</span>
+                </div>
+                <div className="flex justify-start gap-2">
+                  <span className="font-bold text-emerald-900">Status:</span>
+                  <span className="capitalize">{orderData?.paymentStatus || "-"}</span>
+                </div>
               </div>
             </div>
 
@@ -276,26 +259,30 @@ export default function InvoicePage() {
                 <TableHeader>
                   <TableRow className="bg-emerald-100">
                     <TableHead className="font-bold text-emerald-900">Product</TableHead>
-                    <TableHead className="font-bold text-emerald-900">Batch</TableHead>
-                    <TableHead className="font-bold text-emerald-900">Expiry</TableHead>
-                    <TableHead className="font-bold text-emerald-900">Packing</TableHead>
-                    <TableHead className="text-right font-bold text-emerald-900">MRP</TableHead>
-                    <TableHead className="text-right font-bold text-emerald-900">Rate</TableHead>
-                    <TableHead className="text-right font-bold text-emerald-900">Qty</TableHead>
-                    <TableHead className="text-right font-bold text-emerald-900">Amount</TableHead>
+                    <TableHead className="font-bold text-emerald-900">Size</TableHead>
+                    <TableHead className="text-center font-bold text-emerald-900">MRP</TableHead>
+                    <TableHead className="text-center font-bold text-emerald-900">Price</TableHead>
+                    <TableHead className="text-center font-bold text-emerald-900">Unit</TableHead>
+                    <TableHead className="text-center font-bold text-emerald-900">Carton</TableHead>
+                    <TableHead className="text-center font-bold text-emerald-900">Qty</TableHead>
+                    <TableHead className="text-center font-bold text-emerald-900">GST %</TableHead>
+                    <TableHead className="text-center font-bold text-emerald-900">GST Amount</TableHead>
+                    <TableHead className="text-right font-bold text-emerald-900">Total</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {invoice.items.map((item, idx) => (
-                    <TableRow key={item.id} className={idx % 2 === 0 ? "bg-white" : "bg-emerald-50"}>
-                      <TableCell>{item.name}</TableCell>
-                      <TableCell>{item.batch}</TableCell>
-                      <TableCell>{item.expiry}</TableCell>
-                      <TableCell>{item.packing}</TableCell>
-                      <TableCell className="text-right">₹{item.mrp}</TableCell>
-                      <TableCell className="text-right">₹{item.rate}</TableCell>
-                      <TableCell className="text-right">{item.quantity}</TableCell>
-                      <TableCell className="text-right">₹{item.total.toFixed(2)}</TableCell>
+                  {orderData?.products?.map((item, idx) => (
+                    <TableRow key={item?._id} className={idx % 2 === 0 ? "bg-white" : "bg-emerald-50"}>
+                      <TableCell>{item?.productData?.name}</TableCell>
+                      <TableCell>{item?.variantData?.packingSize}</TableCell>
+                      <TableCell className="text-center">₹{item?.mrp || item?.variantData?.mrp}</TableCell>
+                      <TableCell className="text-center">₹{item?.price}</TableCell>
+                      <TableCell className="text-center">{item?.unit}</TableCell>
+                      <TableCell className="text-center">{item?.carton}</TableCell>
+                      <TableCell className="text-center">{item?.quantity}</TableCell>
+                      <TableCell className="text-center">{item?.gstRate}%</TableCell>
+                      <TableCell className="text-center">₹{item?.gstAmount?.toFixed(2)}</TableCell>
+                      <TableCell className="text-right">₹{item?.total?.toFixed(2)}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -307,25 +294,25 @@ export default function InvoicePage() {
               <div className="w-full sm:w-1/2 md:w-1/3 border border-emerald-400 rounded-xl p-5 bg-emerald-50">
                 <div className="flex justify-between text-emerald-900 text-base">
                   <span>Taxable Amount:</span>
-                  <span>₹{invoice.subtotal.toFixed(2)}</span>
+                  <span>₹{orderData?.subTotal?.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-emerald-900 text-base">
-                  <span>CGST ({invoice.taxPercent / 2}%):</span>
-                  <span>₹{(invoice.tax / 2).toFixed(2)}</span>
+                  <span>Total GST:</span>
+                  <span>₹{((orderData?.totalGst ?? 0)).toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-emerald-900 text-base">
-                  <span>SGST ({invoice.taxPercent / 2}%):</span>
-                  <span>₹{(invoice.tax / 2).toFixed(2)}</span>
+                  <span>Round Off:</span>
+                  <span>₹{((orderData?.roundOff ?? 0)).toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between font-extrabold text-xl mt-3 border-t pt-3 text-emerald-900">
                   <span>Total:</span>
-                  <span>₹{invoice.total.toFixed(2)}</span>
+                  <span>₹{orderData?.total?.toFixed(2)}</span>
                 </div>
               </div>
             </div>
 
             {/* Signature */}
-            <div className="flex justify-end mt-12">
+            <div className="flex justify-end mt-6">
               <div className="text-right">
                 <div className="mb-2">
                   <img
@@ -341,15 +328,14 @@ export default function InvoicePage() {
 
             {/* Footer */}
             <div className="mt-10 text-center text-base border-t pt-5 text-emerald-700">
-              {invoiceType === "retail" ? (
+              {orderData?.customerType === "retail" ? (
                 <>
-                  <p className="font-bold">Thank you for your business!</p>
-                  <p>* Goods once sold will not be taken back or exchanged.</p>
+                  <p>We always try to provide genuine and trustworthy information, but since these claims are not prepared under our supervision, we will not be responsible in any way, and no monetary compensation will be given.</p>
                   <p className="mt-1">E. & O.E. | Subject to Junagadh Jurisdiction</p>
                 </>
               ) : (
                 <>
-                  <p className="font-bold">This is a delivery challan for wholesale customer. No payment collected.</p>
+                  <p className="font-bold">This is a delivery challan for wholesale customer.</p>
                   <p className="mt-1">E. & O.E. | Subject to Junagadh Jurisdiction</p>
                 </>
               )}
