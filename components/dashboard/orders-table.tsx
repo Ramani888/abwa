@@ -106,19 +106,19 @@ export function OrdersTable({ setRefreshFunction }: { setRefreshFunction?: (fn: 
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-        <div className="relative flex-1 max-w-sm">
+        <div className="relative flex-1 max-w-full sm:max-w-sm w-full">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             type="search"
             placeholder="Search orders..."
-            className="pl-8"
+            className="pl-8 w-full"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
           <Select value={customerTypeFilter} onValueChange={setCustomerTypeFilter}>
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-full sm:w-[180px]">
               <SelectValue placeholder="Customer Type" />
             </SelectTrigger>
             <SelectContent>
@@ -129,7 +129,7 @@ export function OrdersTable({ setRefreshFunction }: { setRefreshFunction?: (fn: 
           </Select>
 
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-full sm:w-[180px]">
               <SelectValue placeholder="Order Status" />
             </SelectTrigger>
             <SelectContent>
@@ -146,8 +146,8 @@ export function OrdersTable({ setRefreshFunction }: { setRefreshFunction?: (fn: 
         </div>
       </div>
 
-      <div className="rounded-md border overflow-x-auto">
-        <Table>
+      <div className="rounded-md border overflow-x-auto w-full">
+        <Table className="min-w-[700px]">
           <TableHeader>
             <TableRow>
               <TableHead>Order ID</TableHead>
