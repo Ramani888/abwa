@@ -149,27 +149,27 @@ export default function InvoicePage({ params }: { params: { id: string } }) {
   }
 
   return (
-    <div className="max-w-5xl mx-auto p-6 print:p-2 min-h-screen">
+    <div className="max-w-5xl mx-auto p-2 sm:p-6 print:p-2 min-h-screen">
       {/* Header */}
-      <div className="flex justify-between items-center mb-8 print:hidden">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-8 gap-3 print:hidden">
         <div className="flex gap-2 items-center">
           <Button variant="outline" size="icon" onClick={() => router.back()}>
             <ArrowLeft className="w-4 h-4" />
           </Button>
-          <span className="text-2xl font-extrabold text-emerald-900 tracking-wide">
+          <span className="text-lg sm:text-2xl font-extrabold text-emerald-900 tracking-wide">
             {orderData?.customerType === "retail" ? "Retail Invoice" : "Delivery Challan"} #{1}
           </span>
         </div>
-        <div className="flex gap-2">
-          <Button onClick={handlePrint} variant="outline">
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+          <Button onClick={handlePrint} variant="outline" className="w-full sm:w-auto">
             <Printer className="mr-2 h-4 w-4" />
             Print
           </Button>
-          <Button onClick={handleShare} variant="outline">
+          <Button onClick={handleShare} variant="outline" className="w-full sm:w-auto">
             <Share2 className="mr-2 h-4 w-4" />
             Share
           </Button>
-          <Button onClick={handleDownload} disabled={isLoading}>
+          <Button onClick={handleDownload} disabled={isLoading} className="w-full sm:w-auto">
             <Download className="mr-2 h-4 w-4" />
             {isLoading ? "Preparing..." : "Download PDF"}
           </Button>
@@ -178,29 +178,28 @@ export default function InvoicePage({ params }: { params: { id: string } }) {
 
       {/* Invoice Card */}
       <div ref={printRef} className="invoice-print-area">
-        <Card className="rounded-2xl bg-white">
-          <CardContent className="p-8">
+        <Card className="rounded-xl sm:rounded-2xl bg-white">
+          <CardContent className="p-3 sm:p-8">
             {/* Invoice Title at the very top, centered */}
-            <div className="mb-6">
-              <h2 className="text-3xl font-black text-emerald-700 text-center uppercase tracking-widest">
+            <div className="mb-4 sm:mb-6">
+              <h2 className="text-xl sm:text-3xl font-black text-emerald-700 text-center uppercase tracking-widest">
                 {orderData?.customerType === "retail" ? "Retail Invoice" : "Delivery Challan"}
               </h2>
-              {/* Underline removed */}
             </div>
 
             {/* Agro Details and Logo Row */}
-            <div className="flex flex-col md:flex-row items-center border-b pb-8 mb-8 gap-8">
+            <div className="flex flex-col md:flex-row items-center border-b pb-4 sm:pb-8 mb-4 sm:mb-8 gap-4 sm:gap-8">
               {/* Agro Details Left */}
               <div className="flex-1 text-left">
-                <h1 className="text-3xl font-extrabold uppercase text-emerald-900 tracking-wider">{owner?.shop?.name}</h1>
-                <p className="text-base text-gray-700 mt-2">{owner?.shop?.address}</p>
-                <div className="flex flex-col sm:flex-row gap-3 mt-2">
-                  <span className="text-base text-gray-700">Phone: <span className="font-semibold">{owner?.shop?.number}</span></span>
-                  <span className="text-base text-gray-700">GST: <span className="font-semibold">{owner?.shop?.gst}</span></span>
+                <h1 className="text-lg sm:text-3xl font-extrabold uppercase text-emerald-900 tracking-wider">{owner?.shop?.name}</h1>
+                <p className="text-sm sm:text-base text-gray-700 mt-1 sm:mt-2">{owner?.shop?.address}</p>
+                <div className="flex flex-col sm:flex-row gap-1 sm:gap-3 mt-1 sm:mt-2">
+                  <span className="text-sm sm:text-base text-gray-700">Phone: <span className="font-semibold">{owner?.shop?.number}</span></span>
+                  <span className="text-sm sm:text-base text-gray-700">GST: <span className="font-semibold">{owner?.shop?.gst}</span></span>
                 </div>
-                <div className="mt-4">
-                  <div className="text-base font-bold text-emerald-900">{owner?.name}: {owner?.number}</div>
-                  <div className="text-xs mt-2 text-emerald-800">Pesticide Licence No: 123456-PL-2025</div>
+                <div className="mt-2 sm:mt-4">
+                  <div className="text-sm sm:text-base font-bold text-emerald-900">{owner?.name}: {owner?.number}</div>
+                  <div className="text-xs mt-1 sm:mt-2 text-emerald-800">Pesticide Licence No: 123456-PL-2025</div>
                   <div className="text-xs text-emerald-800">Seeds Licence No: 654321-SL-2025</div>
                 </div>
               </div>
@@ -209,25 +208,25 @@ export default function InvoicePage({ params }: { params: { id: string } }) {
                 <img
                   src="/logo.png"
                   alt="Company Logo"
-                  className="h-28 w-auto object-contain bg-white"
-                  style={{ maxWidth: 140 }}
+                  className="h-16 sm:h-28 w-auto object-contain bg-white"
+                  style={{ maxWidth: 100, maxHeight: 112 }}
                 />
               </div>
             </div>
 
             {/* Bill & Date */}
-            <div className="flex flex-col md:flex-row justify-between gap-8 mt-2 border-b pb-6">
+            <div className="flex flex-col md:flex-row justify-between gap-4 sm:gap-8 mt-2 border-b pb-4 sm:pb-6">
               <div>
-                <p className="font-bold text-emerald-900"><span className="text-gray-700">Bill To:</span> {orderData?.customerData?.name}</p>
-                <p className="text-base text-gray-700">{orderData?.customerData?.address}</p>
-                <p className="text-base text-gray-700">Phone: {orderData?.customerData?.number}</p>
+                <p className="font-bold text-emerald-900 text-sm sm:text-base"><span className="text-gray-700">Bill To:</span> {orderData?.customerData?.name}</p>
+                <p className="text-sm sm:text-base text-gray-700">{orderData?.customerData?.address}</p>
+                <p className="text-sm sm:text-base text-gray-700">Phone: {orderData?.customerData?.number}</p>
                 {orderData?.customerType !== 'retail' && (
-                  <p className="text-base text-gray-700">GST: {orderData?.customerData?.gstNumber}</p>
+                  <p className="text-sm sm:text-base text-gray-700">GST: {orderData?.customerData?.gstNumber}</p>
                 )}
               </div>
               <div className="text-right space-y-1">
                 <div className="flex justify-start gap-2">
-                  <span className="font-bold text-emerald-900">
+                  <span className="font-bold text-emerald-900 text-sm sm:text-base">
                     <span className="text-gray-700">
                       {orderData?.customerType === "retail" ? "Invoice No:" : "Challan No:"}
                     </span>
@@ -235,7 +234,7 @@ export default function InvoicePage({ params }: { params: { id: string } }) {
                   <span>{1}</span>
                 </div>
                 <div className="flex justify-start gap-2">
-                  <span className="font-bold text-emerald-900">Date:</span>
+                  <span className="font-bold text-emerald-900 text-sm sm:text-base">Date:</span>
                   <span>
                     {orderData?.captureDate
                       ? new Date(orderData.captureDate).toLocaleDateString()
@@ -243,19 +242,19 @@ export default function InvoicePage({ params }: { params: { id: string } }) {
                   </span>
                 </div>
                 <div className="flex justify-start gap-2">
-                  <span className="font-bold text-emerald-900">Payment:</span>
+                  <span className="font-bold text-emerald-900 text-sm sm:text-base">Payment:</span>
                   <span className="capitalize">{orderData?.paymentMethod || "-"}</span>
                 </div>
                 <div className="flex justify-start gap-2">
-                  <span className="font-bold text-emerald-900">Status:</span>
+                  <span className="font-bold text-emerald-900 text-sm sm:text-base">Status:</span>
                   <span className="capitalize">{orderData?.paymentStatus || "-"}</span>
                 </div>
               </div>
             </div>
 
             {/* Table */}
-            <div className="mt-8 rounded-xl overflow-x-auto border border-emerald-300 bg-emerald-50/60">
-              <Table>
+            <div className="mt-4 sm:mt-8 rounded-xl overflow-x-auto border border-emerald-300 bg-emerald-50/60">
+              <Table className="min-w-[700px] text-xs sm:text-base">
                 <TableHeader>
                   <TableRow className="bg-emerald-100">
                     <TableHead className="font-bold text-emerald-900">Product</TableHead>
@@ -290,21 +289,21 @@ export default function InvoicePage({ params }: { params: { id: string } }) {
             </div>
 
             {/* Totals */}
-            <div className="mt-8 flex justify-end">
-              <div className="w-full sm:w-1/2 md:w-1/3 border border-emerald-400 rounded-xl p-5 bg-emerald-50">
-                <div className="flex justify-between text-emerald-900 text-base">
+            <div className="mt-4 sm:mt-8 flex justify-end">
+              <div className="w-full xs:w-3/4 sm:w-1/2 md:w-1/3 border border-emerald-400 rounded-xl p-3 sm:p-5 bg-emerald-50">
+                <div className="flex justify-between text-emerald-900 text-sm sm:text-base">
                   <span>Taxable Amount:</span>
                   <span>₹{orderData?.subTotal?.toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between text-emerald-900 text-base">
+                <div className="flex justify-between text-emerald-900 text-sm sm:text-base">
                   <span>Total GST:</span>
                   <span>₹{((orderData?.totalGst ?? 0)).toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between text-emerald-900 text-base">
+                <div className="flex justify-between text-emerald-900 text-sm sm:text-base">
                   <span>Round Off:</span>
                   <span>₹{((orderData?.roundOff ?? 0)).toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between font-extrabold text-xl mt-3 border-t pt-3 text-emerald-900">
+                <div className="flex justify-between font-extrabold text-lg sm:text-xl mt-2 sm:mt-3 border-t pt-2 sm:pt-3 text-emerald-900">
                   <span>Total:</span>
                   <span>₹{orderData?.total?.toFixed(2)}</span>
                 </div>
@@ -312,22 +311,22 @@ export default function InvoicePage({ params }: { params: { id: string } }) {
             </div>
 
             {/* Signature */}
-            <div className="flex justify-end mt-6">
+            <div className="flex justify-end mt-4 sm:mt-6">
               <div className="text-right">
                 <div className="mb-2">
                   <img
                     src="/signature.png"
                     alt="Signature"
-                    className="h-16 object-contain inline"
-                    style={{ maxWidth: 150 }}
+                    className="h-10 sm:h-16 object-contain inline"
+                    style={{ maxWidth: 100, maxHeight: 64 }}
                   />
                 </div>
-                <div className="font-bold text-emerald-900">Authorized Signature</div>
+                <div className="font-bold text-emerald-900 text-sm sm:text-base">Authorized Signature</div>
               </div>
             </div>
 
             {/* Footer */}
-            <div className="mt-10 text-center text-base border-t pt-5 text-emerald-700">
+            <div className="mt-6 sm:mt-10 text-center text-xs sm:text-base border-t pt-3 sm:pt-5 text-emerald-700">
               {orderData?.customerType === "retail" ? (
                 <>
                   <p>We always try to provide genuine and trustworthy information, but since these claims are not prepared under our supervision, we will not be responsible in any way, and no monetary compensation will be given.</p>
