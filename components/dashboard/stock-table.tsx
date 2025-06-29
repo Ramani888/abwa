@@ -73,19 +73,19 @@ export function StockTable({ stockFilter }: StockTableProps) {
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-        <div className="relative flex-1 max-w-sm">
+        <div className="relative flex-1 w-full max-w-full sm:max-w-sm">
           <Search className="absolute left-2.5 top-3 h-4 w-4 text-muted-foreground" />
           <Input
             type="search"
             placeholder="Search products..."
-            className="pl-8"
+            className="pl-8 w-full"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 w-full sm:w-auto">
           <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-full sm:w-[180px]">
               <SelectValue placeholder="Category" />
             </SelectTrigger>
             <SelectContent>
@@ -103,7 +103,7 @@ export function StockTable({ stockFilter }: StockTableProps) {
       </div>
 
       <div className="rounded-md border overflow-x-auto">
-        <Table>
+        <Table className="min-w-[700px] sm:min-w-full">
           <TableHeader>
             <TableRow>
               <TableHead className="whitespace-nowrap">Product</TableHead>
@@ -112,7 +112,6 @@ export function StockTable({ stockFilter }: StockTableProps) {
               <TableHead className="whitespace-nowrap">Min Stock</TableHead>
               <TableHead className="whitespace-nowrap">Status</TableHead>
               <TableHead className="whitespace-nowrap">Stock Level</TableHead>
-              {/* <TableHead className="text-right">Actions</TableHead> */}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -169,18 +168,6 @@ export function StockTable({ stockFilter }: StockTableProps) {
                       </span>
                     </div>
                   </TableCell>
-                  {/* <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                      <Button variant="outline" size="sm">
-                        <ArrowDownToLine className="h-4 w-4" />
-                        <span className="sr-only md:not-sr-only md:ml-2">Stock In</span>
-                      </Button>
-                      <Button variant="outline" size="sm">
-                        <ArrowUpFromLine className="h-4 w-4" />
-                        <span className="sr-only md:not-sr-only md:ml-2">Stock Out</span>
-                      </Button>
-                    </div>
-                  </TableCell> */}
                 </TableRow>
               ))
             ) : (

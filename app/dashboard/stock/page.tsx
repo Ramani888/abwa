@@ -61,9 +61,9 @@ export default function StockPage() {
   const totalInStockProduct = inStockProduct?.length || 0;
 
   return (
-    <div className="flex flex-col gap-6 w-full">
-      <div className="flex items-center justify-between">
-        <h2 className="text-3xl font-bold tracking-tight">Stock Management</h2>
+    <div className="flex flex-col gap-4 w-full px-2 sm:px-0">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+        <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Stock Management</h2>
         {/* <div className="flex gap-2">
           <Link href="/dashboard/stock/in">
             <Button variant="outline">
@@ -80,7 +80,7 @@ export default function StockPage() {
         </div> */}
       </div>
 
-      <div className="grid gap-4 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-4">
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         {/* Total Products Card */}
         {loading ? (
           <CardSkeleton />
@@ -146,7 +146,7 @@ export default function StockPage() {
       </div>
 
       <Tabs defaultValue="all" className="space-y-4">
-        <TabsList>
+        <TabsList className="w-full overflow-x-auto flex-nowrap whitespace-nowrap justify-start">
           <TabsTrigger value="all">All Stock</TabsTrigger>
           <TabsTrigger value="low">Low Stock</TabsTrigger>
           <TabsTrigger value="out">Out of Stock</TabsTrigger>
