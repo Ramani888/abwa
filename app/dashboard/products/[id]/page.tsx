@@ -279,10 +279,10 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
         <Button variant="outline" size="icon" onClick={() => router.back()} className="mr-4">
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <h2 className="text-3xl font-bold tracking-tight">Edit Product</h2>
+        <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Edit Product</h2>
       </div>
 
-      <Card className="w-full">
+      <Card className="w-full mx-auto">
         <Formik
           initialValues={{
             _id: productData?._id || "",
@@ -404,7 +404,7 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
 
                 {/* Variants Table */}
                 <div className="space-y-4">
-                  <div className="flex justify-between items-center">
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
                     <h3 className="text-xl font-semibold">Variants</h3>
                     <Button
                       type="button"
@@ -427,13 +427,14 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
                         setVariantErrors({})
                       }}
                       disabled={showVariantForm}
+                      className="w-full sm:w-auto"
                     >
                       Add Variant
                     </Button>
                   </div>
                   {/* Table of added variants */}
                   <div className="overflow-x-auto">
-                    <Table className="min-w-full border text-sm">
+                    <Table className="min-w-[900px] border text-sm">
                       <TableHeader>
                         <TableRow>
                           <TableHead className="border px-2 py-1 text-left whitespace-nowrap">Packing Size</TableHead>
@@ -646,7 +647,7 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
                         )}
                       </div>
                     </div>
-                    <div className="flex gap-2 mt-2">
+                    <div className="flex flex-col sm:flex-row gap-2 mt-2">
                       <Button
                         type="button"
                         onClick={async () => {
@@ -706,6 +707,7 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
                             }
                           }
                         }}
+                        className="w-full sm:w-auto"
                       >
                         {editVariantIndex !== null ? "Update Variant" : "Save Variant"}
                       </Button>
@@ -730,6 +732,7 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
                           setShowVariantForm(false)
                           setEditVariantIndex(null)
                         }}
+                        className="w-full sm:w-auto"
                       >
                         Cancel
                       </Button>
@@ -737,11 +740,11 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
                   </div>
                 )}
               </CardContent>
-              <CardFooter className="flex justify-between">
-                <Button type="button" variant="outline" onClick={() => router.back()}>
+              <CardFooter className="flex flex-col sm:flex-row gap-2 sm:justify-between">
+                <Button type="button" variant="outline" onClick={() => router.back()} className="w-full sm:w-auto">
                   Cancel
                 </Button>
-                <Button type="submit" disabled={isSaving || values.variants.length === 0}>
+                <Button type="submit" disabled={isSaving || values.variants.length === 0} className="w-full sm:w-auto">
                   {isSaving ? (
                     <div className="flex items-center justify-center gap-2">
                       <div className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
