@@ -47,23 +47,25 @@ export default function PurchaseOrderDetailsPage({ params }: { params: { id: str
   }
 
   return (
-    <div className="w-full">
-      <div className="flex items-center justify-between mb-6">
+    <div className="w-full px-2 sm:px-0">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 sm:mb-6 gap-3">
         <div className="flex items-center">
-          <Button variant="outline" size="icon" onClick={() => router.back()} className="mr-4">
+          <Button variant="outline" size="icon" onClick={() => router.back()} className="mr-3 sm:mr-4">
             <ArrowLeft className="h-4 w-4" />
           </Button>
-          <h2 className="text-3xl font-bold tracking-tight">Purchase Order #{purchaseOrder?._id}</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight break-all">
+            Purchase Order #{purchaseOrder?._id}
+          </h2>
         </div>
-        <div className="flex gap-2">
-          <Link href={`/dashboard/purchase-order/${params.id}/edit`}>
-            <Button variant="outline">
+        <div className="flex gap-2 w-full sm:w-auto">
+          <Link href={`/dashboard/purchase-order/${params.id}/edit`} className="w-full sm:w-auto">
+            <Button variant="outline" className="w-full sm:w-auto">
               <Edit className="mr-2 h-4 w-4" />
               Edit Purchase Order
             </Button>
           </Link>
-          <Link href={`/dashboard/purchase-order/${params.id}/invoice`}>
-            <Button>
+          <Link href={`/dashboard/purchase-order/${params.id}/invoice`} className="w-full sm:w-auto">
+            <Button className="w-full sm:w-auto">
               <FileText className="mr-2 h-4 w-4" />
               View Invoice
             </Button>
@@ -71,54 +73,54 @@ export default function PurchaseOrderDetailsPage({ params }: { params: { id: str
         </div>
       </div>
 
-      <div className="grid gap-6">
-        <Card className="w-full">
+      {/* <div className="grid gap-4 sm:gap-6"> */}
+        <Card className="w-full mb-6">
           <CardHeader>
             <CardTitle>Purchase Order Information</CardTitle>
             <CardDescription>Order details and status information</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
               <div>
                 <h3 className="text-lg font-semibold mb-2">Order Details</h3>
                 <div className="space-y-2">
-                  <div className="flex justify-between">
+                  <div className="flex justify-between gap-2">
                     <span className="text-muted-foreground">Purchase Order Date:</span>
-                    <span>{purchaseOrder?.captureDate ? new Date(purchaseOrder?.captureDate).toLocaleDateString() : ""}</span>
+                    <span className="text-right">{purchaseOrder?.captureDate ? new Date(purchaseOrder?.captureDate).toLocaleDateString() : ""}</span>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between gap-2">
                     <span className="text-muted-foreground">Status:</span>
-                    <Badge variant={"default"}>{'Completed'}</Badge>
+                    <Badge variant={"default"}>Completed</Badge>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between gap-2">
                     <span className="text-muted-foreground">Payment Status:</span>
                     <Badge variant={purchaseOrder?.paymentStatus === "paid" ? "default" : "destructive"} className="capitalize">
                       {purchaseOrder?.paymentStatus}
                     </Badge>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between gap-2">
                     <span className="text-muted-foreground">Payment Method:</span>
-                    <span>{purchaseOrder?.paymentMethod}</span>
+                    <span className="text-right">{purchaseOrder?.paymentMethod}</span>
                   </div>
                 </div>
               </div>
 
-              <div>
+              <div className="mt-6 md:mt-0">
                 <h3 className="text-lg font-semibold mb-2">Supplier Information</h3>
                 <div className="space-y-2">
-                  <div className="flex justify-between">
+                  <div className="flex justify-between gap-2">
                     <span className="text-muted-foreground">Name:</span>
-                    <Link href={`/dashboard/suppliers/${purchaseOrder?.supplierData?._id}`} className="text-primary hover:underline capitalize">
+                    <Link href={`/dashboard/suppliers/${purchaseOrder?.supplierData?._id}`} className="text-primary hover:underline capitalize text-right">
                       {purchaseOrder?.supplierData?.name}
                     </Link>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between gap-2">
                     <span className="text-muted-foreground">Phone:</span>
-                    <span>{purchaseOrder?.supplierData?.number}</span>
+                    <span className="text-right">{purchaseOrder?.supplierData?.number}</span>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between gap-2">
                     <span className="text-muted-foreground">Email:</span>
-                    <span>{purchaseOrder?.supplierData?.email}</span>
+                    <span className="text-right break-all">{purchaseOrder?.supplierData?.email}</span>
                   </div>
                 </div>
               </div>
@@ -168,21 +170,21 @@ export default function PurchaseOrderDetailsPage({ params }: { params: { id: str
               </Table>
             </div>
 
-            <div className="mt-6 flex justify-end">
-              <div className="w-full md:w-1/2 space-y-2">
-                <div className="flex justify-between">
+            <div className="mt-6 flex flex-col items-end">
+              <div className="w-full sm:w-2/3 md:w-1/2 space-y-2">
+                <div className="flex justify-between gap-2">
                   <span className="text-muted-foreground">Subtotal:</span>
                   <span>₹{purchaseOrder?.subTotal?.toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between">
+                <div className="flex justify-between gap-2">
                   <span className="text-muted-foreground">Total GST:</span>
                   <span>₹{purchaseOrder?.totalGst?.toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between">
+                <div className="flex justify-between gap-2">
                   <span className="text-muted-foreground">Round-off:</span>
                   <span>₹{purchaseOrder?.roundOff?.toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between font-bold">
+                <div className="flex justify-between gap-2 font-bold">
                   <span>Total:</span>
                   <span>₹{purchaseOrder?.total?.toFixed(2)}</span>
                 </div>
@@ -197,11 +199,11 @@ export default function PurchaseOrderDetailsPage({ params }: { params: { id: str
               <CardTitle>Notes</CardTitle>
             </CardHeader>
             <CardContent>
-              <p>{purchaseOrder?.notes}</p>
+              <p className="break-words">{purchaseOrder?.notes}</p>
             </CardContent>
           </Card>
         )}
-      </div>
+      {/* </div> */}
     </div>
   )
 }
