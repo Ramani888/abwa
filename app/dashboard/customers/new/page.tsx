@@ -77,7 +77,7 @@ export default function NewCustomerPage() {
         <Button variant="outline" size="icon" onClick={() => router.back()} className="mr-4">
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <h2 className="text-3xl font-bold tracking-tight">Add New Customer</h2>
+        <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Add New Customer</h2>
       </div>
 
       <Card className="w-full">
@@ -94,7 +94,7 @@ export default function NewCustomerPage() {
                   <RadioGroup
                     value={values.customerType}
                     onValueChange={(value) => setFieldValue("customerType", value)}
-                    className="flex flex-col space-y-1"
+                    className="flex flex-col space-y-1 sm:flex-row sm:space-y-0 sm:space-x-4"
                   >
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="retail" id="retail" />
@@ -254,11 +254,11 @@ export default function NewCustomerPage() {
                   <Label htmlFor="isActive">Active</Label>
                 </div>
               </CardContent>
-              <CardFooter className="flex justify-between">
-                <Button type="button" variant="outline" onClick={() => router.back()}>
+              <CardFooter className="flex flex-col gap-2 sm:flex-row sm:justify-between">
+                <Button type="button" variant="outline" onClick={() => router.back()} className="w-full sm:w-auto">
                   Cancel
                 </Button>
-                <Button type="submit" disabled={isSubmitting}>
+                <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto">
                   {isSubmitting ? (
                     <div className="flex items-center justify-center gap-2">
                       <div className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
