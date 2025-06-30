@@ -101,19 +101,19 @@ export function ProductsTable({ setRefreshFunction }: { setRefreshFunction?: (fn
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-        <div className="relative flex-1 max-w-sm">
+        <div className="relative flex-1 w-full max-w-full sm:max-w-sm">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             type="search"
             placeholder="Search products..."
-            className="pl-8"
+            className="pl-8 w-full"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col gap-2 w-full sm:w-auto sm:flex-row sm:gap-2">
           <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-full sm:w-[180px]">
               <SelectValue placeholder="Category" />
             </SelectTrigger>
             <SelectContent>
@@ -129,7 +129,7 @@ export function ProductsTable({ setRefreshFunction }: { setRefreshFunction?: (fn
           </Select>
 
           <Select value={stockFilter} onValueChange={setStockFilter}>
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-full sm:w-[180px]">
               <SelectValue placeholder="Stock Status" />
             </SelectTrigger>
             <SelectContent>
@@ -142,8 +142,8 @@ export function ProductsTable({ setRefreshFunction }: { setRefreshFunction?: (fn
         </div>
       </div>
 
-      <div className="rounded-md border overflow-x-auto">
-        <Table>
+      <div className="rounded-md border overflow-x-auto bg-white">
+        <Table className="min-w-[900px]">
           <TableHeader>
             <TableRow>
               <TableHead></TableHead>
