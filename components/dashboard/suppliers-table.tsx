@@ -164,7 +164,7 @@ export function SuppliersTable({ setRefreshFunction }: { setRefreshFunction?: (f
                           </DropdownMenuItem>
                           {hasPermission(Permissions.UPDATE_SUPPLIER) && (
                             <DropdownMenuItem asChild>
-                              <Link href={`/dashboard/suppliers/${supplier?._id}`}>
+                              <Link href={`/dashboard/suppliers/${supplier?._id}/edit`}>
                                 <Edit className="mr-2 h-4 w-4" />
                                 Edit
                               </Link>

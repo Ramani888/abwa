@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { ArrowLeft, User, Phone, Mail, MapPin, Landmark } from "lucide-react"
+import { ArrowLeft, User, Phone, Mail, MapPin, Landmark, Calendar } from "lucide-react"
 import { serverGetSupplier, serverUpdateSupplier } from "@/services/serverApi"
 
 const validationSchema = Yup.object({
@@ -80,9 +80,9 @@ export default function EditSupplierPage({ params }: { params: { id: string } })
         <Button variant="outline" size="icon" onClick={() => router.back()} className="mr-4">
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <h2 className="text-3xl font-bold tracking-tight">Edit Supplier</h2>
+        <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Edit Supplier</h2>
       </div>
-      <Card className="w-full">
+      <Card className="w-full mx-auto">
         <Formik
           initialValues={initialValues}
           enableReinitialize
@@ -104,64 +104,68 @@ export default function EditSupplierPage({ params }: { params: { id: string } })
         >
           {({ isSubmitting }) => (
             <Form>
-                <CardHeader>
-                    <CardTitle>Supplier Information</CardTitle>
-                    <CardDescription>Update the supplier details</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    <div className="space-y-2">
-                    <Label htmlFor="name">Name</Label>
-                    <div className="relative">
-                        <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Field as={Input} id="name" name="name" placeholder="Supplier Name" className="pl-10" />
-                    </div>
-                    <ErrorMessage name="name" component="p" className="text-red-500 text-sm" />
-                    </div>
-                    <div className="space-y-2">
-                    <Label htmlFor="number">Phone Number</Label>
-                    <div className="relative">
-                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Field as={Input} id="number" type="number" name="number" placeholder="10 digit number" className="pl-10" />
-                    </div>
-                    <ErrorMessage name="number" component="p" className="text-red-500 text-sm" />
-                    </div>
-                    <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
-                    <div className="relative">
-                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Field as={Input} id="email" name="email" placeholder="supplier@email.com" className="pl-10" />
-                    </div>
-                    <ErrorMessage name="email" component="p" className="text-red-500 text-sm" />
-                    </div>
-                    <div className="space-y-2">
-                    <Label htmlFor="address">Address</Label>
-                    <div className="relative">
-                        <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                        <Field as={Textarea} id="address" name="address" placeholder="Supplier address" className="pl-10" />
-                    </div>
-                    <ErrorMessage name="address" component="p" className="text-red-500 text-sm" />
-                    </div>
-                    <div className="space-y-2">
-                    <Label htmlFor="gstNumber">GST Number</Label>
-                    <div className="relative">
-                        <Landmark className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Field as={Input} id="gstNumber" name="gstNumber" placeholder="22AAAAA0000A1Z5" className="pl-10" />
-                    </div>
-                    <ErrorMessage name="gstNumber" component="p" className="text-red-500 text-sm" />
-                    </div>
-                    <div className="space-y-2">
-                    <Label htmlFor="captureDate">Date</Label>
-                    <div>
-                        <Field as={Input} type="date" id="captureDate" name="captureDate" />
-                    </div>
-                    <ErrorMessage name="captureDate" component="p" className="text-red-500 text-sm" />
-                    </div>
-                </CardContent>
-                <CardFooter>
-                    <Button type="submit" disabled={isSubmitting}>
-                    {isSubmitting ? "Saving..." : "Save Changes"}
-                    </Button>
-                </CardFooter>
+              <CardHeader>
+                <CardTitle>Supplier Information</CardTitle>
+                <CardDescription>Update the supplier details</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Name</Label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Field as={Input} id="name" name="name" placeholder="Supplier Name" className="pl-10" />
+                  </div>
+                  <ErrorMessage name="name" component="p" className="text-red-500 text-sm" />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="number">Phone Number</Label>
+                  <div className="relative">
+                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Field as={Input} id="number" type="number" name="number" placeholder="10 digit number" className="pl-10" />
+                  </div>
+                  <ErrorMessage name="number" component="p" className="text-red-500 text-sm" />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Field as={Input} id="email" name="email" placeholder="supplier@email.com" className="pl-10" />
+                  </div>
+                  <ErrorMessage name="email" component="p" className="text-red-500 text-sm" />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="address">Address</Label>
+                  <div className="relative">
+                    <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Field as={Textarea} id="address" name="address" placeholder="Supplier address" className="pl-10" />
+                  </div>
+                  <ErrorMessage name="address" component="p" className="text-red-500 text-sm" />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="gstNumber">GST Number</Label>
+                  <div className="relative">
+                    <Landmark className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Field as={Input} id="gstNumber" name="gstNumber" placeholder="22AAAAA0000A1Z5" className="pl-10" />
+                  </div>
+                  <ErrorMessage name="gstNumber" component="p" className="text-red-500 text-sm" />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="captureDate">Date</Label>
+                  <div className="relative">
+                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Field as={Input} type="date" id="captureDate" name="captureDate" className="pl-10" />
+                  </div>
+                  <ErrorMessage name="captureDate" component="p" className="text-red-500 text-sm" />
+                </div>
+              </CardContent>
+              <CardFooter className="flex flex-col gap-2 sm:flex-row sm:justify-between">
+                <Button type="button" variant="outline" onClick={() => router.back()} className="w-full sm:w-auto">
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto">
+                  {isSubmitting ? "Saving..." : "Save Changes"}
+                </Button>
+              </CardFooter>
             </Form>
           )}
         </Formik>
