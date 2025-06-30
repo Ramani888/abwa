@@ -173,10 +173,10 @@ export default function EditCustomerPaymentPage({ params }: { params: { id: stri
         <Button variant="outline" size="icon" onClick={() => router.back()} className="mr-4">
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <h2 className="text-3xl font-bold tracking-tight">Edit Customer Payment</h2>
+        <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Edit Customer Payment</h2>
       </div>
 
-      <Card>
+      <Card className="w-full mx-auto">
         <Formik
           initialValues={initialValues}
           validationSchema={validationSchema}
@@ -217,8 +217,8 @@ export default function EditCustomerPaymentPage({ params }: { params: { id: stri
                   <ErrorMessage name="customerId" component="p" className="text-red-500 text-sm" />
                 </div>
 
-                {/* Amount and Date in one row */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Amount and Date in one row, stack on mobile */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {/* Date with icon */}
                   <div className="space-y-2">
                     <Label htmlFor="captureDate">Date</Label>
@@ -252,8 +252,8 @@ export default function EditCustomerPaymentPage({ params }: { params: { id: stri
                   </div>
                 </div>
 
-                {/* Payment Type and Payment Mode in one row */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Payment Type and Payment Mode in one row, stack on mobile */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {/* Payment Type with icon */}
                   <div className="space-y-2">
                     <Label htmlFor="paymentType">Payment Type</Label>
@@ -299,11 +299,11 @@ export default function EditCustomerPaymentPage({ params }: { params: { id: stri
                   </div>
                 </div>
               </CardContent>
-              <CardFooter className="flex justify-between">
-                <Button type="button" variant="outline" onClick={() => router.back()}>
+              <CardFooter className="flex flex-col sm:flex-row gap-2 sm:gap-4 justify-between">
+                <Button type="button" variant="outline" onClick={() => router.back()} className="w-full sm:w-auto">
                   Cancel
                 </Button>
-                <Button type="submit" disabled={isSubmitting}>
+                <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto">
                   {isSubmitting ? (
                     <div className="flex items-center justify-center gap-2">
                       <div className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>

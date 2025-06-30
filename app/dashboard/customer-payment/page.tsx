@@ -29,21 +29,22 @@ export default function CustomerPaymentPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6 w-full">
-      <div className="flex items-center justify-between">
-        <h2 className="text-3xl font-bold tracking-tight">Customer Payments</h2>
-        <div className="flex gap-2">
+    <div className="flex flex-col gap-6 w-full px-2 sm:px-0">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Customer Payments</h2>
+        <div className="flex flex-col gap-2 w-full sm:w-auto sm:flex-row">
           <Button 
             variant="outline" 
             onClick={handleRefresh}
             disabled={isRefreshing}
+            className="w-full sm:w-auto"
           >
             <RefreshCw className={`mr-2 h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
             Refresh
           </Button>
           {hasPermission(Permissions.ADD_CUSTOMER_PAYMENT) && (
-            <Link href="/dashboard/customer-payment/new" className="flex items-center">
-              <Button>
+            <Link href="/dashboard/customer-payment/new" className="w-full sm:w-auto">
+              <Button className="w-full sm:w-auto">
                 <PlusCircle className="mr-2 h-4 w-4" />
                 Add Customer Payment
               </Button>
@@ -54,9 +55,11 @@ export default function CustomerPaymentPage() {
 
       <PlanLimitsAlert resourceType="customers" showWhen="approaching" />
 
-      <CustomerPaymentTable setRefreshFunction={(fn) => {
-        refreshFunctionRef.current = fn;
-      }} />
+      <div className="overflow-x-auto">
+        <CustomerPaymentTable setRefreshFunction={(fn) => {
+          refreshFunctionRef.current = fn;
+        }} />
+      </div>
     </div>
   )
 }
