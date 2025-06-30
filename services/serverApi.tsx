@@ -1,6 +1,6 @@
 import { StatusCodes } from "http-status-codes";
 import axios, { AxiosError, Method } from "axios";
-import { ILogin, IRegister, IUser } from "@/types/user";
+import { ILogin, IOwner, IRegister, IUser } from "@/types/user";
 import { ICustomer, ICustomerPayment } from "@/types/customer";
 import { ICategory } from "@/types/category";
 import { IProduct } from "@/types/product";
@@ -84,6 +84,11 @@ export const serverLogin = async (data: ILogin) => {
 
 export const serverRegister = async (data: IRegister) => {
   return await serverRequest("/register", "POST", data, false);
+}
+
+/// Owner ///
+export const serverUpdateOwner = async (data: IOwner) => {
+  return await serverRequest("/owner", "PUT", data, true);
 }
 
 /// User ///

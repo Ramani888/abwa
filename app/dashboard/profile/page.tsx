@@ -15,12 +15,14 @@ import Link from "next/link"
 import { Crown } from "lucide-react"
 import { usePlan } from "@/components/dashboard/plan-context"
 import { useAuth } from "@/components/auth-provider"
-import { serverUpdateUser, serverUpdateUserPasswordByCurrent } from "@/services/serverApi"
+import { serverUpdateOwner, serverUpdateUser, serverUpdateUserPasswordByCurrent } from "@/services/serverApi"
 import { set } from "date-fns"
 
 export default function ProfilePage() {
   const { currentPlan } = usePlan()
   const { user, updateUser, owner, updateOwner } = useAuth();
+  console.log("User:", user)
+  console.log("Owner:", owner)
   const [profileData, setProfileData] = useState({
     name: "",
     email: "",
@@ -33,6 +35,13 @@ export default function ProfilePage() {
   })
   const [passwordError, setPasswordError] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [shopData, setShopData] = useState({
+    name: "",
+    address: "",
+    number: "",
+    email: "",
+    gst: "",
+  })
 
   const handleProfileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -47,6 +56,11 @@ export default function ProfilePage() {
     if (passwordError) {
       setPasswordError("")
     }
+  }
+
+  const handleShopChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target
+    setShopData((prev) => ({ ...prev, [name]: value }))
   }
 
   const handleProfileSubmit = async (e: React.FormEvent) => {
@@ -105,11 +119,58 @@ export default function ProfilePage() {
     }
   }
 
+  const handleShopSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    try {
+      setIsLoading(true)
+      // You need to implement serverUpdateShop or similar API call
+      await serverUpdateOwner({
+        ...owner,
+        name: owner?.name ?? "",
+        email: owner?.email ?? "",
+        number: owner?.number ?? 0,
+        password: owner?.password ?? "",
+        createdAt: owner?.createdAt ?? new Date(),
+        updatedAt: owner?.updatedAt ?? new Date(),
+        shop: {
+          ...shopData,
+          number: Number(shopData.number),
+          _id: owner?.shop?._id ?? "",
+        },
+      })
+      updateOwner({
+        ...owner,
+        name: owner?.name ?? "",
+        email: owner?.email ?? "",
+        number: owner?.number ?? 0,
+        password: owner?.password ?? "",
+        createdAt: owner?.createdAt ?? new Date(),
+        updatedAt: owner?.updatedAt ?? new Date(),
+        shop: {
+          ...shopData,
+          number: Number(shopData.number),
+          _id: owner?.shop?._id ?? "",
+        },
+      })
+      setIsLoading(false)
+    } catch (error) {
+      console.error("Error updating shop:", error)
+      setIsLoading(false)
+    }
+  }
+
   const fetchProfileData = () => {
     setProfileData({
       name: user?.name ?? '',
       email: user?.email ?? '',
       number: String(user?.number) ?? '',
+    })
+    setShopData({
+      name: owner?.shop?.name ?? '',
+      address: owner?.shop?.address ?? '',
+      number: String(owner?.shop?.number ?? ''),
+      email: owner?.shop?.email ?? '',
+      gst: owner?.shop?.gst ?? '',
     })
   }
 
@@ -143,9 +204,10 @@ export default function ProfilePage() {
       </div>
 
       <Tabs defaultValue="profile" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="profile">Profile Information</TabsTrigger>
           <TabsTrigger value="password">Change Password</TabsTrigger>
+          <TabsTrigger value="shop">Shop Information</TabsTrigger>
         </TabsList>
         <TabsContent value="profile">
           <Card>
@@ -240,6 +302,50 @@ export default function ProfilePage() {
                   disabled={isLoading || passwordData.newPassword !== passwordData.confirmPassword || !passwordData.newPassword}
                 >
                   {isLoading ? "Updating..." : "Update Password"}
+                </Button>
+              </CardFooter>
+            </form>
+          </Card>
+        </TabsContent>
+        <TabsContent value="shop">
+          <Card>
+            <form onSubmit={handleShopSubmit}>
+              <CardHeader>
+                <CardTitle>Shop Information</CardTitle>
+                <CardDescription>Update your shop/agro details</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="shopName">Shop Name</Label>
+                  <Input id="shopName" name="name" value={shopData.name} onChange={handleShopChange} required />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="shopAddress">Address</Label>
+                  <Input id="shopAddress" name="address" value={shopData.address} onChange={handleShopChange} required />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="shopNumber">Phone Number</Label>
+                  <Input
+                    id="shopNumber"
+                    name="number"
+                    value={shopData.number}
+                    onChange={handleShopChange}
+                    required
+                    disabled // <-- Make the field disabled
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="shopEmail">Email</Label>
+                  <Input id="shopEmail" name="email" type="email" value={shopData.email} onChange={handleShopChange} required />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="shopGst">GST</Label>
+                  <Input id="shopGst" name="gst" value={shopData.gst} onChange={handleShopChange} required />
+                </div>
+              </CardContent>
+              <CardFooter>
+                <Button type="submit" disabled={isLoading}>
+                  {isLoading ? "Saving..." : "Save Shop Info"}
                 </Button>
               </CardFooter>
             </form>
