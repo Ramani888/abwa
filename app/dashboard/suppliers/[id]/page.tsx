@@ -58,23 +58,23 @@ export default function SupplierDetailsPage({ params }: { params: { id: string }
   }
 
   return (
-    <div className="w-full">
-      <div className="flex items-center justify-between mb-8">
+    <div className="w-full px-2 py-4 sm:px-0">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-8">
         <div className="flex items-center">
-          <Button variant="outline" size="icon" onClick={() => router.back()} className="mr-4">
+          <Button variant="outline" size="icon" onClick={() => router.back()} className="mr-2 sm:mr-4 w-10 h-10">
             <ArrowLeft className="h-4 w-4" />
           </Button>
-          <h2 className="text-3xl font-bold tracking-tight">Supplier Details</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Supplier Details</h2>
         </div>
-        <div className="flex gap-2">
-          <Link href={`/dashboard/suppliers/${params.id}/edit`}>
-            <Button variant="outline">
+        <div className="flex flex-col gap-2 sm:flex-row sm:gap-2 w-full sm:w-auto">
+          <Link href={`/dashboard/suppliers/${params.id}/edit`} className="w-full sm:w-auto">
+            <Button variant="outline" className="w-full sm:w-auto">
               <Edit className="mr-2 h-4 w-4" />
               Edit Supplier
             </Button>
           </Link>
-          <Link href={`/dashboard/suppliers/${params.id}/orders`}>
-            <Button>
+          <Link href={`/dashboard/suppliers/${params.id}/orders`} className="w-full sm:w-auto">
+            <Button className="w-full sm:w-auto">
               <ShoppingBag className="mr-2 h-4 w-4" />
               View All Purchase Orders
             </Button>
@@ -83,7 +83,7 @@ export default function SupplierDetailsPage({ params }: { params: { id: string }
       </div>
 
       {/* Modern Stat Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-10">
         <Card className="border border-red-200 bg-white transition-all duration-200">
           <CardContent className="flex items-center gap-4 py-6">
             <div className="flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
@@ -91,7 +91,7 @@ export default function SupplierDetailsPage({ params }: { params: { id: string }
             </div>
             <div>
               <div className="text-sm text-muted-foreground font-medium">Pending Amount</div>
-              <div className="text-2xl font-bold text-red-600">₹{pendingTotal.toFixed(2)}</div>
+              <div className="text-2xl font-bold text-red-600 break-words">₹{pendingTotal.toFixed(2)}</div>
             </div>
           </CardContent>
         </Card>
@@ -102,7 +102,7 @@ export default function SupplierDetailsPage({ params }: { params: { id: string }
             </div>
             <div>
               <div className="text-sm text-muted-foreground font-medium">Paid Amount</div>
-              <div className="text-2xl font-bold text-green-600">₹{paidTotal.toFixed(2)}</div>
+              <div className="text-2xl font-bold text-green-600 break-words">₹{paidTotal.toFixed(2)}</div>
             </div>
           </CardContent>
         </Card>
@@ -113,14 +113,14 @@ export default function SupplierDetailsPage({ params }: { params: { id: string }
             </div>
             <div>
               <div className="text-sm text-muted-foreground font-medium">Total Amount</div>
-              <div className="text-2xl font-bold text-blue-600">₹{totalAmount.toFixed(2)}</div>
+              <div className="text-2xl font-bold text-blue-600 break-words">₹{totalAmount.toFixed(2)}</div>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      <div className="grid gap-6">
-        <Card className="w-full">
+      {/* <div className="grid gap-6"> */}
+        <Card className="w-full mb-6">
           <CardHeader>
             <CardTitle>Supplier Information</CardTitle>
             <CardDescription>Basic details and contact information</CardDescription>
@@ -130,19 +130,19 @@ export default function SupplierDetailsPage({ params }: { params: { id: string }
               <div>
                 <h3 className="text-lg font-semibold mb-2">Basic Details</h3>
                 <div className="space-y-2">
-                  <div className="flex justify-between">
+                  <div className="flex flex-col sm:flex-row sm:justify-between">
                     <span className="text-muted-foreground">Name:</span>
                     <span>{supplierData?.name}</span>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex flex-col sm:flex-row sm:justify-between">
                     <span className="text-muted-foreground">Email:</span>
                     <span>{supplierData?.email}</span>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex flex-col sm:flex-row sm:justify-between">
                     <span className="text-muted-foreground">Phone:</span>
                     <span>{supplierData?.number}</span>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex flex-col sm:flex-row sm:justify-between">
                     <span className="text-muted-foreground">Address:</span>
                     <span>{supplierData?.address}</span>
                   </div>
@@ -152,15 +152,15 @@ export default function SupplierDetailsPage({ params }: { params: { id: string }
               <div>
                 <h3 className="text-lg font-semibold mb-2">Purchase History</h3>
                 <div className="space-y-2">
-                  <div className="flex justify-between">
+                  <div className="flex flex-col sm:flex-row sm:justify-between">
                     <span className="text-muted-foreground">Total Orders:</span>
                     <span>{supplierData?.totalOrder}</span>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex flex-col sm:flex-row sm:justify-between">
                     <span className="text-muted-foreground">Total Spent:</span>
                     <span>₹{supplierData?.totalSpent?.toFixed(2)}</span>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex flex-col sm:flex-row sm:justify-between">
                     <span className="text-muted-foreground">Last Order:</span>
                     <span>{supplierData?.lastOrderDate ? new Date(supplierData?.lastOrderDate).toLocaleDateString() : ""}</span>
                   </div>
@@ -177,7 +177,7 @@ export default function SupplierDetailsPage({ params }: { params: { id: string }
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto">
-              <Table>
+              <Table className="min-w-[600px]">
                 <TableHeader>
                   <TableRow>
                     <TableHead>Order ID</TableHead>
@@ -210,7 +210,7 @@ export default function SupplierDetailsPage({ params }: { params: { id: string }
             </div>
           </CardContent>
         </Card>
-      </div>
+      {/* </div> */}
     </div>
   )
 }
