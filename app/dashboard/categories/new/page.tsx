@@ -55,10 +55,10 @@ export default function NewCategoryPage() {
         <Button variant="outline" size="icon" onClick={() => router.back()} className="mr-4">
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <h2 className="text-3xl font-bold tracking-tight">Add New Category</h2>
+        <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Add New Category</h2>
       </div>
 
-      <Card className="w-full">
+      <Card className="w-full mx-auto">
         <Formik initialValues={initialValues} validationSchema={validationSchema} onSubmit={handleSubmit}>
           {({ isSubmitting, values, setFieldValue }) => (
             <Form>
@@ -119,11 +119,11 @@ export default function NewCategoryPage() {
                   <Label htmlFor="isActive">Active</Label>
                 </div>
               </CardContent>
-              <CardFooter className="flex justify-between">
-                <Button type="button" variant="outline" onClick={() => router.back()}>
+              <CardFooter className="flex flex-col sm:flex-row gap-2 sm:gap-4 justify-between">
+                <Button type="button" variant="outline" onClick={() => router.back()} className="w-full sm:w-auto">
                   Cancel
                 </Button>
-                <Button type="submit" disabled={isSubmitting}>
+                <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto">
                   {isSubmitting ? (
                     <div className="flex items-center justify-center gap-2">
                       <div className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
