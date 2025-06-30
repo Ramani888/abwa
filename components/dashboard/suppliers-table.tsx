@@ -92,20 +92,20 @@ export function SuppliersTable({ setRefreshFunction }: { setRefreshFunction?: (f
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-        <div className="relative flex-1 max-w-sm">
+        <div className="relative flex-1 w-full max-w-full sm:max-w-sm">
           <Search className="absolute left-2.5 top-3 h-4 w-4 text-muted-foreground" />
           <Input
             type="search"
             placeholder="Search here..."
-            className="pl-8"
+            className="pl-8 w-full"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
       </div>
 
-      <div className="rounded-md border overflow-x-auto">
-        <Table>
+      <div className="rounded-md border overflow-x-auto bg-white">
+        <Table className="min-w-[900px]">
           <TableHeader>
             <TableRow>
               <TableHead>Name</TableHead>
