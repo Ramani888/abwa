@@ -30,21 +30,22 @@ export default function SupplierPaymentPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6 w-full">
-      <div className="flex items-center justify-between">
-        <h2 className="text-3xl font-bold tracking-tight">Supplier Payments</h2>
-        <div className="flex gap-2">
+    <div className="flex flex-col gap-6 w-full px-2 sm:px-4">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Supplier Payments</h2>
+        <div className="flex gap-2 flex-col sm:flex-row">
           <Button 
             variant="outline" 
             onClick={handleRefresh}
             disabled={isRefreshing}
+            className="w-full sm:w-auto"
           >
             <RefreshCw className={`mr-2 h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
             Refresh
           </Button>
           {hasPermission(Permissions.ADD_SUPPLIER_PAYMENT) && (
-            <Link href="/dashboard/supplier-payment/new" className="flex items-center">
-              <Button>
+            <Link href="/dashboard/supplier-payment/new" className="flex items-center w-full sm:w-auto">
+              <Button className="w-full sm:w-auto">
                 <PlusCircle className="mr-2 h-4 w-4" />
                 Add Supplier Payment
               </Button>
@@ -55,9 +56,11 @@ export default function SupplierPaymentPage() {
 
       <PlanLimitsAlert resourceType="customers" showWhen="approaching" />
 
-      <SupplierPaymentTable setRefreshFunction={(fn) => {
-        refreshFunctionRef.current = fn;
-      }} />
+      <div className="overflow-x-auto">
+        <SupplierPaymentTable setRefreshFunction={(fn) => {
+          refreshFunctionRef.current = fn;
+        }} />
+      </div>
     </div>
   )
 }
