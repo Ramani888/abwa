@@ -96,21 +96,22 @@ export function CustomersTable({ setRefreshFunction }: { setRefreshFunction?: (f
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-        <div className="relative flex-1 max-w-sm">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="relative flex-1 w-full max-w-full sm:max-w-sm">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             type="search"
             placeholder="Search customers..."
-            className="pl-8"
+            className="pl-8 w-full"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-row flex-wrap gap-2 w-full sm:w-auto">
           <Button
             variant={customerType === "all" ? "default" : "outline"}
             size="sm"
+            className="flex-1 sm:flex-none"
             onClick={() => setCustomerType("all")}
           >
             All
@@ -118,6 +119,7 @@ export function CustomersTable({ setRefreshFunction }: { setRefreshFunction?: (f
           <Button
             variant={customerType === "retail" ? "default" : "outline"}
             size="sm"
+            className="flex-1 sm:flex-none"
             onClick={() => setCustomerType("retail")}
           >
             Retail
@@ -125,6 +127,7 @@ export function CustomersTable({ setRefreshFunction }: { setRefreshFunction?: (f
           <Button
             variant={customerType === "wholesale" ? "default" : "outline"}
             size="sm"
+            className="flex-1 sm:flex-none"
             onClick={() => setCustomerType("wholesale")}
           >
             Wholesale
@@ -132,8 +135,8 @@ export function CustomersTable({ setRefreshFunction }: { setRefreshFunction?: (f
         </div>
       </div>
 
-      <div className="rounded-md border overflow-x-auto">
-        <Table>
+      <div className="rounded-md border overflow-x-auto bg-white">
+        <Table className="min-w-[700px]">
           <TableHeader>
             <TableRow>
               <TableHead>Customer</TableHead>
