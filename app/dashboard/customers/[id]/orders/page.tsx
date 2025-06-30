@@ -57,16 +57,18 @@ export default function CustomerOrdersPage({ params }: { params: { id: string } 
   }
 
   return (
-    <div className="w-full">
-      <div className="flex items-center mb-6">
-        <Button variant="outline" size="icon" onClick={() => router.back()} className="mr-4">
-          <ArrowLeft className="h-4 w-4" />
-        </Button>
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight">Customer Orders</h2>
-          <p className="text-muted-foreground">
-            All orders for {customerData?.name} ({customerData?.customerType === "wholesale" ? "Wholesale" : "Retail"})
-          </p>
+    <div className="w-full px-2 py-4 sm:px-0">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center mb-6">
+        <div className="flex items-center">
+          <Button variant="outline" size="icon" onClick={() => router.back()} className="mr-2 sm:mr-4 w-10 h-10">
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <div>
+            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Customer Orders</h2>
+            <p className="text-muted-foreground text-sm">
+              All orders for {customerData?.name} ({customerData?.customerType === "wholesale" ? "Wholesale" : "Retail"})
+            </p>
+          </div>
         </div>
       </div>
 
@@ -77,7 +79,7 @@ export default function CustomerOrdersPage({ params }: { params: { id: string } 
         </CardHeader>
         <CardContent>
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-6">
-            <div className="relative flex-1 max-w-sm">
+            <div className="relative flex-1 w-full max-w-full sm:max-w-sm">
               <Input
                 type="search"
                 placeholder="Search by order ID..."
@@ -85,22 +87,11 @@ export default function CustomerOrdersPage({ params }: { params: { id: string } 
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-            {/* <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Order Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="processing">Processing</SelectItem>
-                <SelectItem value="completed">Completed</SelectItem>
-                <SelectItem value="cancelled">Cancelled</SelectItem>
-              </SelectContent>
-            </Select> */}
+            {/* Status filter can be added here */}
           </div>
 
           <div className="overflow-x-auto">
-            <Table>
+            <Table className="min-w-[600px]">
               <TableHeader>
                 <TableRow>
                   <TableHead>Order ID</TableHead>
