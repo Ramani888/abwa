@@ -63,21 +63,21 @@ export default function SupplierPurchaseOrdersPage({ params }: { params: { id: s
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Supplier Purchase Orders</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Supplier Purchase Orders</h2>
           <p className="text-muted-foreground">
             All purchase orders from {supplierData?.name}
           </p>
         </div>
       </div>
 
-      <Card className="w-full">
+      <Card className="w-full mx-auto">
         <CardHeader>
           <CardTitle>Purchase Order History</CardTitle>
           <CardDescription>View and manage all purchase orders for this supplier</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-6">
-            <div className="relative flex-1 max-w-sm">
+            <div className="relative flex-1 w-full max-w-full sm:max-w-sm">
               <Input
                 type="search"
                 placeholder="Search by order ID..."
@@ -85,22 +85,11 @@ export default function SupplierPurchaseOrdersPage({ params }: { params: { id: s
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-            {/* <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Order Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="processing">Processing</SelectItem>
-                <SelectItem value="completed">Completed</SelectItem>
-                <SelectItem value="cancelled">Cancelled</SelectItem>
-              </SelectContent>
-            </Select> */}
+            {/* Status filter can be added here */}
           </div>
 
           <div className="overflow-x-auto">
-            <Table>
+            <Table className="min-w-[600px]">
               <TableHeader>
                 <TableRow>
                   <TableHead>Order ID</TableHead>
