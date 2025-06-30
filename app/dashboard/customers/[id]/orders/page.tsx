@@ -72,7 +72,7 @@ export default function CustomerOrdersPage({ params }: { params: { id: string } 
         </div>
       </div>
 
-      <Card className="w-full">
+      <Card className="w-full max-w-5xl mx-auto">
         <CardHeader>
           <CardTitle>Order History</CardTitle>
           <CardDescription>View and manage all orders for this customer</CardDescription>
