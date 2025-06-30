@@ -59,23 +59,23 @@ export default function CustomerDetailsPage({ params }: { params: { id: string }
   }
 
   return (
-    <div className="w-full">
-      <div className="flex items-center justify-between mb-6">
+    <div className="w-full px-2 py-4 sm:px-0">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-6">
         <div className="flex items-center">
-          <Button variant="outline" size="icon" onClick={() => router.back()} className="mr-4">
+          <Button variant="outline" size="icon" onClick={() => router.back()} className="mr-2 sm:mr-4 w-10 h-10">
             <ArrowLeft className="h-4 w-4" />
           </Button>
-          <h2 className="text-3xl font-bold tracking-tight">Customer Details</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Customer Details</h2>
         </div>
-        <div className="flex gap-2">
-          <Link href={`/dashboard/customers/${params.id}/edit`}>
-            <Button variant="outline">
+        <div className="flex flex-col gap-2 sm:flex-row sm:gap-2">
+          <Link href={`/dashboard/customers/${params.id}/edit`} className="w-full sm:w-auto">
+            <Button variant="outline" className="w-full sm:w-auto">
               <Edit className="mr-2 h-4 w-4" />
               Edit Customer
             </Button>
           </Link>
-          <Link href={`/dashboard/customers/${params.id}/orders`}>
-            <Button>
+          <Link href={`/dashboard/customers/${params.id}/orders`} className="w-full sm:w-auto">
+            <Button className="w-full sm:w-auto">
               <ShoppingBag className="mr-2 h-4 w-4" />
               View All Orders
             </Button>
@@ -120,8 +120,8 @@ export default function CustomerDetailsPage({ params }: { params: { id: string }
         </Card>
       </div>
 
-      <div className="grid gap-6">
-        <Card className="w-full">
+      {/* <div className="grid gap-6"> */}
+        <Card className="w-full mb-6">
           <CardHeader>
             <CardTitle>Customer Information</CardTitle>
             <CardDescription>Basic details and contact information</CardDescription>
@@ -131,25 +131,25 @@ export default function CustomerDetailsPage({ params }: { params: { id: string }
               <div>
                 <h3 className="text-lg font-semibold mb-2">Basic Details</h3>
                 <div className="space-y-2">
-                  <div className="flex justify-between">
+                  <div className="flex flex-col sm:flex-row sm:justify-between">
                     <span className="text-muted-foreground">Name:</span>
                     <span>{customerData?.name}</span>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex flex-col sm:flex-row sm:justify-between">
                     <span className="text-muted-foreground">Type:</span>
                     <Badge variant={customerData?.customerType === "wholesale" ? "default" : "secondary"}>
                       {customerData?.customerType === "wholesale" ? "Wholesale" : "Retail"}
                     </Badge>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex flex-col sm:flex-row sm:justify-between">
                     <span className="text-muted-foreground">Email:</span>
                     <span>{customerData?.email}</span>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex flex-col sm:flex-row sm:justify-between">
                     <span className="text-muted-foreground">Phone:</span>
                     <span>{customerData?.number}</span>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex flex-col sm:flex-row sm:justify-between">
                     <span className="text-muted-foreground">Address:</span>
                     <span>{customerData?.address}</span>
                   </div>
@@ -159,29 +159,29 @@ export default function CustomerDetailsPage({ params }: { params: { id: string }
               <div>
                 <h3 className="text-lg font-semibold mb-2">Purchase History</h3>
                 <div className="space-y-2">
-                  <div className="flex justify-between">
+                  <div className="flex flex-col sm:flex-row sm:justify-between">
                     <span className="text-muted-foreground">Total Orders:</span>
                     <span>{customerData?.totalOrder}</span>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex flex-col sm:flex-row sm:justify-between">
                     <span className="text-muted-foreground">Total Spent:</span>
                     <span>₹{customerData?.totalSpent?.toFixed(2)}</span>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex flex-col sm:flex-row sm:justify-between">
                     <span className="text-muted-foreground">Last Order:</span>
                     <span>{customerData?.lastOrderDate ? new Date(customerData?.lastOrderDate).toLocaleDateString() : ""}</span>
                   </div>
                   {customerData?.customerType === "wholesale" && (
                     <>
-                      <div className="flex justify-between">
+                      <div className="flex flex-col sm:flex-row sm:justify-between">
                         <span className="text-muted-foreground">GST Number:</span>
                         <span>{customerData?.gstNumber || "Not provided"}</span>
                       </div>
-                      <div className="flex justify-between">
+                      <div className="flex flex-col sm:flex-row sm:justify-between">
                         <span className="text-muted-foreground">Credit Limit:</span>
                         <span>{customerData?.creditLimit || "Not set"}</span>
                       </div>
-                      <div className="flex justify-between">
+                      <div className="flex flex-col sm:flex-row sm:justify-between">
                         <span className="text-muted-foreground">Payment Terms:</span>
                         <span>{customerData?.paymentTerms === "cod" ? "Cash on Delivery" : customerData?.paymentTerms}</span>
                       </div>
@@ -200,7 +200,7 @@ export default function CustomerDetailsPage({ params }: { params: { id: string }
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto">
-              <Table>
+              <Table className="min-w-[600px]">
                 <TableHeader>
                   <TableRow>
                     <TableHead>Order ID</TableHead>
@@ -233,7 +233,7 @@ export default function CustomerDetailsPage({ params }: { params: { id: string }
             </div>
           </CardContent>
         </Card>
-      </div>
+      {/* </div> */}
     </div>
   )
 }
