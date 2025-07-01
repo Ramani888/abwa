@@ -45,7 +45,7 @@ export interface IOwner {
   name: string;
   email: string;
   number: number;
-  password: string;
+  password?: string;
   shop: IShop;
   createdAt?: Date;
   updatedAt?: Date;

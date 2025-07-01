@@ -2,12 +2,11 @@
 
 import type React from "react"
 
-import { use, useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
 import { PlanBadge } from "@/components/dashboard/plan-badge"
@@ -16,13 +15,10 @@ import { Crown } from "lucide-react"
 import { usePlan } from "@/components/dashboard/plan-context"
 import { useAuth } from "@/components/auth-provider"
 import { serverUpdateOwner, serverUpdateUser, serverUpdateUserPasswordByCurrent } from "@/services/serverApi"
-import { set } from "date-fns"
 
 export default function ProfilePage() {
   const { currentPlan } = usePlan()
   const { user, updateUser, owner, updateOwner } = useAuth();
-  console.log("User:", user)
-  console.log("Owner:", owner)
   const [profileData, setProfileData] = useState({
     name: "",
     email: "",
@@ -37,10 +33,15 @@ export default function ProfilePage() {
   const [isLoading, setIsLoading] = useState(false)
   const [shopData, setShopData] = useState({
     name: "",
-    address: "",
-    number: "",
     email: "",
-    gst: "",
+    number: "",
+    shop: {
+      name: "",
+      address: "",
+      number: "",
+      email: "",
+      gst: ""
+    }
   })
   const [activeSection, setActiveSection] = useState<"profile" | "password" | "shop">("profile")
 
@@ -52,14 +53,17 @@ export default function ProfilePage() {
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
     setPasswordData((prev) => ({ ...prev, [name]: value }))
-    
-    // Clear error when user types
     if (passwordError) {
       setPasswordError("")
     }
   }
 
   const handleShopChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target
+    setShopData((prev) => ({ ...prev, shop: { ...prev.shop, [name]: value } }))
+  }
+
+  const handleOwnerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
     setShopData((prev) => ({ ...prev, [name]: value }))
   }
@@ -68,19 +72,21 @@ export default function ProfilePage() {
     e.preventDefault()
     try {
       setIsLoading(true)
-      await serverUpdateUser({...profileData, _id: user?._id, number: Number(profileData.number)});
-      updateUser({
-        ...profileData,
-        number: Number(profileData.number)
-      })
-      if (Number(user?.number) === Number(owner?.number)) {
-        const newOwnerData = {
-          ...owner,
-          name: profileData.name,
-          email: profileData.email,
-          number: Number(profileData.number),
+      const res = await serverUpdateUser({ ...profileData, _id: user?._id, number: Number(profileData.number) });
+      if (res?.success) {
+        updateUser({
+          ...profileData,
+          number: Number(profileData.number)
+        })
+        if (Number(user?.number) === Number(owner?.number)) {
+          const newOwnerData = {
+            ...owner,
+            name: profileData.name,
+            email: profileData.email,
+            number: Number(profileData.number),
+          }
+          updateOwner(newOwnerData)
         }
-        updateOwner(newOwnerData)
       }
       fetchProfileData();
       setIsLoading(false)
@@ -92,16 +98,13 @@ export default function ProfilePage() {
 
   const handlePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
-    // Validate that passwords match
     if (passwordData.newPassword !== passwordData.confirmPassword) {
       setPasswordError("New password and confirmation do not match")
       return
     }
-    
     try {
       setIsLoading(true)
-      const res = await serverUpdateUserPasswordByCurrent({
+      await serverUpdateUserPasswordByCurrent({
         _id: user?._id ?? '',
         currentPassword: passwordData.currentPassword,
         newPassword: passwordData.newPassword,
@@ -124,35 +127,42 @@ export default function ProfilePage() {
     e.preventDefault()
     try {
       setIsLoading(true)
-      // You need to implement serverUpdateShop or similar API call
-      await serverUpdateOwner({
+      const res = await serverUpdateOwner({
         ...owner,
-        name: owner?.name ?? "",
-        email: owner?.email ?? "",
-        number: owner?.number ?? 0,
-        password: owner?.password ?? "",
-        createdAt: owner?.createdAt ?? new Date(),
-        updatedAt: owner?.updatedAt ?? new Date(),
+        name: shopData?.name ?? "",
+        email: shopData?.email ?? "",
+        number: Number(shopData?.number) ?? 0,
         shop: {
-          ...shopData,
-          number: Number(shopData.number),
+          ...shopData.shop,
+          number: Number(shopData.shop.number),
           _id: owner?.shop?._id ?? "",
+          address: shopData.shop.address ?? "",
+          gst: shopData.shop.gst ?? "",
         },
       })
-      updateOwner({
-        ...owner,
-        name: owner?.name ?? "",
-        email: owner?.email ?? "",
-        number: owner?.number ?? 0,
-        password: owner?.password ?? "",
-        createdAt: owner?.createdAt ?? new Date(),
-        updatedAt: owner?.updatedAt ?? new Date(),
-        shop: {
-          ...shopData,
-          number: Number(shopData.number),
-          _id: owner?.shop?._id ?? "",
-        },
-      })
+      if (res?.success) {
+        updateOwner({
+          ...owner,
+          name: shopData?.name ?? "",
+          email: shopData?.email ?? "",
+          number: Number(shopData?.number) ?? 0,
+          shop: {
+            ...shopData.shop,
+            number: Number(shopData.shop.number),
+            _id: owner?.shop?._id ?? "",
+            address: shopData.shop.address ?? "",
+            gst: shopData.shop.gst ?? "",
+          },
+        })
+        if (Number(user?.number) === Number(owner?.number)) {
+          updateUser({
+            ...user,
+            name: shopData?.name ?? "",
+            email: shopData?.email ?? "",
+            number: Number(shopData?.number ?? 0),
+          })
+        }
+      }
       setIsLoading(false)
     } catch (error) {
       console.error("Error updating shop:", error)
@@ -167,11 +177,16 @@ export default function ProfilePage() {
       number: String(user?.number) ?? '',
     })
     setShopData({
-      name: owner?.shop?.name ?? '',
-      address: owner?.shop?.address ?? '',
-      number: String(owner?.shop?.number ?? ''),
-      email: owner?.shop?.email ?? '',
-      gst: owner?.shop?.gst ?? '',
+      name: owner?.name ?? '',
+      email: owner?.email ?? '',
+      number: String(owner?.number) ?? '',
+      shop: {
+        name: owner?.shop?.name ?? '',
+        address: owner?.shop?.address ?? '',
+        number: String(owner?.shop?.number) ?? '',
+        email: owner?.shop?.email ?? '',
+        gst: owner?.shop?.gst ?? ''
+      }
     })
   }
 
@@ -182,7 +197,7 @@ export default function ProfilePage() {
   return (
     <div className="w-full h-full flex flex-col lg:flex-row items-stretch py-4 px-1 sm:px-4">
       {/* Sidebar/Profile Summary */}
-      <aside className="w-full lg:w-1/3 xl:w-1/4 border rounded-xl flex flex-col items-center p-4 sm:p-6 mb-4 lg:mb-0 lg:mr-8">
+      <aside className="w-full lg:w-1/3 xl:w-1/4 bg-white border h-auto lg:h-full rounded-xl flex flex-col items-center p-4 sm:p-6 mb-4 lg:mb-0 lg:mr-8">
         <Avatar className="h-20 w-20 sm:h-24 sm:w-24 mb-3 ring-2 ring-primary">
           <AvatarImage src="/placeholder-user.jpg" alt="Profile" />
           <AvatarFallback className="uppercase text-xl sm:text-2xl">
@@ -236,9 +251,8 @@ export default function ProfilePage() {
           </button>
         </nav>
       </aside>
-
       {/* Main Content */}
-      <div className="flex-1 w-full mx-auto h-full">
+      <div className="flex-1 w-full mx-auto h-full max-h-screen pr-0 sm:pr-2">
         {activeSection === "profile" && (
           <Card className="rounded-xl w-full mb-6 border">
             <form onSubmit={handleProfileSubmit}>
@@ -310,36 +324,78 @@ export default function ProfilePage() {
           <Card className="rounded-xl w-full mb-6 border">
             <form onSubmit={handleShopSubmit}>
               <CardHeader>
-                <CardTitle className="text-base sm:text-lg">Shop Information</CardTitle>
-                <CardDescription>Update your shop/agro details</CardDescription>
+                <CardTitle className="text-base sm:text-lg">Shop & Owner Information</CardTitle>
+                <CardDescription>Update your shop and owner details</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid gap-4">
-                  <div>
-                    <Label htmlFor="shopName">Shop Name</Label>
-                    <Input id="shopName" name="name" value={shopData.name} onChange={handleShopChange} required />
+              <CardContent className="space-y-8">
+                {/* Owner Information */}
+                <div>
+                  <h3 className="font-semibold text-sm sm:text-base mb-2">Owner Information</h3>
+                  <div className="grid gap-4">
+                    <div>
+                      <Label htmlFor="ownerName">Owner Name</Label>
+                      <Input
+                        id="ownerName"
+                        name="name"
+                        value={shopData?.name ?? ""}
+                        onChange={handleOwnerChange}
+                        required
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="ownerEmail">Owner Email</Label>
+                      <Input
+                        id="ownerEmail"
+                        name="email"
+                        type="email"
+                        value={shopData?.email ?? ""}
+                        onChange={handleOwnerChange}
+                        required
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="ownerNumber">Owner Phone Number</Label>
+                      <Input
+                        id="ownerNumber"
+                        name="number"
+                        value={shopData?.number ?? ""}
+                        onChange={handleOwnerChange}
+                        required
+                      />
+                    </div>
                   </div>
-                  <div>
-                    <Label htmlFor="shopAddress">Address</Label>
-                    <Input id="shopAddress" name="address" value={shopData.address} onChange={handleShopChange} required />
-                  </div>
-                  <div>
-                    <Label htmlFor="shopNumber">Phone Number</Label>
-                    <Input id="shopNumber" name="number" value={shopData.number} onChange={handleShopChange} required disabled />
-                  </div>
-                  <div>
-                    <Label htmlFor="shopEmail">Email</Label>
-                    <Input id="shopEmail" name="email" type="email" value={shopData.email} onChange={handleShopChange} required />
-                  </div>
-                  <div>
-                    <Label htmlFor="shopGst">GST</Label>
-                    <Input id="shopGst" name="gst" value={shopData.gst} onChange={handleShopChange} required />
+                </div>
+                <Separator />
+                {/* Shop Information */}
+                <div>
+                  <h3 className="font-semibold text-sm sm:text-base mb-2">Shop Information</h3>
+                  <div className="grid gap-4">
+                    <div>
+                      <Label htmlFor="shopName">Shop Name</Label>
+                      <Input id="shopName" name="name" value={shopData?.shop?.name} onChange={handleShopChange} required />
+                    </div>
+                    <div>
+                      <Label htmlFor="shopAddress">Address</Label>
+                      <Input id="shopAddress" name="address" value={shopData?.shop?.address} onChange={handleShopChange} required />
+                    </div>
+                    <div>
+                      <Label htmlFor="shopNumber">Phone Number</Label>
+                      <Input id="shopNumber" name="number" value={shopData?.shop?.number} onChange={handleShopChange} required />
+                    </div>
+                    <div>
+                      <Label htmlFor="shopEmail">Email</Label>
+                      <Input id="shopEmail" name="email" type="email" value={shopData?.shop?.email} onChange={handleShopChange} required />
+                    </div>
+                    <div>
+                      <Label htmlFor="shopGst">GST</Label>
+                      <Input id="shopGst" name="gst" value={shopData?.shop?.gst} onChange={handleShopChange} required />
+                    </div>
                   </div>
                 </div>
               </CardContent>
               <CardFooter>
                 <Button type="submit" disabled={isLoading} className="w-full">
-                  {isLoading ? "Saving..." : "Save Shop Info"}
+                  {isLoading ? "Saving..." : "Save Shop & Owner Info"}
                 </Button>
               </CardFooter>
             </form>
