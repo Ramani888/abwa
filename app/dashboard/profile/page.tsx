@@ -42,6 +42,7 @@ export default function ProfilePage() {
     email: "",
     gst: "",
   })
+  const [activeSection, setActiveSection] = useState<"profile" | "password" | "shop">("profile")
 
   const handleProfileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -179,20 +180,21 @@ export default function ProfilePage() {
   }, [user])
 
   return (
-    <div className="w-full">
-      <h2 className="text-3xl font-bold tracking-tight mb-6">My Profile</h2>
-
-      <div className="flex flex-col items-center justify-center mb-8">
-        <Avatar className="h-24 w-24 mb-4">
+    <div className="w-full h-full flex flex-col lg:flex-row items-stretch py-4 px-1 sm:px-4">
+      {/* Sidebar/Profile Summary */}
+      <aside className="w-full lg:w-1/3 xl:w-1/4 border rounded-xl flex flex-col items-center p-4 sm:p-6 mb-4 lg:mb-0 lg:mr-8">
+        <Avatar className="h-20 w-20 sm:h-24 sm:w-24 mb-3 ring-2 ring-primary">
           <AvatarImage src="/placeholder-user.jpg" alt="Profile" />
-          <AvatarFallback className="uppercase">
+          <AvatarFallback className="uppercase text-xl sm:text-2xl">
             {(user?.name?.[0] ?? '') + (user?.name?.[1] ?? '')}
           </AvatarFallback>
         </Avatar>
-        <Button variant="outline" size="sm" className="mb-2">
+        <div className="font-semibold text-base sm:text-lg">{user?.name}</div>
+        <div className="text-xs text-gray-500">{user?.email}</div>
+        <Button variant="outline" size="sm" className="mt-3 mb-2 w-full">
           Change Avatar
         </Button>
-        <div className="flex items-center gap-2 mt-2">
+        <div className="flex flex-wrap items-center gap-2 mt-2">
           <PlanBadge />
           <Link href="/dashboard/plans">
             <Button variant="link" size="sm" className="h-auto p-0">
@@ -201,157 +203,149 @@ export default function ProfilePage() {
             </Button>
           </Link>
         </div>
-      </div>
+        <nav className="flex flex-row lg:flex-col gap-2 w-full mt-6 sm:mt-8">
+          <button
+            className={`flex-1 px-3 py-2 rounded-lg text-center text-xs sm:text-sm font-medium transition ${
+              activeSection === "profile"
+                ? "bg-primary text-white"
+                : "bg-gray-100 text-gray-700 hover:bg-primary/10"
+            }`}
+            onClick={() => setActiveSection("profile")}
+          >
+            Profile
+          </button>
+          <button
+            className={`flex-1 px-3 py-2 rounded-lg text-center text-xs sm:text-sm font-medium transition ${
+              activeSection === "password"
+                ? "bg-primary text-white"
+                : "bg-gray-100 text-gray-700 hover:bg-primary/10"
+            }`}
+            onClick={() => setActiveSection("password")}
+          >
+            Password
+          </button>
+          <button
+            className={`flex-1 px-3 py-2 rounded-lg text-center text-xs sm:text-sm font-medium transition ${
+              activeSection === "shop"
+                ? "bg-primary text-white"
+                : "bg-gray-100 text-gray-700 hover:bg-primary/10"
+            }`}
+            onClick={() => setActiveSection("shop")}
+          >
+            Shop
+          </button>
+        </nav>
+      </aside>
 
-      <Tabs defaultValue="profile" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="profile">Profile Information</TabsTrigger>
-          <TabsTrigger value="password">Change Password</TabsTrigger>
-          <TabsTrigger value="shop">Shop Information</TabsTrigger>
-        </TabsList>
-        <TabsContent value="profile">
-          <Card>
+      {/* Main Content */}
+      <div className="flex-1 w-full mx-auto h-full">
+        {activeSection === "profile" && (
+          <Card className="rounded-xl w-full mb-6 border">
             <form onSubmit={handleProfileSubmit}>
               <CardHeader>
-                <CardTitle>Profile Information</CardTitle>
+                <CardTitle className="text-base sm:text-lg">Profile Information</CardTitle>
                 <CardDescription>Update your personal information</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Full Name</Label>
-                  <Input id="name" name="name" value={profileData?.name} onChange={handleProfileChange} required />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    name="email"
-                    type="email"
-                    value={profileData?.email}
-                    onChange={handleProfileChange}
-                    required
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="number">Phone Number</Label>
-                  <Input id="number" name="number" value={profileData?.number} onChange={handleProfileChange} required />
+                <div className="grid gap-4">
+                  <div>
+                    <Label htmlFor="name">Full Name</Label>
+                    <Input id="name" name="name" value={profileData?.name} onChange={handleProfileChange} required />
+                  </div>
+                  <div>
+                    <Label htmlFor="email">Email</Label>
+                    <Input id="email" name="email" type="email" value={profileData?.email} onChange={handleProfileChange} required />
+                  </div>
+                  <div>
+                    <Label htmlFor="number">Phone Number</Label>
+                    <Input id="number" name="number" value={profileData?.number} onChange={handleProfileChange} required />
+                  </div>
                 </div>
               </CardContent>
               <CardFooter>
-                <Button type="submit" disabled={isLoading}>
+                <Button type="submit" disabled={isLoading} className="w-full">
                   {isLoading ? "Saving..." : "Save Changes"}
                 </Button>
               </CardFooter>
             </form>
           </Card>
-        </TabsContent>
-        <TabsContent value="password">
-          <Card>
+        )}
+
+        {activeSection === "password" && (
+          <Card className="rounded-xl w-full mb-6 border">
             <form onSubmit={handlePasswordSubmit}>
               <CardHeader>
-                <CardTitle>Change Password</CardTitle>
+                <CardTitle className="text-base sm:text-lg">Change Password</CardTitle>
                 <CardDescription>Update your password to keep your account secure</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="currentPassword">Current Password</Label>
-                  <Input
-                    id="currentPassword"
-                    name="currentPassword"
-                    type="password"
-                    value={passwordData.currentPassword}
-                    onChange={handlePasswordChange}
-                    required
-                  />
-                </div>
-
-                <Separator />
-
-                <div className="space-y-2">
-                  <Label htmlFor="newPassword">New Password</Label>
-                  <Input
-                    id="newPassword"
-                    name="newPassword"
-                    type="password"
-                    value={passwordData.newPassword}
-                    onChange={handlePasswordChange}
-                    required
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="confirmPassword">Confirm New Password</Label>
-                  <Input
-                    id="confirmPassword"
-                    name="confirmPassword"
-                    type="password"
-                    value={passwordData.confirmPassword}
-                    onChange={handlePasswordChange}
-                    required
-                  />
-                  {passwordError && (
-                    <p className="text-sm text-red-500 mt-1">{passwordError}</p>
-                  )}
+                <div className="grid gap-4">
+                  <div>
+                    <Label htmlFor="currentPassword">Current Password</Label>
+                    <Input id="currentPassword" name="currentPassword" type="password" value={passwordData.currentPassword} onChange={handlePasswordChange} required />
+                  </div>
+                  <div>
+                    <Label htmlFor="newPassword">New Password</Label>
+                    <Input id="newPassword" name="newPassword" type="password" value={passwordData.newPassword} onChange={handlePasswordChange} required />
+                  </div>
+                  <div>
+                    <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                    <Input id="confirmPassword" name="confirmPassword" type="password" value={passwordData.confirmPassword} onChange={handlePasswordChange} required />
+                    {passwordError && (
+                      <p className="text-sm text-red-500 mt-1">{passwordError}</p>
+                    )}
+                  </div>
                 </div>
               </CardContent>
               <CardFooter>
-                <Button 
-                  type="submit" 
-                  disabled={isLoading || passwordData.newPassword !== passwordData.confirmPassword || !passwordData.newPassword}
-                >
+                <Button type="submit" disabled={isLoading || passwordData.newPassword !== passwordData.confirmPassword || !passwordData.newPassword} className="w-full">
                   {isLoading ? "Updating..." : "Update Password"}
                 </Button>
               </CardFooter>
             </form>
           </Card>
-        </TabsContent>
-        <TabsContent value="shop">
-          <Card>
+        )}
+
+        {activeSection === "shop" && (
+          <Card className="rounded-xl w-full mb-6 border">
             <form onSubmit={handleShopSubmit}>
               <CardHeader>
-                <CardTitle>Shop Information</CardTitle>
+                <CardTitle className="text-base sm:text-lg">Shop Information</CardTitle>
                 <CardDescription>Update your shop/agro details</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="shopName">Shop Name</Label>
-                  <Input id="shopName" name="name" value={shopData.name} onChange={handleShopChange} required />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="shopAddress">Address</Label>
-                  <Input id="shopAddress" name="address" value={shopData.address} onChange={handleShopChange} required />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="shopNumber">Phone Number</Label>
-                  <Input
-                    id="shopNumber"
-                    name="number"
-                    value={shopData.number}
-                    onChange={handleShopChange}
-                    required
-                    disabled // <-- Make the field disabled
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="shopEmail">Email</Label>
-                  <Input id="shopEmail" name="email" type="email" value={shopData.email} onChange={handleShopChange} required />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="shopGst">GST</Label>
-                  <Input id="shopGst" name="gst" value={shopData.gst} onChange={handleShopChange} required />
+                <div className="grid gap-4">
+                  <div>
+                    <Label htmlFor="shopName">Shop Name</Label>
+                    <Input id="shopName" name="name" value={shopData.name} onChange={handleShopChange} required />
+                  </div>
+                  <div>
+                    <Label htmlFor="shopAddress">Address</Label>
+                    <Input id="shopAddress" name="address" value={shopData.address} onChange={handleShopChange} required />
+                  </div>
+                  <div>
+                    <Label htmlFor="shopNumber">Phone Number</Label>
+                    <Input id="shopNumber" name="number" value={shopData.number} onChange={handleShopChange} required disabled />
+                  </div>
+                  <div>
+                    <Label htmlFor="shopEmail">Email</Label>
+                    <Input id="shopEmail" name="email" type="email" value={shopData.email} onChange={handleShopChange} required />
+                  </div>
+                  <div>
+                    <Label htmlFor="shopGst">GST</Label>
+                    <Input id="shopGst" name="gst" value={shopData.gst} onChange={handleShopChange} required />
+                  </div>
                 </div>
               </CardContent>
               <CardFooter>
-                <Button type="submit" disabled={isLoading}>
+                <Button type="submit" disabled={isLoading} className="w-full">
                   {isLoading ? "Saving..." : "Save Shop Info"}
                 </Button>
               </CardFooter>
             </form>
           </Card>
-        </TabsContent>
-      </Tabs>
+        )}
+      </div>
     </div>
   )
 }
