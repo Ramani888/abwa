@@ -197,7 +197,7 @@ export default function ProfilePage() {
   return (
     <div className="w-full h-full flex flex-col lg:flex-row items-stretch py-4 px-1 sm:px-4">
       {/* Sidebar/Profile Summary */}
-      <aside className="w-full lg:w-1/3 xl:w-1/4 bg-white border h-auto lg:h-full rounded-xl flex flex-col items-center p-4 sm:p-6 mb-4 lg:mb-0 lg:mr-8">
+      <aside className="w-full lg:w-1/3 xl:w-1/4 border h-auto lg:h-full rounded-xl flex flex-col items-center p-4 sm:p-6 mb-4 lg:mb-0 lg:mr-8">
         <Avatar className="h-20 w-20 sm:h-24 sm:w-24 mb-3 ring-2 ring-primary">
           <AvatarImage src="/placeholder-user.jpg" alt="Profile" />
           <AvatarFallback className="uppercase text-xl sm:text-2xl">
@@ -220,30 +220,30 @@ export default function ProfilePage() {
         </div>
         <nav className="flex flex-row lg:flex-col gap-2 w-full mt-6 sm:mt-8">
           <button
-            className={`flex-1 px-3 py-2 rounded-lg text-center text-xs sm:text-sm font-medium transition ${
+            className={`flex-1 px-3 py-2 rounded-lg text-center text-xs sm:text-sm font-medium transition border ${
               activeSection === "profile"
                 ? "bg-primary text-white"
-                : "bg-gray-100 text-gray-700 hover:bg-primary/10"
+                : "transparent"
             }`}
             onClick={() => setActiveSection("profile")}
           >
             Profile
           </button>
           <button
-            className={`flex-1 px-3 py-2 rounded-lg text-center text-xs sm:text-sm font-medium transition ${
+            className={`flex-1 px-3 py-2 rounded-lg text-center text-xs sm:text-sm font-medium transition border ${
               activeSection === "password"
                 ? "bg-primary text-white"
-                : "bg-gray-100 text-gray-700 hover:bg-primary/10"
+                : "transparent"
             }`}
             onClick={() => setActiveSection("password")}
           >
             Password
           </button>
           <button
-            className={`flex-1 px-3 py-2 rounded-lg text-center text-xs sm:text-sm font-medium transition ${
+            className={`flex-1 px-3 py-2 rounded-lg text-center text-xs sm:text-sm font-medium transition border ${
               activeSection === "shop"
                 ? "bg-primary text-white"
-                : "bg-gray-100 text-gray-700 hover:bg-primary/10"
+                : "transparent"
             }`}
             onClick={() => setActiveSection("shop")}
           >
