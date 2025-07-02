@@ -242,7 +242,7 @@ export default function LoginPage() {
                       className="w-full pl-12 h-12"
                     />
                   </div>
-                  <ErrorMessage name="number" component="p" className="text-sm text-destructive mt-1" />
+                  <ErrorMessage name="number" component="p" className="text-red-500 text-sm mt-1" />
                 </div>
 
                 <div className="space-y-1.5">
@@ -271,7 +271,7 @@ export default function LoginPage() {
                       {isPasswordVisible ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                     </button>
                   </div>
-                  <ErrorMessage name="password" component="p" className="text-sm text-destructive mt-1" />
+                  <ErrorMessage name="password" component="p" className="text-red-500 text-sm mt-1" />
                 </div>
 
                 <Button
