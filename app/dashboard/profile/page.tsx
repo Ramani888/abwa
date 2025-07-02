@@ -2,6 +2,8 @@
 
 import type React from "react"
 
+import { Formik, Form, Field, ErrorMessage } from "formik"
+import * as Yup from "yup"
 import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -11,7 +13,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
 import { PlanBadge } from "@/components/dashboard/plan-badge"
 import Link from "next/link"
-import { Crown } from "lucide-react"
+import { Crown, User, Mail, Phone, Lock, Store, MapPin, Hash } from "lucide-react"
 import { usePlan } from "@/components/dashboard/plan-context"
 import { useAuth } from "@/components/auth-provider"
 import { serverUpdateOwner, serverUpdateUser, serverUpdateUserPasswordByCurrent } from "@/services/serverApi"
@@ -45,131 +47,35 @@ export default function ProfilePage() {
   })
   const [activeSection, setActiveSection] = useState<"profile" | "password" | "shop">("profile")
 
-  const handleProfileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setProfileData((prev) => ({ ...prev, [name]: value }))
-  }
+  // --- Formik Validation Schemas ---
+  const profileSchema = Yup.object({
+    name: Yup.string().required("Name is required"),
+    email: Yup.string().email("Invalid email").required("Email is required"),
+    number: Yup.string().required("Phone number is required"),
+  })
 
-  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setPasswordData((prev) => ({ ...prev, [name]: value }))
-    if (passwordError) {
-      setPasswordError("")
-    }
-  }
+  const passwordSchema = Yup.object({
+    currentPassword: Yup.string().required("Current password is required"),
+    newPassword: Yup.string().min(6, "At least 6 characters").required("New password is required"),
+    confirmPassword: Yup.string()
+      .oneOf([Yup.ref("newPassword")], "Passwords must match")
+      .required("Confirm your new password"),
+  })
 
-  const handleShopChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setShopData((prev) => ({ ...prev, shop: { ...prev.shop, [name]: value } }))
-  }
+  const shopSchema = Yup.object({
+    name: Yup.string().required("Owner name is required"),
+    email: Yup.string().email("Invalid email").required("Owner email is required"),
+    number: Yup.string().required("Owner phone is required"),
+    shop: Yup.object({
+      name: Yup.string().required("Shop name is required"),
+      address: Yup.string().required("Shop address is required"),
+      number: Yup.string().required("Shop phone is required"),
+      email: Yup.string().email("Invalid email").required("Shop email is required"),
+      gst: Yup.string().required("GST is required"),
+    }),
+  })
 
-  const handleOwnerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setShopData((prev) => ({ ...prev, [name]: value }))
-  }
-
-  const handleProfileSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    try {
-      setIsLoading(true)
-      const res = await serverUpdateUser({ ...profileData, _id: user?._id, number: Number(profileData.number) });
-      if (res?.success) {
-        updateUser({
-          ...profileData,
-          number: Number(profileData.number)
-        })
-        if (Number(user?.number) === Number(owner?.number)) {
-          const newOwnerData = {
-            ...owner,
-            name: profileData.name,
-            email: profileData.email,
-            number: Number(profileData.number),
-          }
-          updateOwner(newOwnerData)
-        }
-      }
-      fetchProfileData();
-      setIsLoading(false)
-    } catch (error) {
-      console.error("Error creating customer:", error)
-      setIsLoading(false)
-    }
-  }
-
-  const handlePasswordSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (passwordData.newPassword !== passwordData.confirmPassword) {
-      setPasswordError("New password and confirmation do not match")
-      return
-    }
-    try {
-      setIsLoading(true)
-      await serverUpdateUserPasswordByCurrent({
-        _id: user?._id ?? '',
-        currentPassword: passwordData.currentPassword,
-        newPassword: passwordData.newPassword,
-      })
-      setIsLoading(false)
-      setPasswordData({
-        currentPassword: "",
-        newPassword: "",
-        confirmPassword: "",
-      })
-      setPasswordError("")
-    } catch (error: any) {
-      setPasswordError(error?.response?.data?.message || "An error occurred")
-      console.error("Error creating customer:", error)
-      setIsLoading(false)
-    }
-  }
-
-  const handleShopSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    try {
-      setIsLoading(true)
-      const res = await serverUpdateOwner({
-        ...owner,
-        name: shopData?.name ?? "",
-        email: shopData?.email ?? "",
-        number: Number(shopData?.number) ?? 0,
-        shop: {
-          ...shopData.shop,
-          number: Number(shopData.shop.number),
-          _id: owner?.shop?._id ?? "",
-          address: shopData.shop.address ?? "",
-          gst: shopData.shop.gst ?? "",
-        },
-      })
-      if (res?.success) {
-        updateOwner({
-          ...owner,
-          name: shopData?.name ?? "",
-          email: shopData?.email ?? "",
-          number: Number(shopData?.number) ?? 0,
-          shop: {
-            ...shopData.shop,
-            number: Number(shopData.shop.number),
-            _id: owner?.shop?._id ?? "",
-            address: shopData.shop.address ?? "",
-            gst: shopData.shop.gst ?? "",
-          },
-        })
-        if (Number(user?.number) === Number(owner?.number)) {
-          updateUser({
-            ...user,
-            name: shopData?.name ?? "",
-            email: shopData?.email ?? "",
-            number: Number(shopData?.number ?? 0),
-          })
-        }
-      }
-      setIsLoading(false)
-    } catch (error) {
-      console.error("Error updating shop:", error)
-      setIsLoading(false)
-    }
-  }
-
+  // --- Data Fetch ---
   const fetchProfileData = () => {
     setProfileData({
       name: user?.name ?? '',
@@ -193,6 +99,106 @@ export default function ProfilePage() {
   useEffect(() => {
     fetchProfileData()
   }, [user])
+
+  // --- Submit Handlers (Formik values, not events) ---
+  const handleProfileSubmit = async (values: { name: string; email: string; number: string }) => {
+    try {
+      setIsLoading(true)
+      const res = await serverUpdateUser({ ...values, _id: user?._id, number: Number(values.number) });
+      if (res?.success) {
+        updateUser({
+          ...values,
+          number: Number(values.number)
+        })
+        if (Number(user?.number) === Number(owner?.number)) {
+          const newOwnerData = {
+            ...owner,
+            name: values.name,
+            email: values.email,
+            number: Number(values.number),
+          }
+          updateOwner(newOwnerData)
+        }
+      }
+      fetchProfileData();
+      setIsLoading(false)
+    } catch (error) {
+      console.error("Error creating customer:", error)
+      setIsLoading(false)
+    }
+  }
+
+  const handlePasswordSubmit = async (values: { currentPassword: string; newPassword: string; confirmPassword: string }) => {
+    if (values.newPassword !== values.confirmPassword) {
+      setPasswordError("New password and confirmation do not match")
+      return
+    }
+    try {
+      setIsLoading(true)
+      await serverUpdateUserPasswordByCurrent({
+        _id: user?._id ?? '',
+        currentPassword: values.currentPassword,
+        newPassword: values.newPassword,
+      })
+      setIsLoading(false)
+      setPasswordData({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      })
+      setPasswordError("")
+    } catch (error: any) {
+      setPasswordError(error?.response?.data?.message || "An error occurred")
+      console.error("Error creating customer:", error)
+      setIsLoading(false)
+    }
+  }
+
+  const handleShopSubmit = async (values: any) => {
+    try {
+      setIsLoading(true)
+      const res = await serverUpdateOwner({
+        ...owner,
+        name: values?.name ?? "",
+        email: values?.email ?? "",
+        number: Number(values?.number) ?? 0,
+        shop: {
+          ...values.shop,
+          number: Number(values.shop.number),
+          _id: owner?.shop?._id ?? "",
+          address: values.shop.address ?? "",
+          gst: values.shop.gst ?? "",
+        },
+      })
+      if (res?.success) {
+        updateOwner({
+          ...owner,
+          name: values?.name ?? "",
+          email: values?.email ?? "",
+          number: Number(values?.number) ?? 0,
+          shop: {
+            ...values.shop,
+            number: Number(values.shop.number),
+            _id: owner?.shop?._id ?? "",
+            address: values.shop.address ?? "",
+            gst: values.shop.gst ?? "",
+          },
+        })
+        if (Number(user?.number) === Number(owner?.number)) {
+          updateUser({
+            ...user,
+            name: values?.name ?? "",
+            email: values?.email ?? "",
+            number: Number(values?.number ?? 0),
+          })
+        }
+      }
+      setIsLoading(false)
+    } catch (error) {
+      console.error("Error updating shop:", error)
+      setIsLoading(false)
+    }
+  }
 
   return (
     <div className="w-full h-full flex flex-col lg:flex-row items-stretch py-4 px-1 sm:px-4">
@@ -255,150 +261,235 @@ export default function ProfilePage() {
       <div className="flex-1 w-full mx-auto h-full max-h-screen pr-0 sm:pr-2">
         {activeSection === "profile" && (
           <Card className="rounded-xl w-full mb-6 border">
-            <form onSubmit={handleProfileSubmit}>
-              <CardHeader>
-                <CardTitle className="text-base sm:text-lg">Profile Information</CardTitle>
-                <CardDescription>Update your personal information</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid gap-4">
-                  <div>
-                    <Label htmlFor="name">Full Name</Label>
-                    <Input id="name" name="name" value={profileData?.name} onChange={handleProfileChange} required />
-                  </div>
-                  <div>
-                    <Label htmlFor="email">Email</Label>
-                    <Input id="email" name="email" type="email" value={profileData?.email} onChange={handleProfileChange} required />
-                  </div>
-                  <div>
-                    <Label htmlFor="number">Phone Number</Label>
-                    <Input id="number" name="number" value={profileData?.number} onChange={handleProfileChange} required />
-                  </div>
-                </div>
-              </CardContent>
-              <CardFooter>
-                <Button type="submit" disabled={isLoading} className="w-full">
-                  {isLoading ? "Saving..." : "Save Changes"}
-                </Button>
-              </CardFooter>
-            </form>
+            <Formik
+              initialValues={profileData}
+              validationSchema={profileSchema}
+              enableReinitialize
+              onSubmit={async (values, { setSubmitting, resetForm }) => {
+                await handleProfileSubmit(values)
+                setSubmitting(false)
+                resetForm({ values })
+              }}
+            >
+              {({ isSubmitting, dirty, isValid }) => (
+                <Form>
+                  <CardHeader>
+                    <CardTitle className="text-base sm:text-lg">Profile Information</CardTitle>
+                    <CardDescription>Update your personal information</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="name">Full Name</Label>
+                        <div className="relative">
+                          <User className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                          <Field as={Input} id="name" name="name" placeholder="Full Name" className="pl-8" />
+                        </div>
+                        <ErrorMessage name="name" component="div" className="text-red-500 text-sm" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="email">Email</Label>
+                        <div className="relative">
+                          <Mail className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                          <Field as={Input} id="email" name="email" type="email" placeholder="Email" className="pl-8" />
+                        </div>
+                        <ErrorMessage name="email" component="div" className="text-red-500 text-sm" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="number">Phone Number</Label>
+                        <div className="relative">
+                          <Phone className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                          <Field as={Input} id="number" name="number" placeholder="Phone Number" className="pl-8" />
+                        </div>
+                        <ErrorMessage name="number" component="div" className="text-red-500 text-sm" />
+                      </div>
+                    </div>
+                  </CardContent>
+                  <CardFooter>
+                    <Button
+                      type="submit"
+                      disabled={isSubmitting || !dirty || !isValid}
+                      className="w-full"
+                    >
+                      {isSubmitting ? "Saving..." : "Save Changes"}
+                    </Button>
+                  </CardFooter>
+                </Form>
+              )}
+            </Formik>
           </Card>
         )}
 
         {activeSection === "password" && (
           <Card className="rounded-xl w-full mb-6 border">
-            <form onSubmit={handlePasswordSubmit}>
-              <CardHeader>
-                <CardTitle className="text-base sm:text-lg">Change Password</CardTitle>
-                <CardDescription>Update your password to keep your account secure</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid gap-4">
-                  <div>
-                    <Label htmlFor="currentPassword">Current Password</Label>
-                    <Input id="currentPassword" name="currentPassword" type="password" value={passwordData.currentPassword} onChange={handlePasswordChange} required />
-                  </div>
-                  <div>
-                    <Label htmlFor="newPassword">New Password</Label>
-                    <Input id="newPassword" name="newPassword" type="password" value={passwordData.newPassword} onChange={handlePasswordChange} required />
-                  </div>
-                  <div>
-                    <Label htmlFor="confirmPassword">Confirm New Password</Label>
-                    <Input id="confirmPassword" name="confirmPassword" type="password" value={passwordData.confirmPassword} onChange={handlePasswordChange} required />
-                    {passwordError && (
-                      <p className="text-sm text-red-500 mt-1">{passwordError}</p>
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-              <CardFooter>
-                <Button type="submit" disabled={isLoading || passwordData.newPassword !== passwordData.confirmPassword || !passwordData.newPassword} className="w-full">
-                  {isLoading ? "Updating..." : "Update Password"}
-                </Button>
-              </CardFooter>
-            </form>
+            <Formik
+              initialValues={passwordData}
+              validationSchema={passwordSchema}
+              enableReinitialize
+              onSubmit={async (values, { setSubmitting, resetForm }) => {
+                await handlePasswordSubmit(values)
+                setSubmitting(false)
+                resetForm()
+              }}
+            >
+              {({ isSubmitting, dirty, isValid }) => (
+                <Form>
+                  <CardHeader>
+                    <CardTitle className="text-base sm:text-lg">Change Password</CardTitle>
+                    <CardDescription>Update your password to keep your account secure</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="currentPassword">Current Password</Label>
+                        <div className="relative">
+                          <Lock className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                          <Field as={Input} id="currentPassword" name="currentPassword" type="password" placeholder="Current Password" className="pl-8" />
+                        </div>
+                        <ErrorMessage name="currentPassword" component="div" className="text-red-500 text-sm" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="newPassword">New Password</Label>
+                        <div className="relative">
+                          <Lock className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                          <Field as={Input} id="newPassword" name="newPassword" type="password" placeholder="New Password" className="pl-8" />
+                        </div>
+                        <ErrorMessage name="newPassword" component="div" className="text-red-500 text-sm" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                        <div className="relative">
+                          <Lock className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                          <Field as={Input} id="confirmPassword" name="confirmPassword" type="password" placeholder="Confirm New Password" className="pl-8" />
+                        </div>
+                        <ErrorMessage name="confirmPassword" component="div" className="text-red-500 text-sm" />
+                      </div>
+                    </div>
+                  </CardContent>
+                  <CardFooter>
+                    <Button
+                      type="submit"
+                      disabled={isSubmitting || !dirty || !isValid}
+                      className="w-full"
+                    >
+                      {isSubmitting ? "Updating..." : "Update Password"}
+                    </Button>
+                  </CardFooter>
+                </Form>
+              )}
+            </Formik>
           </Card>
         )}
 
         {activeSection === "shop" && (
           <Card className="rounded-xl w-full mb-6 border">
-            <form onSubmit={handleShopSubmit}>
-              <CardHeader>
-                <CardTitle className="text-base sm:text-lg">Shop & Owner Information</CardTitle>
-                <CardDescription>Update your shop and owner details</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-8">
-                {/* Owner Information */}
-                <div>
-                  <h3 className="font-semibold text-sm sm:text-base mb-2">Owner Information</h3>
-                  <div className="grid gap-4">
+            <Formik
+              initialValues={shopData}
+              validationSchema={shopSchema}
+              enableReinitialize
+              onSubmit={async (values, { setSubmitting, resetForm }) => {
+                await handleShopSubmit(values)
+                setSubmitting(false)
+                resetForm({ values })
+              }}
+            >
+              {({ isSubmitting, dirty, isValid }) => (
+                <Form>
+                  <CardHeader>
+                    <CardTitle className="text-base sm:text-lg">Shop & Owner Information</CardTitle>
+                    <CardDescription>Update your shop and owner details</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-8">
+                    {/* Owner Information */}
                     <div>
-                      <Label htmlFor="ownerName">Owner Name</Label>
-                      <Input
-                        id="ownerName"
-                        name="name"
-                        value={shopData?.name ?? ""}
-                        onChange={handleOwnerChange}
-                        required
-                      />
+                      <h3 className="font-semibold text-sm sm:text-base mb-2">Owner Information</h3>
+                      <div className="grid gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="ownerName">Owner Name</Label>
+                          <div className="relative">
+                            <User className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                            <Field as={Input} id="ownerName" name="name" placeholder="Owner Name" className="pl-8" />
+                          </div>
+                          <ErrorMessage name="name" component="div" className="text-red-500 text-sm" />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="ownerEmail">Owner Email</Label>
+                          <div className="relative">
+                            <Mail className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                            <Field as={Input} id="ownerEmail" name="email" type="email" placeholder="Owner Email" className="pl-8" />
+                          </div>
+                          <ErrorMessage name="email" component="div" className="text-red-500 text-sm" />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="ownerNumber">Owner Phone Number</Label>
+                          <div className="relative">
+                            <Phone className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                            <Field as={Input} id="ownerNumber" name="number" placeholder="Owner Phone Number" className="pl-8" />
+                          </div>
+                          <ErrorMessage name="number" component="div" className="text-red-500 text-sm" />
+                        </div>
+                      </div>
                     </div>
+                    <Separator />
+                    {/* Shop Information */}
                     <div>
-                      <Label htmlFor="ownerEmail">Owner Email</Label>
-                      <Input
-                        id="ownerEmail"
-                        name="email"
-                        type="email"
-                        value={shopData?.email ?? ""}
-                        onChange={handleOwnerChange}
-                        required
-                      />
+                      <h3 className="font-semibold text-sm sm:text-base mb-2">Shop Information</h3>
+                      <div className="grid gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="shopName">Shop Name</Label>
+                          <div className="relative">
+                            <Store className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                            <Field as={Input} id="shopName" name="shop.name" placeholder="Shop Name" className="pl-8" />
+                          </div>
+                          <ErrorMessage name="shop.name" component="div" className="text-red-500 text-sm" />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="shopAddress">Address</Label>
+                          <div className="relative">
+                            <MapPin className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                            <Field as={Input} id="shopAddress" name="shop.address" placeholder="Shop Address" className="pl-8" />
+                          </div>
+                          <ErrorMessage name="shop.address" component="div" className="text-red-500 text-sm" />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="shopNumber">Phone Number</Label>
+                          <div className="relative">
+                            <Phone className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                            <Field as={Input} id="shopNumber" name="shop.number" placeholder="Shop Phone Number" className="pl-8" />
+                          </div>
+                          <ErrorMessage name="shop.number" component="div" className="text-red-500 text-sm" />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="shopEmail">Email</Label>
+                          <div className="relative">
+                            <Mail className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                            <Field as={Input} id="shopEmail" name="shop.email" type="email" placeholder="Shop Email" className="pl-8" />
+                          </div>
+                          <ErrorMessage name="shop.email" component="div" className="text-red-500 text-sm" />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="shopGst">GST</Label>
+                          <div className="relative">
+                            <Hash className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                            <Field as={Input} id="shopGst" name="shop.gst" placeholder="GST" className="pl-8" />
+                          </div>
+                          <ErrorMessage name="shop.gst" component="div" className="text-red-500 text-sm" />
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <Label htmlFor="ownerNumber">Owner Phone Number</Label>
-                      <Input
-                        id="ownerNumber"
-                        name="number"
-                        value={shopData?.number ?? ""}
-                        onChange={handleOwnerChange}
-                        required
-                      />
-                    </div>
-                  </div>
-                </div>
-                <Separator />
-                {/* Shop Information */}
-                <div>
-                  <h3 className="font-semibold text-sm sm:text-base mb-2">Shop Information</h3>
-                  <div className="grid gap-4">
-                    <div>
-                      <Label htmlFor="shopName">Shop Name</Label>
-                      <Input id="shopName" name="name" value={shopData?.shop?.name} onChange={handleShopChange} required />
-                    </div>
-                    <div>
-                      <Label htmlFor="shopAddress">Address</Label>
-                      <Input id="shopAddress" name="address" value={shopData?.shop?.address} onChange={handleShopChange} required />
-                    </div>
-                    <div>
-                      <Label htmlFor="shopNumber">Phone Number</Label>
-                      <Input id="shopNumber" name="number" value={shopData?.shop?.number} onChange={handleShopChange} required />
-                    </div>
-                    <div>
-                      <Label htmlFor="shopEmail">Email</Label>
-                      <Input id="shopEmail" name="email" type="email" value={shopData?.shop?.email} onChange={handleShopChange} required />
-                    </div>
-                    <div>
-                      <Label htmlFor="shopGst">GST</Label>
-                      <Input id="shopGst" name="gst" value={shopData?.shop?.gst} onChange={handleShopChange} required />
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-              <CardFooter>
-                <Button type="submit" disabled={isLoading} className="w-full">
-                  {isLoading ? "Saving..." : "Save Shop & Owner Info"}
-                </Button>
-              </CardFooter>
-            </form>
+                  </CardContent>
+                  <CardFooter>
+                    <Button
+                      type="submit"
+                      disabled={isSubmitting || !dirty || !isValid}
+                      className="w-full"
+                    >
+                      {isSubmitting ? "Saving..." : "Save Shop & Owner Info"}
+                    </Button>
+                  </CardFooter>
+                </Form>
+              )}
+            </Formik>
           </Card>
         )}
       </div>
