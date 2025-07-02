@@ -135,7 +135,7 @@ export function CustomersTable({ setRefreshFunction }: { setRefreshFunction?: (f
         </div>
       </div>
 
-      <div className="rounded-md border overflow-x-auto bg-white">
+      <div className="rounded-md border overflow-x-auto">
         <Table className="min-w-[700px]">
           <TableHeader>
             <TableRow>

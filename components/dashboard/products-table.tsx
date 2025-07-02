@@ -142,7 +142,7 @@ export function ProductsTable({ setRefreshFunction }: { setRefreshFunction?: (fn
         </div>
       </div>
 
-      <div className="rounded-md border overflow-x-auto bg-white">
+      <div className="rounded-md border overflow-x-auto">
         <Table className="min-w-[900px]">
           <TableHeader>
             <TableRow>

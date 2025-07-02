@@ -85,7 +85,7 @@ export default function CustomerDetailsPage({ params }: { params: { id: string }
 
       {/* Responsive Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 mb-6">
-        <Card className="border border-red-200 bg-white transition-all duration-200">
+        <Card className="border border-red-500 transition-all duration-200">
           <CardContent className="flex items-center gap-4 py-6">
             <div className="flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
               <ArrowLeft className="h-6 w-6 text-red-500" />
@@ -96,7 +96,7 @@ export default function CustomerDetailsPage({ params }: { params: { id: string }
             </div>
           </CardContent>
         </Card>
-        <Card className="border border-green-200 bg-white transition-all duration-200">
+        <Card className="border border-green-500 transition-all duration-200">
           <CardContent className="flex items-center gap-4 py-6">
             <div className="flex items-center justify-center h-12 w-12 rounded-full bg-green-100">
               <ShoppingBag className="h-6 w-6 text-green-500" />
@@ -107,7 +107,7 @@ export default function CustomerDetailsPage({ params }: { params: { id: string }
             </div>
           </CardContent>
         </Card>
-        <Card className="border border-blue-200 bg-white transition-all duration-200">
+        <Card className="border border-blue-500 transition-all duration-200">
           <CardContent className="flex items-center gap-4 py-6">
             <div className="flex items-center justify-center h-12 w-12 rounded-full bg-blue-100">
               <Edit className="h-6 w-6 text-blue-500" />
