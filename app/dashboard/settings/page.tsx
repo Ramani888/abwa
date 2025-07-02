@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Switch } from "@/components/ui/switch"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
+import { useTheme } from "@/components/theme-provider"
 
 export default function SettingsPage() {
   const [generalSettings, setGeneralSettings] = useState({
@@ -37,6 +38,7 @@ export default function SettingsPage() {
   })
 
   const [isLoading, setIsLoading] = useState(false)
+  const { theme, toggleTheme } = useTheme()
 
   const handleGeneralChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -161,6 +163,15 @@ export default function SettingsPage() {
                       <SelectItem value="Asia/Tokyo">Tokyo (GMT+9)</SelectItem>
                     </SelectContent>
                   </Select>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="darkMode">Dark Mode</Label>
+                  <Switch
+                    id="darkMode"
+                    checked={theme === "dark"}
+                    onCheckedChange={toggleTheme}
+                  />
                 </div>
               </CardContent>
             </Card>
