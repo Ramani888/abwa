@@ -331,7 +331,7 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="flex min-h-screen bg-slate-50 dark:bg-slate-900 transition-colors">
+    <div className="flex min-h-screen bg-background transition-colors">
       {/* Left Side - Image Only */}
       <div className="hidden lg:block lg:w-2/3 relative">
         <Image 
@@ -345,7 +345,7 @@ export default function RegisterPage() {
       </div>
 
       {/* Right Side - Registration Form */}
-      <div className="w-full lg:w-1/3 relative flex flex-col justify-center px-8 py-12 lg:px-16 bg-white dark:bg-slate-800 shadow-2xl shadow-slate-200/50 transition-colors">
+      <div className="w-full lg:w-1/3 relative flex flex-col justify-center px-8 py-12 lg:px-16 bg-background shadow-2xl shadow-slate-200/50 transition-colors">
         <Link href="/" className="absolute left-8 top-8 flex items-center gap-2">
           <div className="bg-green-500 p-2 rounded-lg">
             <ShoppingBag className="h-5 w-5 text-white" />
@@ -359,7 +359,6 @@ export default function RegisterPage() {
             <div className="h-1 w-12 bg-green-500 rounded-full mb-3"></div>
             <p className="text-slate-500 dark:text-slate-300">Register as a shop owner and start managing your agro business</p>
           </div>
-          
           <Formik
             initialValues={{
               name: "",
@@ -402,7 +401,7 @@ export default function RegisterPage() {
                           id="name"
                           name="name"
                           placeholder="John Doe"
-                          className="w-full pl-12 h-12 rounded-lg border border-slate-300 bg-white dark:bg-slate-900 focus:border-green-500 focus:ring-1 focus:ring-green-500"
+                          className="w-full pl-12 h-12"
                         />
                         <ErrorMessage name="name" component="div" className="text-red-500 text-sm mt-1" />
                       </div>
@@ -420,7 +419,7 @@ export default function RegisterPage() {
                           name="email"
                           type="email"
                           placeholder="name@example.com"
-                          className="w-full pl-12 h-12 rounded-lg border border-slate-300 bg-white dark:bg-slate-900 focus:border-green-500 focus:ring-1 focus:ring-green-500"
+                          className="w-full pl-12 h-12"
                         />
                         <ErrorMessage name="email" component="div" className="text-red-500 text-sm mt-1" />
                       </div>
@@ -437,7 +436,7 @@ export default function RegisterPage() {
                           id="number"
                           name="number"
                           placeholder="Enter your phone number"
-                          className="w-full pl-12 h-12 rounded-lg border border-slate-300 bg-white dark:bg-slate-900 focus:border-green-500 focus:ring-1 focus:ring-green-500"
+                          className="w-full pl-12 h-12"
                         />
                         <ErrorMessage name="number" component="div" className="text-red-500 text-sm mt-1" />
                       </div>
@@ -455,7 +454,7 @@ export default function RegisterPage() {
                           name="password"
                           type={isPasswordVisible ? "text" : "password"}
                           placeholder="Create a strong password"
-                          className="w-full pl-12 h-12 rounded-lg border border-slate-300 bg-white dark:bg-slate-900 focus:border-green-500 focus:ring-1 focus:ring-green-500"
+                          className="w-full pl-12 h-12"
                         />
                         <button
                           type="button"
@@ -480,7 +479,7 @@ export default function RegisterPage() {
                           name="confirmPassword"
                           type={isConfirmPasswordVisible ? "text" : "password"}
                           placeholder="Confirm your password"
-                          className="w-full pl-12 h-12 rounded-lg border border-slate-300 bg-white dark:bg-slate-900 focus:border-green-500 focus:ring-1 focus:ring-green-500"
+                          className="w-full pl-12 h-12"
                         />
                         <button
                           type="button"
@@ -517,7 +516,7 @@ export default function RegisterPage() {
                           id="shopName"
                           name="shopName"
                           placeholder="Green Harvest Agro Shop"
-                          className="w-full pl-12 h-12 rounded-lg border border-slate-300 bg-white dark:bg-slate-900 focus:border-green-500 focus:ring-1 focus:ring-green-500"
+                          className="w-full pl-12 h-12"
                         />
                         <ErrorMessage name="shopName" component="div" className="text-red-500 text-sm mt-1" />
                       </div>
@@ -534,7 +533,7 @@ export default function RegisterPage() {
                           id="address"
                           name="address"
                           placeholder="123 Farm Road, Agricity"
-                          className="w-full pl-12 pt-3 pr-3 pb-3 h-12 min-h-[100px] rounded-lg border border-slate-300 bg-white dark:bg-slate-900 focus:border-green-500 focus:ring-1 focus:ring-green-500"
+                          className="w-full pl-12 pt-3 pr-3 pb-3 h-12 min-h-[100px]"
                         />
                         <ErrorMessage name="address" component="div" className="text-red-500 text-sm mt-1" />
                       </div>
@@ -551,7 +550,7 @@ export default function RegisterPage() {
                           id="shopNumber"
                           name="shopNumber"
                           placeholder="Enter shop phone number"
-                          className="w-full pl-12 h-12 rounded-lg border border-slate-300 bg-white dark:bg-slate-900 focus:border-green-500 focus:ring-1 focus:ring-green-500"
+                          className="w-full pl-12 h-12"
                         />
                         <ErrorMessage name="shopNumber" component="div" className="text-red-500 text-sm mt-1" />
                       </div>
@@ -569,7 +568,7 @@ export default function RegisterPage() {
                           name="shopEmail"
                           type="email"
                           placeholder="shop@example.com"
-                          className="w-full pl-12 h-12 rounded-lg border border-slate-300 bg-white dark:bg-slate-900 focus:border-green-500 focus:ring-1 focus:ring-green-500"
+                          className="w-full pl-12 h-12"
                         />
                         <ErrorMessage name="shopEmail" component="div" className="text-red-500 text-sm mt-1" />
                       </div>
@@ -586,7 +585,7 @@ export default function RegisterPage() {
                           id="gst"
                           name="gst"
                           placeholder="22AAAAA0000A1Z5"
-                          className="w-full pl-12 h-12 rounded-lg border border-slate-300 bg-white dark:bg-slate-900 focus:border-green-500 focus:ring-1 focus:ring-green-500"
+                          className="w-full pl-12 h-12"
                         />
                         <ErrorMessage name="gst" component="div" className="text-red-500 text-sm mt-1" />
                       </div>
