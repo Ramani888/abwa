@@ -185,7 +185,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen bg-slate-50 dark:bg-slate-900 transition-colors">
+    <div className="flex min-h-screen bg-background transition-colors">
       {/* Right Side - Image Only */}
       <div className="hidden lg:block lg:w-2/3 relative">
         <Image
@@ -199,19 +199,19 @@ export default function LoginPage() {
       </div>
 
       {/* Left Side - Login Form */}
-      <div className="w-full lg:w-1/3 relative flex flex-col justify-center px-8 py-12 lg:px-16 bg-white dark:bg-slate-800 shadow-2xl shadow-slate-200/50 transition-colors">
+      <div className="w-full lg:w-1/3 relative flex flex-col justify-center px-8 py-12 lg:px-16">
         <Link href="/" className="absolute left-8 top-8 flex items-center gap-2">
           <div className="bg-green-500 p-2 rounded-lg">
             <ShoppingBag className="h-5 w-5 text-white" />
           </div>
-          <span className="font-bold text-xl text-slate-900 dark:text-white">AgroBill</span>
+          <span className="font-bold text-xl text-foreground">AgroBill</span>
         </Link>
 
         <div className="w-full max-w-md mx-auto mt-12">
           <div className="mb-10">
-            <h1 className="text-3xl font-bold mb-3 text-slate-900 dark:text-white">Sign in to AgroBill</h1>
+            <h1 className="text-3xl font-bold mb-3 text-foreground">Sign in to AgroBill</h1>
             <div className="h-1 w-12 bg-green-500 rounded-full mb-3"></div>
-            <p className="text-slate-500 dark:text-slate-300">Manage your agro business smarter, not harder</p>
+            <p className="text-slate-500 text-muted-foreground">Manage your agro business smarter, not harder</p>
           </div>
 
           <Formik
@@ -228,57 +228,55 @@ export default function LoginPage() {
                 )}
 
                 <div className="space-y-1.5">
-                  <Label htmlFor="number" className="text-sm font-medium text-slate-700 dark:text-slate-200">
+                  <Label htmlFor="number" className="text-foreground">
                     Phone Number
                   </Label>
                   <div className="relative">
-                    <Phone className="absolute left-3 top-3.5 h-5 w-5 text-slate-400" />
+                    <Phone className="absolute left-3 top-3.5 h-5 w-5 text-muted-foreground" />
                     <Field
                       as={Input}
                       id="number"
                       name="number"
                       type="tel"
                       placeholder="Enter your phone number"
-                      className="w-full pl-12 h-12 rounded-lg border border-slate-300 bg-white dark:bg-slate-900 focus:border-green-500 focus:ring-1 focus:ring-green-500"
+                      className="w-full pl-12 h-12"
                     />
                   </div>
-                  <ErrorMessage name="number" component="p" className="text-sm text-red-500 mt-1" />
+                  <ErrorMessage name="number" component="p" className="text-sm text-destructive mt-1" />
                 </div>
 
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="password" className="text-sm font-medium text-slate-700 dark:text-slate-200">
-                      Password
-                    </Label>
-                    <Link href="/forgot-password" className="text-sm text-green-600 font-medium hover:text-green-700">
+                    <Label htmlFor="password" className="text-foreground">Password</Label>
+                    <Link href="/forgot-password" className="text-sm text-green-600 dark:text-green-400 font-medium hover:text-green-700 dark:hover:text-green-300">
                       Forgot password?
                     </Link>
                   </div>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-3.5 h-5 w-5 text-slate-400" />
+                    <Lock className="absolute left-3 top-3.5 h-5 w-5 text-muted-foreground" />
                     <Field
                       as={Input}
                       id="password"
                       name="password"
                       type={isPasswordVisible ? "text" : "password"}
                       placeholder="Enter your password"
-                      className="w-full pl-12 h-12 rounded-lg border border-slate-300 bg-white dark:bg-slate-900 focus:border-green-500 focus:ring-1 focus:ring-green-500"
+                      className="w-full pl-12 h-12"
                     />
                     <button
                       type="button"
                       onClick={() => setIsPasswordVisible((prev) => !prev)}
-                      className="absolute right-3 top-3.5 text-slate-400 hover:text-slate-600"
+                      className="absolute right-3 top-3.5 text-muted-foreground hover:text-foreground"
                       tabIndex={-1}
                     >
                       {isPasswordVisible ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                     </button>
                   </div>
-                  <ErrorMessage name="password" component="p" className="text-sm text-red-500 mt-1" />
+                  <ErrorMessage name="password" component="p" className="text-sm text-destructive mt-1" />
                 </div>
 
                 <Button
                   type="submit"
-                  className="w-full h-12 rounded-lg font-medium text-white bg-green-600 hover:bg-green-700 transition-all shadow-lg shadow-green-600/30"
+                  className="w-full h-12 font-medium"
                   disabled={isLoading}
                 >
                   {isLoading ? (
@@ -296,15 +294,15 @@ export default function LoginPage() {
 
                 <div className="pt-4">
                   <div className="relative flex items-center">
-                    <div className="flex-grow border-t border-slate-200 dark:border-slate-700"></div>
+                    <div className="flex-grow border-t"></div>
                     <span className="flex-shrink mx-3 text-slate-400 dark:text-slate-500 text-sm">Don't have an account?</span>
-                    <div className="flex-grow border-t border-slate-200 dark:border-slate-700"></div>
+                    <div className="flex-grow border-t"></div>
                   </div>
 
                   <div className="mt-4 text-center">
                     <Link
                       href="/register"
-                      className="inline-flex items-center justify-center gap-2 px-5 py-2.5 border border-green-600 rounded-lg text-green-600 font-medium hover:bg-green-50 dark:hover:bg-green-900 transition-colors"
+                      className="inline-flex items-center justify-center gap-2 px-5 py-2.5 border border-green-600 rounded-lg text-green-600 dark:text-green-400 font-medium hover:bg-green-50 dark:hover:bg-green-900 transition-colors"
                     >
                       Register Your Shop
                     </Link>
