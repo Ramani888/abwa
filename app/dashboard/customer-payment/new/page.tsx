@@ -14,6 +14,7 @@ import { ArrowLeft, User, FileText, List, IndianRupeeIcon } from "lucide-react"
 import { useState, useEffect, use } from "react"
 import { set } from "date-fns"
 import { serverAddCustomerPayment, serverGetCustomers } from "@/services/serverApi"
+import { paymentMethods } from "@/utils/consts/product"
 
 export default function NewCustomerPaymentPage() {
   const router = useRouter()
@@ -192,10 +193,13 @@ export default function NewCustomerPaymentPage() {
                           <SelectValue placeholder="Select payment mode" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="cash">Cash</SelectItem>
-                          <SelectItem value="card">Card</SelectItem>
-                          <SelectItem value="upi">UPI</SelectItem>
-                          <SelectItem value="bank">Bank Transfer</SelectItem>
+                          {paymentMethods?.map((item) => {
+                            return (
+                              <SelectItem key={item.value} value={item.value}>
+                                {item.label}
+                              </SelectItem>
+                            )
+                          })}
                         </SelectContent>
                       </Select>
                     </div>
