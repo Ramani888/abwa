@@ -142,6 +142,7 @@ export function CustomersTable({ setRefreshFunction }: { setRefreshFunction?: (f
               <TableHead>Customer</TableHead>
               <TableHead>Type</TableHead>
               <TableHead>Contact</TableHead>
+              <TableHead>Status</TableHead>
               <TableHead>Date</TableHead>
               <TableHead>Orders</TableHead>
               <TableHead>Total Spent</TableHead>
@@ -179,6 +180,9 @@ export function CustomersTable({ setRefreshFunction }: { setRefreshFunction?: (f
                       <span className="text-sm">{customer.number}</span>
                       <span className="text-xs text-muted-foreground">{customer.email}</span>
                     </div>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={customer?.isActive ? 'default' : 'secondary'} className="mb-2">{customer?.isActive ? 'Active' : 'Deactive'}</Badge>
                   </TableCell>
                   <TableCell>
                     {new Date(customer?.captureDate ?? "").toLocaleDateString("en-IN", {
