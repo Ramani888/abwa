@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "@/components/ui/use-toast";
 import { ArrowLeft, User, FileText, List, DollarSign } from "lucide-react";
 import { serverGetCustomerPayment, serverGetCustomers, serverGetSupplier, serverGetSupplierPayment, serverUpdateCustomerPayment, serverUpdateSupplierPayment } from "@/services/serverApi";
+import { paymentMethods } from "@/utils/consts/product";
 
 interface SupplierPaymentData {
   _id: string;
@@ -294,10 +295,13 @@ export default function EditSupplierPaymentPage({ params }: { params: { id: stri
                           <SelectValue placeholder="Select payment mode" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="cash">Cash</SelectItem>
-                          <SelectItem value="card">Card</SelectItem>
-                          <SelectItem value="upi">UPI</SelectItem>
-                          <SelectItem value="bank">Bank Transfer</SelectItem>
+                          {paymentMethods?.map((item) => {
+                            return (
+                              <SelectItem key={item.value} value={item.value}>
+                                {item.label}
+                              </SelectItem>
+                            )
+                          })}
                         </SelectContent>
                       </Select>
                     </div>
