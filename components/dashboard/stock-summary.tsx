@@ -3,17 +3,76 @@
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from "recharts"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-
-// Mock data for stock status
-const stockData = [
-  { category: "Fertilizers", inStock: 45, lowStock: 12, outOfStock: 3 },
-  { category: "Seeds", inStock: 32, lowStock: 8, outOfStock: 2 },
-  { category: "Pesticides", inStock: 28, lowStock: 5, outOfStock: 1 },
-  { category: "Tools", inStock: 18, lowStock: 4, outOfStock: 0 },
-  { category: "Irrigation", inStock: 15, lowStock: 3, outOfStock: 2 },
-]
+import { useSelector } from "react-redux"
+import { RootState } from "@/lib/store"
 
 export function StockSummary() {
+  const { products, loading: productLoading } = useSelector((state: RootState) => state.products)
+
+  // Aggregate stock data dynamically by category
+  const stockSummary = products.reduce((acc, product) => {
+    const category = product.categoryName || "Uncategorized"
+    if (!acc[category]) {
+      acc[category] = { category, inStock: 0, lowStock: 0, outOfStock: 0 }
+    }
+    product.variants.forEach(variant => {
+      if (variant.quantity === 0) {
+        acc[category].outOfStock += 1
+      } else if (variant.quantity <= variant.minStockLevel) {
+        acc[category].lowStock += 1
+      } else {
+        acc[category].inStock += 1
+      }
+    })
+    return acc
+  }, {} as Record<string, { category: string; inStock: number; lowStock: number; outOfStock: number }>)
+
+  const stockData = Object.values(stockSummary)
+
+  // Calculate totals for overview
+  const totalVariants = products.reduce((sum, p) => sum + p.variants.length, 0)
+  const totalInStock = stockData.reduce((sum, c) => sum + c.inStock, 0)
+  const totalLowStock = stockData.reduce((sum, c) => sum + c.lowStock, 0)
+  const totalOutOfStock = stockData.reduce((sum, c) => sum + c.outOfStock, 0)
+
+  if (productLoading) {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Chart Skeleton */}
+        <Card>
+          <CardContent className="pt-6">
+            <div className="h-[32px] w-1/2 bg-muted animate-pulse rounded mb-4" />
+            <div className="flex flex-col justify-between h-[240px] space-y-4">
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className="flex items-center space-x-2">
+                  <div className="h-6 w-24 bg-muted animate-pulse rounded" />
+                  <div className="flex-1 h-6 bg-muted animate-pulse rounded" />
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+        {/* Overview Skeleton */}
+        <Card>
+          <CardContent className="pt-6">
+            <div className="h-[32px] w-1/2 bg-muted animate-pulse rounded mb-4" />
+            <div className="space-y-6">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="flex items-center justify-between">
+                  <div>
+                    <div className="h-4 w-24 bg-muted animate-pulse rounded mb-2" />
+                    <div className="h-6 w-16 bg-muted animate-pulse rounded" />
+                  </div>
+                  <div className="h-8 w-16 bg-muted animate-pulse rounded" />
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       <Card>
@@ -42,31 +101,37 @@ export function StockSummary() {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium">Total Products</p>
-                <p className="text-2xl font-bold">176</p>
+                <p className="text-sm font-medium">Total Variants</p>
+                <p className="text-2xl font-bold">{totalVariants}</p>
               </div>
               <Badge>100%</Badge>
             </div>
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium">In Stock</p>
-                <p className="text-2xl font-bold">138</p>
+                <p className="text-2xl font-bold">{totalInStock}</p>
               </div>
-              <Badge variant="outline">78.4%</Badge>
+              <Badge variant="outline">
+                {totalVariants ? ((totalInStock / totalVariants) * 100).toFixed(1) : 0}%
+              </Badge>
             </div>
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium">Low Stock</p>
-                <p className="text-2xl font-bold">32</p>
+                <p className="text-2xl font-bold">{totalLowStock}</p>
               </div>
-              <Badge variant="secondary">18.2%</Badge>
+              <Badge variant="secondary">
+                {totalVariants ? ((totalLowStock / totalVariants) * 100).toFixed(1) : 0}%
+              </Badge>
             </div>
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium">Out of Stock</p>
-                <p className="text-2xl font-bold">6</p>
+                <p className="text-2xl font-bold">{totalOutOfStock}</p>
               </div>
-              <Badge variant="destructive">3.4%</Badge>
+              <Badge variant="destructive">
+                {totalVariants ? ((totalOutOfStock / totalVariants) * 100).toFixed(1) : 0}%
+              </Badge>
             </div>
           </div>
         </CardContent>

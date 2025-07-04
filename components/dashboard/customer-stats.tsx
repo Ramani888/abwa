@@ -10,7 +10,16 @@ export function CustomerStats() {
 
   const retailCustomers = customers.filter(customer => customer?.customerType === "retail").length;
   const wholesaleCustomers = customers.filter(customer => customer?.customerType === "wholesale").length;
-  const totalCustomers = customers?.length;  
+  const activeCustomersThisMonth = customers.filter(customer => {
+    if (!customer?.captureDate) return false;
+    const captureDateStr = (typeof customer.captureDate === "string")
+      ? (customer.captureDate as string).slice(0, 7)
+      : customer.captureDate instanceof Date
+        ? customer.captureDate.toISOString().slice(0, 7)
+        : "";
+    return captureDateStr === new Date().toISOString().slice(0, 7);
+  }).length;
+  const totalCustomers = customers?.length;
 
   const customerData = [
     { name: "Retail Customers", value: retailCustomers, color: "hsl(var(--chart-1))" },
@@ -132,10 +141,10 @@ export function CustomerStats() {
             <div>
               <div className="flex justify-between mb-1">
                 <span className="text-sm font-medium">Active This Month</span>
-                <span className="text-sm font-medium">{totalCustomers}</span>
+                <span className="text-sm font-medium">{activeCustomersThisMonth}</span>
               </div>
               <div className="w-full bg-muted rounded-full h-2.5">
-                <div className="bg-primary h-2.5 rounded-full" style={{ width: `${((totalCustomers / totalCustomers) * 100).toFixed(2)}%` }}></div>
+                <div className="bg-primary h-2.5 rounded-full" style={{ width: `${((activeCustomersThisMonth / totalCustomers) * 100).toFixed(2)}%` }}></div>
               </div>
             </div>
           </div>
