@@ -73,6 +73,34 @@ export function StockSummary() {
     )
   }
 
+  // Custom Tooltip for dark mode support and legend color
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (!active || !payload || !payload.length) return null;
+    return (
+      <div
+        className={`bg-background rounded-lg p-4 shadow-lg text-sm min-w-[120px]`}
+      >
+        <div className="font-semibold mb-1">{label}</div>
+        {payload.map((entry: any, idx: number) => (
+          <div key={idx} className="flex items-center justify-between">
+            <span className="flex items-center" style={{ color: entry.color }}>
+              <span
+                className="inline-block rounded-full border border-gray-200 mr-1.5"
+                style={{
+                  width: 10,
+                  height: 10,
+                  background: entry.color,
+                }}
+              />
+              {entry.name}:
+            </span>
+            <span className="ml-2 font-bold" style={{ color: entry.color }}>{entry.value}</span>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
   return (
     <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
       <Card>
@@ -84,7 +112,7 @@ export function StockSummary() {
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis type="number" />
                 <YAxis dataKey="category" type="category" width={80} tick={{ fontSize: 12 }} />
-                <Tooltip />
+                <Tooltip content={<CustomTooltip />} />
                 <Legend wrapperStyle={{ fontSize: "12px" }} />
                 <Bar dataKey="inStock" name="In Stock" fill="hsl(var(--chart-1))" stackId="a" />
                 <Bar dataKey="lowStock" name="Low Stock" fill="hsl(var(--chart-2))" stackId="a" />
