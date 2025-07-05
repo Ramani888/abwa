@@ -2,19 +2,39 @@
 
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
+import { useSelector } from "react-redux"
+import { RootState } from "@/lib/store"
 
-// Mock data for the chart
-const data = [
-  { name: "Jan", total: 1500 },
-  { name: "Feb", total: 2300 },
-  { name: "Mar", total: 3200 },
-  { name: "Apr", total: 2800 },
-  { name: "May", total: 4100 },
-  { name: "Jun", total: 3800 },
-  { name: "Jul", total: 4300 },
-]
+// Helper to get month name from index
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+
+function getMonthlyRevenue(orders: any[]) {
+  // Initialize revenue for each month
+  const monthlyTotals: { [key: string]: number } = {}
+  MONTHS.forEach((month) => (monthlyTotals[month] = 0))
+
+  orders.forEach((order) => {
+    if (!order.createdAt) return
+    const date = new Date(order.createdAt)
+    const monthName = MONTHS[date.getMonth()]
+    if (monthName) {
+      monthlyTotals[monthName] += order.total || 0
+    }
+  })
+
+  // Return array suitable for recharts
+  return MONTHS.map((name) => ({
+    name,
+    total: monthlyTotals[name],
+  }))
+}
 
 export function SalesOverview() {
+  const { orders, loading: orderLoading } = useSelector((state: RootState) => state.orders)
+
+  // Generate dynamic data based on orders
+  const data = getMonthlyRevenue(orders || [])
+
   return (
     <ChartContainer
       config={{
