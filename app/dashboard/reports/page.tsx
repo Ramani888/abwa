@@ -1,3 +1,5 @@
+"use client"
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { SalesReportChart } from "@/components/dashboard/sales-report-chart"
@@ -6,8 +8,68 @@ import { CustomerReportTable } from "@/components/dashboard/customer-report-tabl
 import { Button } from "@/components/ui/button"
 import { Download, FileText, BarChart3, Users } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useSelector } from "react-redux"
+import { RootState } from "@/lib/store"
+import { useMemo, useState } from "react"
 
 export default function ReportsPage() {
+  const { customers, loading: customerLoading } = useSelector((state: RootState) => state.customers)
+  const { products, loading: productLoading } = useSelector((state: RootState) => state.products)
+  const { orders, loading: orderLoading } = useSelector((state: RootState) => state.orders)
+
+  const [selectedPeriod, setSelectedPeriod] = useState("current-month")
+
+  // Helper to filter orders by period
+  function filterOrders(period: string) {
+    const now = new Date()
+    if (!orders) return []
+    if (period === "current-month") {
+      return orders.filter(order => {
+        const date = new Date(order?.captureDate ?? "")
+        return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear()
+      })
+    }
+    if (period === "last-month") {
+      const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+      return orders.filter(order => {
+        const date = new Date(order?.captureDate ?? "")
+        return date.getMonth() === lastMonth.getMonth() && date.getFullYear() === lastMonth.getFullYear()
+      })
+    }
+    // Add more period filters as needed
+    return orders
+  }
+
+  // Filter orders for selected period and last month
+  const currentOrders = useMemo(() => filterOrders(selectedPeriod), [orders, selectedPeriod])
+  const lastMonthOrders = useMemo(() => filterOrders(
+    selectedPeriod === "current-month" ? "last-month" : "current-month"
+  ), [orders, selectedPeriod])
+
+  // Calculate stats for selected period
+  const totalSales = currentOrders.reduce((sum, order) => sum + (order.total || 0), 0)
+  const totalOrders = currentOrders.length
+  const avgOrderValue = totalOrders > 0 ? totalSales / totalOrders : 0
+
+  // Calculate stats for previous period
+  const lastPeriodSales = lastMonthOrders.reduce((sum, order) => sum + (order.total || 0), 0)
+  const lastPeriodOrders = lastMonthOrders.length
+  const lastPeriodAvgOrderValue = lastPeriodOrders > 0 ? lastPeriodSales / lastPeriodOrders : 0
+
+  // Customers for conversion rate (not period filtered, but you can filter if needed)
+  const totalCustomers = customers?.length || 0
+  const lastPeriodTotalCustomers = totalCustomers // Or filter by period if needed
+
+  // Conversion rate for selected and previous period
+  const conversionRate = totalCustomers > 0 ? (totalOrders / totalCustomers) * 100 : 0
+  const lastPeriodConversionRate = lastPeriodTotalCustomers > 0 ? (lastPeriodOrders / lastPeriodTotalCustomers) * 100 : 0
+
+  // Calculate changes
+  const salesChange = lastPeriodSales === 0 ? 0 : ((totalSales - lastPeriodSales) / lastPeriodSales) * 100
+  const ordersChange = lastPeriodOrders === 0 ? 0 : ((totalOrders - lastPeriodOrders) / lastPeriodOrders) * 100
+  const avgOrderValueChange = lastPeriodAvgOrderValue === 0 ? 0 : ((avgOrderValue - lastPeriodAvgOrderValue) / lastPeriodAvgOrderValue) * 100
+  const conversionRateChange = lastPeriodConversionRate === 0 ? 0 : ((conversionRate - lastPeriodConversionRate) / lastPeriodConversionRate) * 100
+
   return (
     <div className="flex flex-col gap-6 w-full">
       <div className="flex items-center justify-between">
@@ -19,7 +81,7 @@ export default function ReportsPage() {
       </div>
 
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-        <Select defaultValue="current-month">
+        <Select defaultValue={selectedPeriod} onValueChange={setSelectedPeriod}>
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Select period" />
           </SelectTrigger>
@@ -57,8 +119,11 @@ export default function ReportsPage() {
                 <CardTitle className="text-sm font-medium">Total Sales</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">₹45,231.89</div>
-                <p className="text-xs text-muted-foreground">+20.1% from last month</p>
+                <div className="text-2xl font-bold">₹{totalSales.toLocaleString(undefined, { maximumFractionDigits: 2 })}</div>
+                <p className="text-xs text-muted-foreground">
+                  {salesChange >= 0 ? "+" : ""}
+                  {salesChange.toFixed(1)}% from last period
+                </p>
               </CardContent>
             </Card>
             <Card>
@@ -66,8 +131,11 @@ export default function ReportsPage() {
                 <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">573</div>
-                <p className="text-xs text-muted-foreground">+201 since last month</p>
+                <div className="text-2xl font-bold">{totalOrders}</div>
+                <p className="text-xs text-muted-foreground">
+                  {totalOrders - lastPeriodOrders >= 0 ? "+" : ""}
+                  {(totalOrders - lastPeriodOrders)} since last period
+                </p>
               </CardContent>
             </Card>
             <Card>
@@ -75,8 +143,11 @@ export default function ReportsPage() {
                 <CardTitle className="text-sm font-medium">Average Order Value</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">₹789.00</div>
-                <p className="text-xs text-muted-foreground">+5.2% from last month</p>
+                <div className="text-2xl font-bold">₹{avgOrderValue.toLocaleString(undefined, { maximumFractionDigits: 2 })}</div>
+                <p className="text-xs text-muted-foreground">
+                  {avgOrderValueChange >= 0 ? "+" : ""}
+                  {avgOrderValueChange.toFixed(1)}% from last period
+                </p>
               </CardContent>
             </Card>
             <Card>
@@ -84,8 +155,11 @@ export default function ReportsPage() {
                 <CardTitle className="text-sm font-medium">Conversion Rate</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">24.8%</div>
-                <p className="text-xs text-muted-foreground">+2.4% from last month</p>
+                <div className="text-2xl font-bold">{conversionRate.toFixed(1)}%</div>
+                <p className="text-xs text-muted-foreground">
+                  {conversionRateChange >= 0 ? "+" : ""}
+                  {conversionRateChange.toFixed(1)}% from last period
+                </p>
               </CardContent>
             </Card>
           </div>
