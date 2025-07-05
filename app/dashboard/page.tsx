@@ -9,6 +9,7 @@ import { StockSummary } from "@/components/dashboard/stock-summary"
 import { useSelector } from 'react-redux'
 import { RootState } from "@/lib/store"
 import { IProduct } from "@/types/product"
+import { Skeleton } from "@/components/ui/skeleton" // If you have a Skeleton component
 
 interface totalProductData extends IProduct {
   packingSize?: string
@@ -20,9 +21,65 @@ interface totalProductData extends IProduct {
 
 
 export default function DashboardPage() {
-  const { customers } = useSelector((state: RootState) => state.customers)
-  const { products } = useSelector((state: RootState) => state.products)
-  const { orders } = useSelector((state: RootState) => state.orders)
+  const { customers, loading: customerLoading } = useSelector((state: RootState) => state.customers)
+  const { products, loading: productLoading } = useSelector((state: RootState) => state.products)
+  const { orders, loading: orderLoading } = useSelector((state: RootState) => state.orders)
+
+  // Show skeleton loader if any loading state is true
+  if (customerLoading || productLoading || orderLoading) {
+    return (
+      <div className="flex flex-col gap-6 w-full">
+        {/* Header */}
+        <div>
+          <Skeleton className="h-10 w-48 mb-2" /> {/* Title */}
+          <Skeleton className="h-5 w-80" />        {/* Subtitle */}
+        </div>
+        {/* Stat Cards */}
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="p-4 border rounded-lg bg-background flex flex-col gap-3 min-h-[110px]">
+              <div className="flex flex-row items-center justify-between">
+                <Skeleton className="h-5 w-24" /> {/* Card Title */}
+                <Skeleton className="h-8 w-8 rounded-full" /> {/* Icon */}
+              </div>
+              <Skeleton className="h-10 w-32 mt-2" /> {/* Main Value */}
+              <Skeleton className="h-4 w-28" /> {/* Subtext */}
+            </div>
+          ))}
+        </div>
+        {/* Tabs */}
+        <div className="space-y-4 mt-6">
+          <div className="flex gap-2">
+            <Skeleton className="h-9 w-28 rounded-md" />
+            <Skeleton className="h-9 w-28 rounded-md" />
+            <Skeleton className="h-9 w-28 rounded-md" />
+          </div>
+          {/* Tab Content */}
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+            {/* Sales Overview Card */}
+            <div className="col-span-4 p-4 border rounded-lg bg-background flex flex-col gap-4 min-h-[320px]">
+              <Skeleton className="h-7 w-40 mb-2" /> {/* Card Title */}
+              <Skeleton className="h-56 w-full" />   {/* Chart */}
+            </div>
+            {/* Recent Sales Card */}
+            <div className="col-span-3 p-4 border rounded-lg bg-background flex flex-col gap-4 min-h-[320px]">
+              <Skeleton className="h-7 w-36 mb-2" /> {/* Card Title */}
+              <Skeleton className="h-5 w-48 mb-4" /> {/* Description */}
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="flex items-center gap-2 mb-2">
+                  <Skeleton className="h-10 w-10 rounded-full" />
+                  <div className="flex-1">
+                    <Skeleton className="h-5 w-40 mb-1" />
+                    <Skeleton className="h-4 w-24" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   const totalOrders = orders?.length;
   const totalCustomers = customers?.length;
