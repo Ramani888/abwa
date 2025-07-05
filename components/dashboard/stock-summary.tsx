@@ -37,12 +37,12 @@ export function StockSummary() {
 
   if (productLoading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         {/* Chart Skeleton */}
         <Card>
           <CardContent className="pt-6">
-            <div className="h-[32px] w-1/2 bg-muted animate-pulse rounded mb-4" />
-            <div className="flex flex-col justify-between h-[240px] space-y-4">
+            <div className="h-8 w-2/3 sm:w-1/2 bg-muted animate-pulse rounded mb-4" />
+            <div className="flex flex-col justify-between h-[180px] sm:h-[240px] space-y-4">
               {[...Array(5)].map((_, i) => (
                 <div key={i} className="flex items-center space-x-2">
                   <div className="h-6 w-24 bg-muted animate-pulse rounded" />
@@ -55,7 +55,7 @@ export function StockSummary() {
         {/* Overview Skeleton */}
         <Card>
           <CardContent className="pt-6">
-            <div className="h-[32px] w-1/2 bg-muted animate-pulse rounded mb-4" />
+            <div className="h-8 w-2/3 sm:w-1/2 bg-muted animate-pulse rounded mb-4" />
             <div className="space-y-6">
               {[...Array(4)].map((_, i) => (
                 <div key={i} className="flex items-center justify-between">
@@ -74,18 +74,18 @@ export function StockSummary() {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
       <Card>
         <CardContent className="pt-6">
-          <h3 className="text-lg font-semibold mb-4">Stock Status by Category</h3>
-          <div className="h-[300px]">
+          <h3 className="text-base sm:text-lg font-semibold mb-4">Stock Status by Category</h3>
+          <div className="h-[200px] sm:h-[300px] px-1 sm:px-0">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={stockData} layout="vertical">
+              <BarChart data={stockData} layout="vertical" barCategoryGap="15%">
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis type="number" />
-                <YAxis dataKey="category" type="category" width={100} />
+                <YAxis dataKey="category" type="category" width={80} tick={{ fontSize: 12 }} />
                 <Tooltip />
-                <Legend />
+                <Legend wrapperStyle={{ fontSize: "12px" }} />
                 <Bar dataKey="inStock" name="In Stock" fill="hsl(var(--chart-1))" stackId="a" />
                 <Bar dataKey="lowStock" name="Low Stock" fill="hsl(var(--chart-2))" stackId="a" />
                 <Bar dataKey="outOfStock" name="Out of Stock" fill="hsl(var(--chart-3))" stackId="a" />
@@ -97,39 +97,39 @@ export function StockSummary() {
 
       <Card>
         <CardContent className="pt-6">
-          <h3 className="text-lg font-semibold mb-4">Stock Overview</h3>
+          <h3 className="text-base sm:text-lg font-semibold mb-4">Stock Overview</h3>
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium">Total Variants</p>
-                <p className="text-2xl font-bold">{totalVariants}</p>
+                <p className="text-xs sm:text-sm font-medium">Total Variants</p>
+                <p className="text-xl sm:text-2xl font-bold">{totalVariants}</p>
               </div>
-              <Badge>100%</Badge>
+              <Badge className="mt-2 sm:mt-0">100%</Badge>
             </div>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium">In Stock</p>
-                <p className="text-2xl font-bold">{totalInStock}</p>
+                <p className="text-xs sm:text-sm font-medium">In Stock</p>
+                <p className="text-xl sm:text-2xl font-bold">{totalInStock}</p>
               </div>
-              <Badge variant="outline">
+              <Badge variant="outline" className="mt-2 sm:mt-0">
                 {totalVariants ? ((totalInStock / totalVariants) * 100).toFixed(1) : 0}%
               </Badge>
             </div>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium">Low Stock</p>
-                <p className="text-2xl font-bold">{totalLowStock}</p>
+                <p className="text-xs sm:text-sm font-medium">Low Stock</p>
+                <p className="text-xl sm:text-2xl font-bold">{totalLowStock}</p>
               </div>
-              <Badge variant="secondary">
+              <Badge variant="secondary" className="mt-2 sm:mt-0">
                 {totalVariants ? ((totalLowStock / totalVariants) * 100).toFixed(1) : 0}%
               </Badge>
             </div>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium">Out of Stock</p>
-                <p className="text-2xl font-bold">{totalOutOfStock}</p>
+                <p className="text-xs sm:text-sm font-medium">Out of Stock</p>
+                <p className="text-xl sm:text-2xl font-bold">{totalOutOfStock}</p>
               </div>
-              <Badge variant="destructive">
+              <Badge variant="destructive" className="mt-2 sm:mt-0">
                 {totalVariants ? ((totalOutOfStock / totalVariants) * 100).toFixed(1) : 0}%
               </Badge>
             </div>

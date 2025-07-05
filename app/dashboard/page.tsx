@@ -168,19 +168,19 @@ export default function DashboardPage() {
     : (((currCount - prevCount) / prevCount) * 100).toFixed(1);
 
   return (
-    <div className="flex flex-col gap-6 w-full">
+    <div className="flex flex-col gap-6 w-full px-2 sm:px-4">
       <div>
-        <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
-        <p className="text-muted-foreground">Welcome back to your agro shop dashboard.</p>
+        <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Dashboard</h2>
+        <p className="text-muted-foreground text-sm sm:text-base">Welcome back to your agro shop dashboard.</p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+            <CardTitle className="text-xs sm:text-sm font-medium">Total Revenue</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">₹{totalRevenue}</div>
+            <div className="text-xl sm:text-2xl font-bold">₹{totalRevenue}</div>
             <p className="text-xs text-muted-foreground">
               {Number(orderPercentChange) > 0 ? "+" : ""}
               {orderPercentChange}% from last month
@@ -189,10 +189,10 @@ export default function DashboardPage() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Orders</CardTitle>
+            <CardTitle className="text-xs sm:text-sm font-medium">Orders</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">+{totalOrders}</div>
+            <div className="text-xl sm:text-2xl font-bold">+{totalOrders}</div>
             <p className="text-xs text-muted-foreground">
               {ordersSinceLastWeek >= 0 ? "+" : ""}
               {ordersSinceLastWeek} since last week
@@ -201,41 +201,41 @@ export default function DashboardPage() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Products</CardTitle>
+            <CardTitle className="text-xs sm:text-sm font-medium">Products</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{totalProducts}</div>
+            <div className="text-xl sm:text-2xl font-bold">{totalProducts}</div>
             <p className="text-xs text-muted-foreground">{lowStockProduct?.length || 0} low stock items</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Customers</CardTitle>
+            <CardTitle className="text-xs sm:text-sm font-medium">Active Customers</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{totalCustomers}</div>
+            <div className="text-xl sm:text-2xl font-bold">{totalCustomers}</div>
             <p className="text-xs text-muted-foreground">+{thisWeekNewCustomers?.length || 0} this week</p>
           </CardContent>
         </Card>
       </div>
 
       <Tabs defaultValue="overview" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="customers">Customers</TabsTrigger>
-          <TabsTrigger value="stock">Stock</TabsTrigger>
+        <TabsList className="w-full flex flex-wrap gap-2 overflow-x-auto">
+          <TabsTrigger value="overview" className="flex-1 min-w-[100px]">Overview</TabsTrigger>
+          <TabsTrigger value="customers" className="flex-1 min-w-[100px]">Customers</TabsTrigger>
+          <TabsTrigger value="stock" className="flex-1 min-w-[100px]">Stock</TabsTrigger>
         </TabsList>
         <TabsContent value="overview" className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-            <Card className="col-span-4">
+          <div className="grid gap-4 grid-cols-1 lg:grid-cols-7">
+            <Card className="col-span-1 lg:col-span-4">
               <CardHeader>
                 <CardTitle>Sales Overview</CardTitle>
               </CardHeader>
-              <CardContent className="pl-2">
+              <CardContent className="pl-0 sm:pl-2">
                 <SalesOverview />
               </CardContent>
             </Card>
-            <Card className="col-span-3">
+            <Card className="col-span-1 lg:col-span-3">
               <CardHeader>
                 <CardTitle>Recent Sales</CardTitle>
                 <CardDescription>You made {monthlySales?.length || 0} sales this month.</CardDescription>
