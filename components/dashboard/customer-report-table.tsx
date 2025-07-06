@@ -3,64 +3,124 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { useSelector } from "react-redux"
+import { RootState } from "@/lib/store"
+import { useMemo } from "react"
 
-// Mock data for customer reports
-const customerReports = [
-  {
-    id: "1",
-    name: "Rahul Sharma",
-    type: "retail",
-    orders: 12,
-    spent: "₹15,200.00",
-    avgOrderValue: "₹1,266.67",
-    lastPurchase: "2 days ago",
-    initials: "RS",
-  },
-  {
-    id: "2",
-    name: "Priya Patel",
-    type: "retail",
-    orders: 8,
-    spent: "₹9,800.00",
-    avgOrderValue: "₹1,225.00",
-    lastPurchase: "1 week ago",
-    initials: "PP",
-  },
-  {
-    id: "3",
-    name: "Amit Kumar Enterprises",
-    type: "wholesale",
-    orders: 25,
-    spent: "₹1,24,500.00",
-    avgOrderValue: "₹4,980.00",
-    lastPurchase: "3 days ago",
-    initials: "AK",
-  },
-  {
-    id: "4",
-    name: "Neha Singh",
-    type: "retail",
-    orders: 15,
-    spent: "₹22,300.00",
-    avgOrderValue: "₹1,486.67",
-    lastPurchase: "5 days ago",
-    initials: "NS",
-  },
-  {
-    id: "5",
-    name: "Vikram Reddy Distributors",
-    type: "wholesale",
-    orders: 32,
-    spent: "₹2,45,600.00",
-    avgOrderValue: "₹7,675.00",
-    lastPurchase: "Yesterday",
-    initials: "VR",
-  },
-]
+function formatCurrency(amount: number) {
+  return `₹${amount.toLocaleString(undefined, { maximumFractionDigits: 2 })}`
+}
 
-export function CustomerReportTable() {
+function getInitials(name: string) {
+  return name
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2)
+}
+
+function formatLastPurchase(date: Date | string | undefined) {
+  if (!date) return "Never"
+  const now = new Date()
+  const d = new Date(date)
+  const diff = Math.floor((now.getTime() - d.getTime()) / (1000 * 60 * 60 * 24))
+  if (diff === 0) return "Today"
+  if (diff === 1) return "Yesterday"
+  if (diff < 7) return `${diff} days ago`
+  if (diff < 30) return `${Math.floor(diff / 7)} week${Math.floor(diff / 7) > 1 ? "s" : ""} ago`
+  return d.toLocaleDateString()
+}
+
+// --- Add this helper ---
+function filterOrdersByPeriod(orders: any[], period: string) {
+  const now = new Date()
+  if (!orders) return []
+  if (period === "current-month") {
+    return orders.filter(order => {
+      const date = new Date(order?.captureDate ?? order?.createdAt)
+      return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear()
+    })
+  }
+  if (period === "last-month") {
+    const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+    return orders.filter(order => {
+      const date = new Date(order?.captureDate ?? order?.createdAt)
+      return date.getMonth() === lastMonth.getMonth() && date.getFullYear() === lastMonth.getFullYear()
+    })
+  }
+  if (period === "last-3-months") {
+    const start = new Date(now.getFullYear(), now.getMonth() - 2, 1)
+    return orders.filter(order => {
+      const date = new Date(order?.captureDate ?? order?.createdAt)
+      return date >= start && date <= now
+    })
+  }
+  if (period === "last-6-months") {
+    const start = new Date(now.getFullYear(), now.getMonth() - 5, 1)
+    return orders.filter(order => {
+      const date = new Date(order?.captureDate ?? order?.createdAt)
+      return date >= start && date <= now
+    })
+  }
+  if (period === "year-to-date") {
+    const start = new Date(now.getFullYear(), 0, 1)
+    return orders.filter(order => {
+      const date = new Date(order?.captureDate ?? order?.createdAt)
+      return date >= start && date <= now
+    })
+  }
+  if (period === "last-year") {
+    const start = new Date(now.getFullYear() - 1, 0, 1)
+    const end = new Date(now.getFullYear() - 1, 11, 31, 23, 59, 59)
+    return orders.filter(order => {
+      const date = new Date(order?.captureDate ?? order?.createdAt)
+      return date >= start && date <= end
+    })
+  }
+  // For "custom", you can add your own logic or return all for now
+  return orders
+}
+
+export function CustomerReportTable({ selectedPeriod }: { selectedPeriod: string }) {
+  const { customers, loading: customerLoading } = useSelector((state: RootState) => state.customers)
+  const { orders, loading: orderLoading } = useSelector((state: RootState) => state.orders)
+
+  // Filter orders by selectedPeriod
+  const filteredOrders = useMemo(
+    () => filterOrdersByPeriod(orders, selectedPeriod),
+    [orders, selectedPeriod]
+  )
+
+  const customerReports = useMemo(() => {
+    if (customerLoading || orderLoading || !customers || !filteredOrders) return []
+
+    return customers.map((customer: any) => {
+      const customerOrders = filteredOrders.filter((order: any) => order.customerId === customer._id)
+      const totalSpent = customerOrders.reduce((sum: number, order: any) => sum + (order.total || 0), 0)
+      const orderCount = customerOrders.length
+      const avgOrderValue = orderCount > 0 ? totalSpent / orderCount : 0
+      const lastPurchaseDate = customerOrders.length > 0
+        ? customerOrders
+            .map((order: any) => new Date(order.captureDate ?? order.createdAt))
+            .sort((a, b) => b.getTime() - a.getTime())[0]
+        : undefined
+
+      return {
+        id: customer._id,
+        name: customer.name,
+        type: customer.customerType,
+        orders: orderCount,
+        spent: formatCurrency(totalSpent),
+        avgOrderValue: formatCurrency(avgOrderValue),
+        lastPurchase: formatLastPurchase(lastPurchaseDate),
+        initials: getInitials(customer.name),
+      }
+    })
+  }, [customers, filteredOrders, customerLoading, orderLoading])
+
   return (
-    <div className="rounded-md border">
+    <div className="rounded-md border overflow-x-auto">
       <Table>
         <TableHeader>
           <TableRow>

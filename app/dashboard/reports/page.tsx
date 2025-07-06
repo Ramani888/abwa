@@ -71,10 +71,10 @@ export default function ReportsPage() {
   const conversionRateChange = lastPeriodConversionRate === 0 ? 0 : ((conversionRate - lastPeriodConversionRate) / lastPeriodConversionRate) * 100
 
   return (
-    <div className="flex flex-col gap-6 w-full">
-      <div className="flex items-center justify-between">
-        <h2 className="text-3xl font-bold tracking-tight">Reports</h2>
-        <Button>
+    <div className="flex flex-col gap-6 w-full px-2 sm:px-4">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+        <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Reports</h2>
+        <Button className="w-full sm:w-auto">
           <Download className="mr-2 h-4 w-4" />
           Export Report
         </Button>
@@ -82,7 +82,7 @@ export default function ReportsPage() {
 
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
         <Select defaultValue={selectedPeriod} onValueChange={setSelectedPeriod}>
-          <SelectTrigger className="w-[180px]">
+          <SelectTrigger className="w-full sm:w-[180px]">
             <SelectValue placeholder="Select period" />
           </SelectTrigger>
           <SelectContent>
@@ -98,22 +98,35 @@ export default function ReportsPage() {
       </div>
 
       <Tabs defaultValue="sales" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="sales" className="flex items-center">
+        <TabsList
+          className="
+            flex flex-row gap-2
+            items-start
+            justify-start
+            overflow-x-auto
+            whitespace-nowrap
+            w-full
+            sm:w-auto
+            scrollbar-thin scrollbar-thumb-muted-foreground/30 scrollbar-track-transparent
+            px-1
+          "
+          style={{ WebkitOverflowScrolling: "touch" }}
+        >
+          <TabsTrigger value="sales" className="flex items-center min-w-[140px] justify-center">
             <BarChart3 className="mr-2 h-4 w-4" />
             Sales Reports
           </TabsTrigger>
-          <TabsTrigger value="products" className="flex items-center">
+          <TabsTrigger value="products" className="flex items-center min-w-[140px] justify-center">
             <FileText className="mr-2 h-4 w-4" />
             Product Reports
           </TabsTrigger>
-          <TabsTrigger value="customers" className="flex items-center">
+          <TabsTrigger value="customers" className="flex items-center min-w-[140px] justify-center">
             <Users className="mr-2 h-4 w-4" />
             Customer Reports
           </TabsTrigger>
         </TabsList>
         <TabsContent value="sales" className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Total Sales</CardTitle>
@@ -170,7 +183,9 @@ export default function ReportsPage() {
               <CardDescription>Monthly sales performance for the current period</CardDescription>
             </CardHeader>
             <CardContent>
-              <SalesReportChart />
+              <div className="w-full overflow-x-auto">
+                <SalesReportChart selectedPeriod={selectedPeriod} />
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -181,7 +196,9 @@ export default function ReportsPage() {
               <CardDescription>Top selling products and inventory analysis</CardDescription>
             </CardHeader>
             <CardContent>
-              <ProductReportTable />
+              <div className="w-full overflow-x-auto">
+                <ProductReportTable selectedPeriod={selectedPeriod} />
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -192,7 +209,9 @@ export default function ReportsPage() {
               <CardDescription>Customer purchase patterns and loyalty metrics</CardDescription>
             </CardHeader>
             <CardContent>
-              <CustomerReportTable />
+              <div className="w-full overflow-x-auto">
+                <CustomerReportTable selectedPeriod={selectedPeriod} />
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
