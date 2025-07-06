@@ -10,7 +10,8 @@ import { Download, FileText, BarChart3, Users } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useSelector } from "react-redux"
 import { RootState } from "@/lib/store"
-import { useMemo, useState } from "react"
+import { useMemo, useRef, useState } from "react"
+import { exportToCsv } from "@/utils/helpers/report"
 
 export default function ReportsPage() {
   const { customers, loading: customerLoading } = useSelector((state: RootState) => state.customers)
@@ -18,6 +19,9 @@ export default function ReportsPage() {
   const { orders, loading: orderLoading } = useSelector((state: RootState) => state.orders)
 
   const [selectedPeriod, setSelectedPeriod] = useState("current-month")
+  const [activeTab, setActiveTab] = useState("sales")
+  const productExportRef = useRef<() => void>(null)
+  const customerExportRef = useRef<() => void>(null)
 
   // Helper to filter orders by period
   function filterOrders(period: string) {
@@ -70,14 +74,65 @@ export default function ReportsPage() {
   const avgOrderValueChange = lastPeriodAvgOrderValue === 0 ? 0 : ((avgOrderValue - lastPeriodAvgOrderValue) / lastPeriodAvgOrderValue) * 100
   const conversionRateChange = lastPeriodConversionRate === 0 ? 0 : ((conversionRate - lastPeriodConversionRate) / lastPeriodConversionRate) * 100
 
+  function handleExport() {
+    if (activeTab === "products" && productExportRef.current) {
+      productExportRef.current()
+    } else if (activeTab === "customers" && customerExportRef.current) {
+      customerExportRef.current()
+    } else if (activeTab === "sales") {
+      // Example: Export sales summary as CSV
+      exportToCsv(
+        `sales-summary-${selectedPeriod}.csv`,
+        [
+          {
+            totalSales,
+            totalOrders,
+            avgOrderValue,
+            conversionRate: conversionRate.toFixed(1) + "%",
+            salesChange: salesChange.toFixed(1) + "%",
+            ordersChange: ordersChange.toFixed(1) + "%",
+            avgOrderValueChange: avgOrderValueChange.toFixed(1) + "%",
+            conversionRateChange: conversionRateChange.toFixed(1) + "%",
+          },
+        ],
+        [
+          "totalSales",
+          "totalOrders",
+          "avgOrderValue",
+          "conversionRate",
+          "salesChange",
+          "ordersChange",
+          "avgOrderValueChange",
+          "conversionRateChange",
+        ],
+        [
+          "Total Sales",
+          "Total Orders",
+          "Average Order Value",
+          "Conversion Rate",
+          "Sales Change",
+          "Orders Change",
+          "Avg Order Value Change",
+          "Conversion Rate Change",
+        ]
+      )
+    }
+  }
+
   return (
     <div className="flex flex-col gap-6 w-full px-2 sm:px-4">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
         <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Reports</h2>
-        <Button className="w-full sm:w-auto">
-          <Download className="mr-2 h-4 w-4" />
-          Export Report
-        </Button>
+        { activeTab !== "sales" && (
+          <Button
+            className="w-full sm:w-auto"
+            onClick={handleExport}
+            disabled={activeTab === "sales"}
+          >
+            <Download className="mr-2 h-4 w-4" />
+            Export Report
+          </Button>
+        )}
       </div>
 
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
@@ -97,7 +152,11 @@ export default function ReportsPage() {
         </Select>
       </div>
 
-      <Tabs defaultValue="sales" className="space-y-4">
+      <Tabs
+        defaultValue="sales"
+        className="space-y-4"
+        onValueChange={setActiveTab}
+      >
         <TabsList
           className="
             flex flex-row gap-2
@@ -197,7 +256,10 @@ export default function ReportsPage() {
             </CardHeader>
             <CardContent>
               <div className="w-full overflow-x-auto">
-                <ProductReportTable selectedPeriod={selectedPeriod} />
+                <ProductReportTable
+                  selectedPeriod={selectedPeriod}
+                  exportRef={productExportRef}
+                />
               </div>
             </CardContent>
           </Card>
@@ -210,7 +272,10 @@ export default function ReportsPage() {
             </CardHeader>
             <CardContent>
               <div className="w-full overflow-x-auto">
-                <CustomerReportTable selectedPeriod={selectedPeriod} />
+                <CustomerReportTable
+                  selectedPeriod={selectedPeriod}
+                  exportRef={customerExportRef}
+                />
               </div>
             </CardContent>
           </Card>

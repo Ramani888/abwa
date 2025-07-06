@@ -4,7 +4,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Progress } from "@/components/ui/progress"
 import { useSelector } from "react-redux"
 import { RootState } from "@/lib/store"
-import { useMemo } from "react"
+import { useMemo, useImperativeHandle, forwardRef } from "react"
+import { exportToCsv } from "@/utils/helpers/report"
 
 function filterOrdersByPeriod(orders: any[], period: string) {
   const now = new Date()
@@ -55,7 +56,10 @@ function filterOrdersByPeriod(orders: any[], period: string) {
   return orders
 }
 
-export function ProductReportTable({ selectedPeriod }: { selectedPeriod: string }) {
+export const ProductReportTable = forwardRef(function ProductReportTable(
+  { selectedPeriod, exportRef }: { selectedPeriod: string; exportRef?: any },
+  ref
+) {
   const { products, loading: productLoading } = useSelector((state: RootState) => state.products)
   const { orders, loading: orderLoading } = useSelector((state: RootState) => state.orders)
 
@@ -102,6 +106,17 @@ export function ProductReportTable({ selectedPeriod }: { selectedPeriod: string 
     })
   }, [products, filteredOrders, productLoading, orderLoading])
 
+  useImperativeHandle(exportRef, () => handleExport, [productReports, selectedPeriod])
+
+  function handleExport() {
+    exportToCsv(
+      `product-report-${selectedPeriod}.csv`,
+      productReports,
+      ["name", "category", "sold", "revenue", "profit", "profitMargin"],
+      ["Product", "Category", "Units Sold", "Revenue", "Profit", "Profit Margin (%)"]
+    )
+  }
+
   return (
     <div className="rounded-md border overflow-x-auto p-2 sm:p-4 bg-background">
       <Table className="min-w-[650px] text-xs sm:text-sm">
@@ -135,5 +150,5 @@ export function ProductReportTable({ selectedPeriod }: { selectedPeriod: string 
       </Table>
     </div>
   )
-}
+})
 

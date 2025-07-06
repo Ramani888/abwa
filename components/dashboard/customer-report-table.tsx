@@ -5,7 +5,8 @@ import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { useSelector } from "react-redux"
 import { RootState } from "@/lib/store"
-import { useMemo } from "react"
+import { useMemo, useImperativeHandle, forwardRef } from "react"
+import { exportToCsv } from "@/utils/helpers/report"
 
 function formatCurrency(amount: number) {
   return `₹${amount.toLocaleString(undefined, { maximumFractionDigits: 2 })}`
@@ -82,7 +83,10 @@ function filterOrdersByPeriod(orders: any[], period: string) {
   return orders
 }
 
-export function CustomerReportTable({ selectedPeriod }: { selectedPeriod: string }) {
+export const CustomerReportTable = forwardRef(function CustomerReportTable(
+  { selectedPeriod, exportRef }: { selectedPeriod: string; exportRef?: any },
+  ref
+) {
   const { customers, loading: customerLoading } = useSelector((state: RootState) => state.customers)
   const { orders, loading: orderLoading } = useSelector((state: RootState) => state.orders)
 
@@ -118,6 +122,17 @@ export function CustomerReportTable({ selectedPeriod }: { selectedPeriod: string
       }
     })
   }, [customers, filteredOrders, customerLoading, orderLoading])
+
+  useImperativeHandle(exportRef, () => handleExport, [customerReports, selectedPeriod])
+
+  function handleExport() {
+    exportToCsv(
+      `customer-report-${selectedPeriod}.csv`,
+      customerReports,
+      ["name", "type", "orders", "spent", "avgOrderValue", "lastPurchase"],
+      ["Customer", "Type", "Orders", "Total Spent", "Avg. Order Value", "Last Purchase"]
+    )
+  }
 
   return (
     <div className="rounded-md border overflow-x-auto p-2 sm:p-4 bg-background">
@@ -158,5 +173,5 @@ export function CustomerReportTable({ selectedPeriod }: { selectedPeriod: string
       </Table>
     </div>
   )
-}
+})
 
