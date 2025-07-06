@@ -103,16 +103,16 @@ export function ProductReportTable({ selectedPeriod }: { selectedPeriod: string 
   }, [products, filteredOrders, productLoading, orderLoading])
 
   return (
-    <div className="rounded-md border overflow-x-auto">
-      <Table>
+    <div className="rounded-md border overflow-x-auto p-2 sm:p-4 bg-background">
+      <Table className="min-w-[650px] text-xs sm:text-sm">
         <TableHeader>
           <TableRow>
             <TableHead>Product</TableHead>
             <TableHead>Category</TableHead>
             <TableHead className="text-right">Units Sold</TableHead>
             <TableHead className="text-right">Revenue</TableHead>
-            <TableHead className="text-right">Profit</TableHead>
-            <TableHead>Profit Margin</TableHead>
+            <TableHead className="text-right hidden xs:table-cell">Profit</TableHead>
+            <TableHead className="hidden xs:table-cell">Profit Margin</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -122,8 +122,8 @@ export function ProductReportTable({ selectedPeriod }: { selectedPeriod: string 
               <TableCell>{product.category}</TableCell>
               <TableCell className="text-right">{product.sold}</TableCell>
               <TableCell className="text-right">{product.revenue}</TableCell>
-              <TableCell className="text-right">{product.profit}</TableCell>
-              <TableCell className="w-[120px]">
+              <TableCell className="text-right hidden xs:table-cell">{product.profit}</TableCell>
+              <TableCell className="w-[120px] hidden xs:table-cell">
                 <div className="flex flex-col gap-1">
                   <Progress value={product.profitMargin} />
                   <span className="text-xs text-muted-foreground">{product.profitMargin}%</span>

@@ -120,24 +120,24 @@ export function CustomerReportTable({ selectedPeriod }: { selectedPeriod: string
   }, [customers, filteredOrders, customerLoading, orderLoading])
 
   return (
-    <div className="rounded-md border overflow-x-auto">
-      <Table>
+    <div className="rounded-md border overflow-x-auto p-2 sm:p-4 bg-background">
+      <Table className="min-w-[600px] text-xs sm:text-sm">
         <TableHeader>
           <TableRow>
             <TableHead>Customer</TableHead>
             <TableHead>Type</TableHead>
             <TableHead className="text-right">Orders</TableHead>
             <TableHead className="text-right">Total Spent</TableHead>
-            <TableHead className="text-right">Avg. Order Value</TableHead>
-            <TableHead>Last Purchase</TableHead>
+            <TableHead className="text-right hidden xs:table-cell">Avg. Order Value</TableHead>
+            <TableHead className="hidden xs:table-cell">Last Purchase</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {customerReports.map((customer) => (
             <TableRow key={customer.id}>
               <TableCell>
-                <div className="flex items-center gap-3">
-                  <Avatar className="h-9 w-9">
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <Avatar className="h-8 w-8 sm:h-9 sm:w-9">
                     <AvatarFallback>{customer.initials}</AvatarFallback>
                   </Avatar>
                   <div className="font-medium">{customer.name}</div>
@@ -150,8 +150,8 @@ export function CustomerReportTable({ selectedPeriod }: { selectedPeriod: string
               </TableCell>
               <TableCell className="text-right">{customer.orders}</TableCell>
               <TableCell className="text-right">{customer.spent}</TableCell>
-              <TableCell className="text-right">{customer.avgOrderValue}</TableCell>
-              <TableCell>{customer.lastPurchase}</TableCell>
+              <TableCell className="text-right hidden xs:table-cell">{customer.avgOrderValue}</TableCell>
+              <TableCell className="hidden xs:table-cell">{customer.lastPurchase}</TableCell>
             </TableRow>
           ))}
         </TableBody>
