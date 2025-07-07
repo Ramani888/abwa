@@ -108,6 +108,9 @@ export function SalesReportChart({ selectedPeriod }: SalesReportChartProps) {
     return result
   }, [orders, orderLoading, selectedPeriod])
 
+  // Show "No data available" if all values are zero or data is empty
+  const hasData = data.some(d => d.retail > 0 || d.wholesale > 0)
+
   return (
     <ChartContainer
       config={{
@@ -125,19 +128,25 @@ export function SalesReportChart({ selectedPeriod }: SalesReportChartProps) {
           hideInLegend: true,
         },
       }}
-      className="w-full h-[400px] sm:h-[300px] xs:h-[220px]" // Responsive height
+      className="w-full h-[400px] sm:h-[300px] xs:h-[220px]"
     >
-      <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={data}>
-          <CartesianGrid vertical={false} strokeDasharray="3 3" />
-          <XAxis dataKey="name" tickLine={false} axisLine={false} tickMargin={8} />
-          <YAxis tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(value) => `₹${value}`} />
-          <ChartTooltip content={<ChartTooltipContent />} cursor={false} />
-          <Legend />
-          <Bar dataKey="retail" fill="var(--color-retail)" radius={[4, 4, 0, 0]} stackId="a" />
-          <Bar dataKey="wholesale" fill="var(--color-wholesale)" radius={[4, 4, 0, 0]} stackId="a" />
-        </BarChart>
-      </ResponsiveContainer>
+      {hasData ? (
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={data}>
+            <CartesianGrid vertical={false} strokeDasharray="3 3" />
+            <XAxis dataKey="name" tickLine={false} axisLine={false} tickMargin={8} />
+            <YAxis tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(value) => `₹${value}`} />
+            <ChartTooltip content={<ChartTooltipContent />} cursor={false} />
+            <Legend />
+            <Bar dataKey="retail" fill="var(--color-retail)" radius={[4, 4, 0, 0]} stackId="a" />
+            <Bar dataKey="wholesale" fill="var(--color-wholesale)" radius={[4, 4, 0, 0]} stackId="a" />
+          </BarChart>
+        </ResponsiveContainer>
+      ) : (
+        <div className="flex items-center justify-center h-full text-muted-foreground text-lg">
+          No data available
+        </div>
+      )}
     </ChartContainer>
   )
 }
