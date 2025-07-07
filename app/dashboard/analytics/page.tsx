@@ -1,3 +1,5 @@
+"use client"
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { SalesAnalyticsChart } from "@/components/dashboard/sales-analytics-chart"
@@ -6,8 +8,103 @@ import { ProductAnalyticsChart } from "@/components/dashboard/product-analytics-
 import { Button } from "@/components/ui/button"
 import { Download, BarChart3, Users, Package } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useSelector } from "react-redux"
+import { RootState } from "@/lib/store"
+import { Skeleton } from "@/components/ui/skeleton"
+import { useState, useMemo } from "react"
 
 export default function AnalyticsPage() {
+  const { customers, loading: customerLoading } = useSelector((state: RootState) => state.customers)
+  const { products, loading: productLoading } = useSelector((state: RootState) => state.products)
+  const { orders, loading: orderLoading } = useSelector((state: RootState) => state.orders)
+
+  const [selectedPeriod, setSelectedPeriod] = useState("current-month")
+  const isLoading = customerLoading || productLoading || orderLoading
+
+  // Filter orders by period (example: only current month)
+  const filteredOrders = useMemo(() => {
+    if (!orders) return []
+    if (selectedPeriod === "current-month") {
+      const now = new Date()
+      return orders.filter(order => {
+        const date = new Date(order.captureDate ?? order.createdAt ?? "")
+        return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear()
+      })
+    }
+    // Add more period filters as needed
+    return orders
+  }, [orders, selectedPeriod])
+
+  // Filter customers by period (example: only current month)
+  const filteredCustomers = useMemo(() => {
+    if (!customers) return []
+    if (selectedPeriod === "current-month") {
+      const now = new Date()
+      return customers.filter(c => {
+        if (!c.createdAt && !c.captureDate) return false
+        const date = new Date(c.captureDate ?? c.createdAt ?? "")
+        return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear()
+      })
+    }
+    // Add more period filters as needed
+    return customers
+  }, [customers, selectedPeriod])
+
+  // Analytics calculations
+  const totalRevenue = useMemo(
+    () => filteredOrders.reduce((sum, o) => sum + (o.total || 0), 0),
+    [filteredOrders]
+  )
+  const retailSales = useMemo(
+    () => filteredOrders.filter(o => o.customerType === "retail").reduce((sum, o) => sum + (o.total || 0), 0),
+    [filteredOrders]
+  )
+  const wholesaleSales = useMemo(
+    () => filteredOrders.filter(o => o.customerType === "wholesale").reduce((sum, o) => sum + (o.total || 0), 0),
+    [filteredOrders]
+  )
+  const newCustomers = useMemo(() => {
+    if (!customers) return 0
+    const now = new Date()
+    return customers.filter(c => {
+      if (!c.createdAt || !c.captureDate) return false
+      const date = new Date(c?.captureDate)
+      return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear()
+    }).length
+  }, [customers])
+
+  // Aggregate product sales/profit for the selected period
+  const productSalesMap = useMemo(() => {
+    if (!products || !filteredOrders) return []
+    // Map productId to sales/profit
+    const map: Record<string, { name: string; variants: any[] }> = {}
+
+    filteredOrders.forEach(order => {
+      order.products.forEach(item => {
+        const product = products.find(p => p._id === item.productId)
+        if (!product) return
+        if (!map[item.productId]) {
+          map[item.productId] = {
+            name: product.name,
+            variants: product.variants.map(v => ({
+              ...v,
+              // We'll override quantity with the order's quantity for this variant if it matches
+              quantity: 0,
+            })),
+          }
+        }
+        // Find the variant in the map and add the quantity from the order
+        const variantIdx = product.variants.findIndex(v => v._id === item.variantId)
+        if (variantIdx !== -1) {
+          map[item.productId].variants[variantIdx].quantity += item.quantity
+        }
+      })
+    })
+
+    // Only include products that had sales in this period
+    return Object.values(map)
+  }, [products, filteredOrders])
+
   return (
     <div className="flex flex-col gap-6 w-full">
       <div className="flex items-center justify-between">
@@ -19,7 +116,7 @@ export default function AnalyticsPage() {
       </div>
 
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-        <Select defaultValue="current-month">
+        <Select defaultValue={selectedPeriod} onValueChange={setSelectedPeriod}>
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Select period" />
           </SelectTrigger>
@@ -36,42 +133,85 @@ export default function AnalyticsPage() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">₹45,231.89</div>
-            <p className="text-xs text-muted-foreground">+20.1% from last month</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Retail Sales</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">₹18,450.00</div>
-            <p className="text-xs text-muted-foreground">+15.3% from last month</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Wholesale Sales</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">₹26,781.89</div>
-            <p className="text-xs text-muted-foreground">+24.2% from last month</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">New Customers</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">+48</div>
-            <p className="text-xs text-muted-foreground">+12.5% from last month</p>
-          </CardContent>
-        </Card>
+        {isLoading ? (
+          <>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <Skeleton className="h-4 w-24 mb-2" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-8 w-32 mb-2" />
+                <Skeleton className="h-3 w-28" />
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <Skeleton className="h-4 w-24 mb-2" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-8 w-24 mb-2" />
+                <Skeleton className="h-3 w-24" />
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <Skeleton className="h-4 w-32 mb-2" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-8 w-24 mb-2" />
+                <Skeleton className="h-3 w-28" />
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <Skeleton className="h-4 w-28 mb-2" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-8 w-20 mb-2" />
+                <Skeleton className="h-3 w-24" />
+              </CardContent>
+            </Card>
+          </>
+        ) : (
+          <>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">₹{totalRevenue.toLocaleString(undefined, { maximumFractionDigits: 2 })}</div>
+                <p className="text-xs text-muted-foreground">Compared to last period</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Retail Sales</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">₹{retailSales.toLocaleString(undefined, { maximumFractionDigits: 2 })}</div>
+                <p className="text-xs text-muted-foreground">Compared to last period</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Wholesale Sales</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">₹{wholesaleSales.toLocaleString(undefined, { maximumFractionDigits: 2 })}</div>
+                <p className="text-xs text-muted-foreground">Compared to last period</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">New Customers</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">+{newCustomers}</div>
+                <p className="text-xs text-muted-foreground">Compared to last period</p>
+              </CardContent>
+            </Card>
+          </>
+        )}
       </div>
 
       <Tabs defaultValue="sales" className="space-y-4">
@@ -96,7 +236,19 @@ export default function AnalyticsPage() {
               <CardDescription>Analyze your sales performance over time</CardDescription>
             </CardHeader>
             <CardContent>
-              <SalesAnalyticsChart />
+              {orderLoading ? (
+                <div className="space-y-4">
+                  <Skeleton className="h-6 w-40 mb-4" />
+                  <Skeleton className="h-[300px] w-full mb-2" />
+                  <div className="flex gap-2">
+                    <Skeleton className="h-4 w-16" />
+                    <Skeleton className="h-4 w-16" />
+                    <Skeleton className="h-4 w-16" />
+                  </div>
+                </div>
+              ) : (
+                <SalesAnalyticsChart orders={filteredOrders} />
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -107,7 +259,19 @@ export default function AnalyticsPage() {
               <CardDescription>Understand your customer base and purchasing patterns</CardDescription>
             </CardHeader>
             <CardContent>
-              <CustomerAnalyticsChart />
+              {customerLoading ? (
+                <div className="space-y-4">
+                  <Skeleton className="h-6 w-40 mb-4" />
+                  <Skeleton className="h-[300px] w-full mb-2" />
+                  <div className="flex gap-2">
+                    <Skeleton className="h-4 w-16" />
+                    <Skeleton className="h-4 w-16" />
+                    <Skeleton className="h-4 w-16" />
+                  </div>
+                </div>
+              ) : (
+                <CustomerAnalyticsChart customers={filteredCustomers} />
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -118,7 +282,19 @@ export default function AnalyticsPage() {
               <CardDescription>Analyze which products are selling best</CardDescription>
             </CardHeader>
             <CardContent>
-              <ProductAnalyticsChart />
+              {productLoading ? (
+                <div className="space-y-4">
+                  <Skeleton className="h-6 w-40 mb-4" />
+                  <Skeleton className="h-[300px] w-full mb-2" />
+                  <div className="flex gap-2">
+                    <Skeleton className="h-4 w-16" />
+                    <Skeleton className="h-4 w-16" />
+                    <Skeleton className="h-4 w-16" />
+                  </div>
+                </div>
+              ) : (
+                <ProductAnalyticsChart products={productSalesMap} />
+              )}
             </CardContent>
           </Card>
         </TabsContent>
