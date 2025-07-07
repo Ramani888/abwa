@@ -324,7 +324,20 @@ export default function AnalyticsPage() {
       </div>
 
       <Tabs defaultValue="sales" className="space-y-4">
-        <TabsList>
+        <TabsList
+          className="
+            flex flex-row gap-2
+            items-start
+            justify-start
+            overflow-x-auto
+            whitespace-nowrap
+            w-full
+            sm:w-auto
+            scrollbar-thin scrollbar-thumb-muted-foreground/30 scrollbar-track-transparent
+            px-1
+          "
+          style={{ WebkitOverflowScrolling: "touch" }}
+        >
           <TabsTrigger value="sales" className="flex items-center">
             <BarChart3 className="mr-2 h-4 w-4" />
             Sales Analytics
