@@ -12,6 +12,7 @@ import { useSelector } from "react-redux"
 import { RootState } from "@/lib/store"
 import { useMemo, useRef, useState } from "react"
 import { exportToCsv } from "@/utils/helpers/report"
+import { Skeleton } from "@/components/ui/skeleton"
 
 export default function ReportsPage() {
   const { customers, loading: customerLoading } = useSelector((state: RootState) => state.customers)
@@ -119,6 +120,8 @@ export default function ReportsPage() {
     }
   }
 
+  const isLoading = customerLoading || productLoading || orderLoading
+
   return (
     <div className="flex flex-col gap-6 w-full px-2 sm:px-4">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
@@ -186,54 +189,105 @@ export default function ReportsPage() {
         </TabsList>
         <TabsContent value="sales" className="space-y-4">
           <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Sales</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">₹{totalSales.toLocaleString(undefined, { maximumFractionDigits: 2 })}</div>
-                <p className="text-xs text-muted-foreground">
-                  {salesChange >= 0 ? "+" : ""}
-                  {salesChange.toFixed(1)}% from last period
-                </p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{totalOrders}</div>
-                <p className="text-xs text-muted-foreground">
-                  {totalOrders - lastPeriodOrders >= 0 ? "+" : ""}
-                  {(totalOrders - lastPeriodOrders)} since last period
-                </p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Average Order Value</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">₹{avgOrderValue.toLocaleString(undefined, { maximumFractionDigits: 2 })}</div>
-                <p className="text-xs text-muted-foreground">
-                  {avgOrderValueChange >= 0 ? "+" : ""}
-                  {avgOrderValueChange.toFixed(1)}% from last period
-                </p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Conversion Rate</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{conversionRate.toFixed(1)}%</div>
-                <p className="text-xs text-muted-foreground">
-                  {conversionRateChange >= 0 ? "+" : ""}
-                  {conversionRateChange.toFixed(1)}% from last period
-                </p>
-              </CardContent>
-            </Card>
+            {isLoading ? (
+              <>
+                {/* Total Sales Card Skeleton */}
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <Skeleton className="h-4 w-24 mb-2" />
+                  </CardHeader>
+                  <CardContent>
+                    <Skeleton className="h-8 w-32 mb-2" />
+                    <Skeleton className="h-3 w-28" />
+                  </CardContent>
+                </Card>
+                {/* Total Orders Card Skeleton */}
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <Skeleton className="h-4 w-24 mb-2" />
+                  </CardHeader>
+                  <CardContent>
+                    <Skeleton className="h-8 w-16 mb-2" />
+                    <Skeleton className="h-3 w-24" />
+                  </CardContent>
+                </Card>
+                {/* Average Order Value Card Skeleton */}
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <Skeleton className="h-4 w-32 mb-2" />
+                  </CardHeader>
+                  <CardContent>
+                    <Skeleton className="h-8 w-24 mb-2" />
+                    <Skeleton className="h-3 w-28" />
+                  </CardContent>
+                </Card>
+                {/* Conversion Rate Card Skeleton */}
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <Skeleton className="h-4 w-28 mb-2" />
+                  </CardHeader>
+                  <CardContent>
+                    <Skeleton className="h-8 w-20 mb-2" />
+                    <Skeleton className="h-3 w-24" />
+                  </CardContent>
+                </Card>
+              </>
+            ) : (
+              <>
+                {/* Total Sales Card */}
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Total Sales</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">₹{totalSales.toLocaleString(undefined, { maximumFractionDigits: 2 })}</div>
+                    <p className="text-xs text-muted-foreground">
+                      {salesChange >= 0 ? "+" : ""}
+                      {salesChange.toFixed(1)}% from last period
+                    </p>
+                  </CardContent>
+                </Card>
+                {/* Total Orders Card */}
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">{totalOrders}</div>
+                    <p className="text-xs text-muted-foreground">
+                      {totalOrders - lastPeriodOrders >= 0 ? "+" : ""}
+                      {(totalOrders - lastPeriodOrders)} since last period
+                    </p>
+                  </CardContent>
+                </Card>
+                {/* Average Order Value Card */}
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Average Order Value</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">₹{avgOrderValue.toLocaleString(undefined, { maximumFractionDigits: 2 })}</div>
+                    <p className="text-xs text-muted-foreground">
+                      {avgOrderValueChange >= 0 ? "+" : ""}
+                      {avgOrderValueChange.toFixed(1)}% from last period
+                    </p>
+                  </CardContent>
+                </Card>
+                {/* Conversion Rate Card */}
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Conversion Rate</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">{conversionRate.toFixed(1)}%</div>
+                    <p className="text-xs text-muted-foreground">
+                      {conversionRateChange >= 0 ? "+" : ""}
+                      {conversionRateChange.toFixed(1)}% from last period
+                    </p>
+                  </CardContent>
+                </Card>
+              </>
+            )}
           </div>
 
           <Card>
@@ -243,7 +297,19 @@ export default function ReportsPage() {
             </CardHeader>
             <CardContent>
               <div className="w-full overflow-x-auto">
-                <SalesReportChart selectedPeriod={selectedPeriod} />
+                {isLoading ? (
+                  <div className="space-y-4">
+                    <Skeleton className="h-6 w-40 mb-4" />
+                    <Skeleton className="h-[220px] w-full mb-2" />
+                    <div className="flex gap-2">
+                      <Skeleton className="h-4 w-16" />
+                      <Skeleton className="h-4 w-16" />
+                      <Skeleton className="h-4 w-16" />
+                    </div>
+                  </div>
+                ) : (
+                  <SalesReportChart selectedPeriod={selectedPeriod} />
+                )}
               </div>
             </CardContent>
           </Card>
@@ -256,10 +322,32 @@ export default function ReportsPage() {
             </CardHeader>
             <CardContent>
               <div className="w-full overflow-x-auto">
-                <ProductReportTable
-                  selectedPeriod={selectedPeriod}
-                  exportRef={productExportRef}
-                />
+                {productLoading ? (
+                  <div>
+                    <Skeleton className="h-6 w-40 mb-4" />
+                    {/* Table header skeleton */}
+                    <div className="flex gap-4 mb-2">
+                      <Skeleton className="h-4 w-24" />
+                      <Skeleton className="h-4 w-24" />
+                      <Skeleton className="h-4 w-24" />
+                      <Skeleton className="h-4 w-24" />
+                    </div>
+                    {/* Table rows skeleton */}
+                    {[...Array(5)].map((_, i) => (
+                      <div className="flex gap-4 mb-2" key={i}>
+                        <Skeleton className="h-4 w-24" />
+                        <Skeleton className="h-4 w-24" />
+                        <Skeleton className="h-4 w-24" />
+                        <Skeleton className="h-4 w-24" />
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <ProductReportTable
+                    selectedPeriod={selectedPeriod}
+                    exportRef={productExportRef}
+                  />
+                )}
               </div>
             </CardContent>
           </Card>
@@ -272,10 +360,32 @@ export default function ReportsPage() {
             </CardHeader>
             <CardContent>
               <div className="w-full overflow-x-auto">
-                <CustomerReportTable
-                  selectedPeriod={selectedPeriod}
-                  exportRef={customerExportRef}
-                />
+                {customerLoading ? (
+                  <div>
+                    <Skeleton className="h-6 w-40 mb-4" />
+                    {/* Table header skeleton */}
+                    <div className="flex gap-4 mb-2">
+                      <Skeleton className="h-4 w-24" />
+                      <Skeleton className="h-4 w-24" />
+                      <Skeleton className="h-4 w-24" />
+                      <Skeleton className="h-4 w-24" />
+                    </div>
+                    {/* Table rows skeleton */}
+                    {[...Array(5)].map((_, i) => (
+                      <div className="flex gap-4 mb-2" key={i}>
+                        <Skeleton className="h-4 w-24" />
+                        <Skeleton className="h-4 w-24" />
+                        <Skeleton className="h-4 w-24" />
+                        <Skeleton className="h-4 w-24" />
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <CustomerReportTable
+                    selectedPeriod={selectedPeriod}
+                    exportRef={customerExportRef}
+                  />
+                )}
               </div>
             </CardContent>
           </Card>
