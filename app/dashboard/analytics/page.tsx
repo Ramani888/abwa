@@ -12,6 +12,8 @@ import { useSelector } from "react-redux"
 import { RootState } from "@/lib/store"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useState, useMemo } from "react"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { exportToCsv } from "@/utils/helpers/report"
 
 export default function AnalyticsPage() {
   const { customers, loading: customerLoading } = useSelector((state: RootState) => state.customers)
@@ -67,8 +69,8 @@ export default function AnalyticsPage() {
     if (!customers) return 0
     const now = new Date()
     return customers.filter(c => {
-      if (!c.createdAt || !c.captureDate) return false
-      const date = new Date(c?.captureDate)
+      if (!c.createdAt && !c.captureDate) return false
+      const date = new Date(c.captureDate ?? c.createdAt ?? "")
       return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear()
     }).length
   }, [customers])
@@ -105,14 +107,121 @@ export default function AnalyticsPage() {
     return Object.values(map)
   }, [products, filteredOrders])
 
+  // Export handlers
+  function handleExport(type: "orders" | "customers" | "products") {
+    if (type === "orders") {
+      exportToCsv(
+        "orders.csv",
+        filteredOrders,
+        [
+          "_id",
+          "customerId",
+          "customerType",
+          "subTotal",
+          "totalGst",
+          "roundOff",
+          "total",
+          "paymentMethod",
+          "paymentStatus",
+          "createdAt"
+        ],
+        [
+          "Order ID",
+          "Customer ID",
+          "Customer Type",
+          "Subtotal",
+          "Total GST",
+          "Round Off",
+          "Total",
+          "Payment Method",
+          "Payment Status",
+          "Created At"
+        ]
+      )
+    } else if (type === "customers") {
+      exportToCsv(
+        "customers.csv",
+        filteredCustomers,
+        [
+          "_id",
+          "name",
+          "email",
+          "number",
+          "customerType",
+          "address",
+          "createdAt"
+        ],
+        [
+          "Customer ID",
+          "Name",
+          "Email",
+          "Phone",
+          "Customer Type",
+          "Address",
+          "Created At"
+        ]
+      )
+    } else if (type === "products") {
+      // Flatten productSalesMap for CSV export
+      const flatProducts = productSalesMap.flatMap(product =>
+        product.variants.map(variant => ({
+          productName: product.name,
+          variantName: variant.unit,
+          sku: variant.sku,
+          quantity: variant.quantity,
+          retailPrice: variant.retailPrice,
+          wholesalePrice: variant.wholesalePrice,
+          purchasePrice: variant.purchasePrice,
+        }))
+      )
+      exportToCsv(
+        "products.csv",
+        flatProducts,
+        [
+          "productName",
+          "variantName",
+          "sku",
+          "quantity",
+          "retailPrice",
+          "wholesalePrice",
+          "purchasePrice"
+        ],
+        [
+          "Product Name",
+          "Variant",
+          "SKU",
+          "Quantity Sold",
+          "Retail Price",
+          "Wholesale Price",
+          "Purchase Price"
+        ]
+      )
+    }
+  }
+
   return (
     <div className="flex flex-col gap-6 w-full">
       <div className="flex items-center justify-between">
         <h2 className="text-3xl font-bold tracking-tight">Analytics</h2>
-        <Button>
-          <Download className="mr-2 h-4 w-4" />
-          Export Data
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button>
+              <Download className="mr-2 h-4 w-4" />
+              Export Data
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuItem onClick={() => handleExport("orders")}>
+              Export Orders (Current Period)
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleExport("customers")}>
+              Export Customers (Current Period)
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleExport("products")}>
+              Export Products (Current Period)
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
