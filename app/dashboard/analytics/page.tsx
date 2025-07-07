@@ -200,12 +200,12 @@ export default function AnalyticsPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6 w-full">
-      <div className="flex items-center justify-between">
-        <h2 className="text-3xl font-bold tracking-tight">Analytics</h2>
+    <div className="flex flex-col gap-4 w-full px-2 sm:px-4 md:px-6">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Analytics</h2>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button>
+            <Button size="sm">
               <Download className="mr-2 h-4 w-4" />
               Export Data
             </Button>
@@ -224,9 +224,9 @@ export default function AnalyticsPage() {
         </DropdownMenu>
       </div>
 
-      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
         <Select defaultValue={selectedPeriod} onValueChange={setSelectedPeriod}>
-          <SelectTrigger className="w-[180px]">
+          <SelectTrigger className="w-full sm:w-[180px]">
             <SelectValue placeholder="Select period" />
           </SelectTrigger>
           <SelectContent>
@@ -241,7 +241,7 @@ export default function AnalyticsPage() {
         </Select>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         {isLoading ? (
           <>
             <Card>
@@ -357,7 +357,7 @@ export default function AnalyticsPage() {
               <CardTitle>Sales Trends</CardTitle>
               <CardDescription>Analyze your sales performance over time</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="overflow-x-auto">
               {orderLoading ? (
                 <div className="space-y-4">
                   <Skeleton className="h-6 w-40 mb-4" />
@@ -369,7 +369,9 @@ export default function AnalyticsPage() {
                   </div>
                 </div>
               ) : (
-                <SalesAnalyticsChart orders={filteredOrders} />
+                <div className="min-w-[320px]">
+                  <SalesAnalyticsChart orders={filteredOrders} />
+                </div>
               )}
             </CardContent>
           </Card>
@@ -380,7 +382,7 @@ export default function AnalyticsPage() {
               <CardTitle>Customer Insights</CardTitle>
               <CardDescription>Understand your customer base and purchasing patterns</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="overflow-x-auto">
               {customerLoading ? (
                 <div className="space-y-4">
                   <Skeleton className="h-6 w-40 mb-4" />
@@ -392,7 +394,9 @@ export default function AnalyticsPage() {
                   </div>
                 </div>
               ) : (
-                <CustomerAnalyticsChart customers={filteredCustomers} />
+                <div className="min-w-[320px]">
+                  <CustomerAnalyticsChart customers={filteredCustomers} />
+                </div>
               )}
             </CardContent>
           </Card>
@@ -403,7 +407,7 @@ export default function AnalyticsPage() {
               <CardTitle>Product Performance</CardTitle>
               <CardDescription>Analyze which products are selling best</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="overflow-x-auto">
               {productLoading ? (
                 <div className="space-y-4">
                   <Skeleton className="h-6 w-40 mb-4" />
@@ -415,7 +419,9 @@ export default function AnalyticsPage() {
                   </div>
                 </div>
               ) : (
-                <ProductAnalyticsChart products={productSalesMap} />
+                <div className="min-w-[320px]">
+                  <ProductAnalyticsChart products={productSalesMap} />
+                </div>
               )}
             </CardContent>
           </Card>
