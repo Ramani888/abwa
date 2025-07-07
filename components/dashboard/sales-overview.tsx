@@ -35,6 +35,9 @@ export function SalesOverview() {
   // Generate dynamic data based on orders
   const data = getMonthlyRevenue(orders || [])
 
+  // Check if there is any revenue data
+  const hasData = data.some((d) => d.total > 0)
+
   return (
     <div className="w-full overflow-x-auto">
       <ChartContainer
@@ -46,18 +49,24 @@ export function SalesOverview() {
         }}
         className="w-full h-[220px] sm:h-[300px] min-w-[500px] sm:min-w-0"
       >
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart
-            data={data}
-            accessibilityLayer
-          >
-            <CartesianGrid vertical={false} strokeDasharray="3 3" />
-            <XAxis dataKey="name" tickLine={false} axisLine={false} tickMargin={8} />
-            <YAxis tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(value) => `₹${value}`} />
-            <ChartTooltip content={<ChartTooltipContent />} cursor={false} />
-            <Bar dataKey="total" fill="var(--color-total)" radius={[4, 4, 0, 0]} />
-          </BarChart>
-        </ResponsiveContainer>
+        {hasData ? (
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart
+              data={data}
+              accessibilityLayer
+            >
+              <CartesianGrid vertical={false} strokeDasharray="3 3" />
+              <XAxis dataKey="name" tickLine={false} axisLine={false} tickMargin={8} />
+              <YAxis tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(value) => `₹${value}`} />
+              <ChartTooltip content={<ChartTooltipContent />} cursor={false} />
+              <Bar dataKey="total" fill="var(--color-total)" radius={[4, 4, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        ) : (
+          <div className="flex items-center justify-center h-full text-muted-foreground text-lg">
+            No data available
+          </div>
+        )}
       </ChartContainer>
     </div>
   )
