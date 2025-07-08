@@ -93,7 +93,7 @@ export default function CustomerDetailsPage({ params }: { params: { id: string }
               <ArrowLeft className="h-6 w-6 text-red-500" />
             </div>
             <div>
-              <div className="text-sm text-muted-foreground font-medium">Pending Amount</div>
+              <div className="text-sm text-muted-foreground font-medium">Due Amount</div>
               <div className="text-2xl font-bold text-red-600 break-words">₹{pendingTotal.toFixed(2)}</div>
             </div>
           </CardContent>
