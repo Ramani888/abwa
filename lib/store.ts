@@ -2,12 +2,14 @@ import { configureStore } from '@reduxjs/toolkit'
 import customerReducer from './features/customerSlice'
 import productReducer from './features/productSlice'
 import orderReducer from './features/orderSlice'
+import supplierPaymentReducer from './features/supplierPaymentSlice'
 
 export const store = configureStore({
   reducer: {
     customers: customerReducer,
     products: productReducer,
     orders: orderReducer,
+    supplierPayment: supplierPaymentReducer,
   },
 })
 
