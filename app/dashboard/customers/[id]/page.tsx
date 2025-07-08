@@ -9,20 +9,20 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { ArrowLeft, Edit, ShoppingBag } from "lucide-react"
 import Link from "next/link"
 import { serverGetCustomerDetailOrder } from "@/services/serverApi"
+import { useSelector } from "react-redux"
+import { RootState } from "@/lib/store"
+import { ICustomerPayment } from "@/types/customer"
 
 export default function CustomerDetailsPage({ params }: { params: { id: string } }) {
+  const { customerPayment, loading: customerPaymentLoading } = useSelector((state: RootState) => state.customerPayment)
   const [customerData, setCustomerData] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
 
-  // Calculate totals
-  const pendingTotal = customerData?.orders?.reduce(
-    (sum: number, order: any) => order.paymentStatus !== "paid" ? sum + (order.total || 0) : sum,
-    0
-  ) || 0;
+  const filteredCustomerPayment = customerPayment?.filter((data: any) => data.customerId === params.id)
 
-  const paidTotal = customerData?.orders?.reduce(
-    (sum: number, order: any) => order.paymentStatus === "paid" ? sum + (order.total || 0) : sum,
+  const paidTotal = filteredCustomerPayment?.reduce(
+    (sum: number, data: ICustomerPayment) => sum + (data.amount || 0),
     0
   ) || 0;
 
@@ -30,6 +30,8 @@ export default function CustomerDetailsPage({ params }: { params: { id: string }
     (sum: number, order: any) => sum + (order.total || 0),
     0
   ) || 0;
+
+  const pendingTotal = totalAmount - paidTotal;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -47,7 +49,7 @@ export default function CustomerDetailsPage({ params }: { params: { id: string }
     fetchData();
   }, [params.id])
 
-  if (isLoading) {
+  if (isLoading || customerPaymentLoading) {
     return (
       <div className="flex items-center justify-center h-[50vh]">
         <div className="text-center">
