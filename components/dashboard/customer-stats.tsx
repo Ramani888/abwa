@@ -83,7 +83,7 @@ export function CustomerStats() {
       <Card>
         <CardContent className="pt-6">
           <h3 className="text-base sm:text-lg font-semibold mb-4">Customer Distribution</h3>
-          <div className="h-[320px] sm:h-[300px] px-2 sm:px-6"> {/* Increased height and added horizontal padding */}
+          <div className="h-[320px] sm:h-[300px] px-2 sm:px-6">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
@@ -91,20 +91,10 @@ export function CustomerStats() {
                   cx="50%"
                   cy="50%"
                   labelLine={false}
-                  outerRadius={typeof window !== "undefined" && window.innerWidth < 640 ? 100 : 130} // Increased radius for both mobile and desktop
+                  outerRadius={80}
                   fill="#8884d8"
                   dataKey="value"
-                  label={({ name, percent }) => {
-                    // Responsive label: abbreviate on small screens
-                    const isMobile = typeof window !== "undefined" && window.innerWidth < 640;
-                    const shortName =
-                      name === "Retail Customers"
-                        ? "Retail"
-                        : name === "Wholesale Customers"
-                        ? "Wholesale"
-                        : name;
-                    return `${isMobile ? shortName : name} ${(percent * 100).toFixed(0)}%`;
-                  }}
+                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                 >
                   {customerData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />

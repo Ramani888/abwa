@@ -220,7 +220,20 @@ export default function DashboardPage() {
       </div>
 
       <Tabs defaultValue="overview" className="space-y-4">
-        <TabsList className="w-full flex flex-wrap gap-2 overflow-x-auto">
+        <TabsList
+          className="
+            flex flex-row gap-2
+            items-start
+            justify-start
+            overflow-x-auto
+            whitespace-nowrap
+            w-full
+            sm:w-auto
+            scrollbar-thin scrollbar-thumb-muted-foreground/30 scrollbar-track-transparent
+            px-1
+          "
+          style={{ WebkitOverflowScrolling: "touch" }}
+        >
           <TabsTrigger value="overview" className="flex-1 min-w-[100px]">Overview</TabsTrigger>
           <TabsTrigger value="customers" className="flex-1 min-w-[100px]">Customers</TabsTrigger>
           <TabsTrigger value="stock" className="flex-1 min-w-[100px]">Stock</TabsTrigger>
