@@ -1,107 +1,71 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
-import { Bell, CheckCircle, AlertTriangle, ShoppingCart, Database, Trash } from "lucide-react"
+import { Bell, CheckCircle, AlertTriangle, ShoppingCart, Database, Trash, Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
-
-// Static notification data
-const notifications = [
-  {
-    id: "1",
-    type: "order",
-    title: "New Order Received",
-    message: "Order #ORD-056 has been placed by Rahul Sharma",
-    time: "10 minutes ago",
-    read: false,
-  },
-  {
-    id: "2",
-    type: "stock",
-    title: "Low Stock Alert",
-    message: "Pesticide Spray is running low (5 units remaining)",
-    time: "2 hours ago",
-    read: false,
-  },
-  {
-    id: "3",
-    type: "payment",
-    title: "Payment Received",
-    message: "Payment of ₹3,200 received for order #ORD-042",
-    time: "5 hours ago",
-    read: true,
-  },
-  {
-    id: "4",
-    type: "system",
-    title: "System Update",
-    message: "AgroBill will be updated tonight at 2:00 AM",
-    time: "Yesterday",
-    read: true,
-  },
-  {
-    id: "5",
-    type: "order",
-    title: "Order Completed",
-    message: "Order #ORD-039 has been marked as completed",
-    time: "Yesterday",
-    read: true,
-  },
-  {
-    id: "6",
-    type: "stock",
-    title: "Out of Stock Alert",
-    message: "Drip Irrigation Kit is now out of stock",
-    time: "2 days ago",
-    read: true,
-  },
-  {
-    id: "7",
-    type: "payment",
-    title: "Payment Due Reminder",
-    message: "Payment for order #ORD-035 is due in 2 days",
-    time: "3 days ago",
-    read: true,
-  },
-  {
-    id: "8",
-    type: "system",
-    title: "Plan Upgrade Successful",
-    message: "Your subscription has been upgraded to Standard Plan",
-    time: "5 days ago",
-    read: true,
-  },
-]
+import { INotification } from "@/types/notification"
+import { serverDeleteNotification, serverGetNotification, serverUpdateNotification } from "@/services/serverApi"
 
 export default function NotificationsPage() {
   const [activeTab, setActiveTab] = useState("all")
-  const [notificationState, setNotificationState] = useState(notifications)
+  const [loading, setLoading] = useState(true)
+  const [notificationData, setNotificationData] = useState<INotification[]>([])
 
-  const filteredNotifications = notificationState.filter((notification) => {
+  const getNotificationData = async () => {
+    try {
+      setLoading(true)
+      const res = await serverGetNotification();
+      setNotificationData(res?.data)
+      setLoading(false)
+    } catch (error) {
+      setLoading(false)
+      setNotificationData([])
+      console.error("Error fetching notifications:", error)
+    }
+  }
+
+  const filteredNotifications = notificationData?.filter((notification) => {
     if (activeTab === "all") return true
-    if (activeTab === "unread") return !notification.read
+    if (activeTab === "unread") return !notification.isRead
     return notification.type === activeTab
   })
 
-  const unreadCount = notificationState.filter((notification) => !notification.read).length
+  const unreadCount = notificationData?.filter((notification) => !notification.isRead).length
 
-  const markAllAsRead = () => {
-    setNotificationState(notificationState.map((notification) => ({ ...notification, read: true })))
+  const markAllAsRead = async () => {
+    try {
+      const unreadNotifications = notificationData?.filter(n => !n.isRead);
+      await Promise.all(
+        unreadNotifications.map(notification =>
+          serverUpdateNotification(notification?._id?.toString() ?? "")
+        )
+      );
+      getNotificationData();
+    } catch (error) {
+      console.error("Error marking all notifications as read:", error);
+    }
   }
 
-  const markAsRead = (id: string) => {
-    setNotificationState(
-      notificationState.map((notification) =>
-        notification.id === id ? { ...notification, read: true } : notification,
-      ),
-    )
+  const markAsRead = async (id: string) => {
+    try {
+      await serverUpdateNotification(id);
+      getNotificationData();
+    } catch (error) {
+      console.error("Error marking notification as read:", error)
+    }
   }
 
-  const deleteNotification = (id: string) => {
-    setNotificationState(notificationState.filter((notification) => notification.id !== id))
+  const deleteNotification = async (id: string) => {
+    try {
+      await serverDeleteNotification(id);
+      getNotificationData();
+    } catch (error) {
+      console.error("Error deleting notification:", error)
+    }
   }
 
   const getNotificationIcon = (type: string) => {
@@ -119,12 +83,16 @@ export default function NotificationsPage() {
     }
   }
 
+  useEffect(() => {
+    getNotificationData();
+  }, [])
+
   return (
-    <div className="w-full">
-      <div className="flex items-center justify-between mb-6">
+    <div className="w-full px-2 sm:px-4 mx-auto">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-2">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Notifications</h2>
-          <p className="text-muted-foreground">
+          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Notifications</h2>
+          <p className="text-muted-foreground text-sm sm:text-base">
             You have {unreadCount} unread notification{unreadCount !== 1 && "s"}
           </p>
         </div>
@@ -133,14 +101,20 @@ export default function NotificationsPage() {
       <Card className="w-full">
         <CardHeader className="pb-3">
           <div className="flex flex-col space-y-4">
-            <div className="flex items-center justify-between">
-              <CardTitle>Notifications</CardTitle>
-              <Button variant="outline" onClick={markAllAsRead} disabled={unreadCount === 0} size="sm">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+              <CardTitle className="text-lg sm:text-xl">Notifications</CardTitle>
+              <Button
+                variant="outline"
+                onClick={markAllAsRead}
+                disabled={unreadCount === 0}
+                size="sm"
+                className="w-full sm:w-auto"
+              >
                 Mark all as read
               </Button>
             </div>
             <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="w-full justify-start overflow-x-auto">
+              <TabsList className="w-full justify-start overflow-x-auto flex-nowrap whitespace-nowrap scrollbar-thin">
                 <TabsTrigger value="all" className="relative">
                   All
                   {unreadCount > 0 && (
@@ -160,27 +134,36 @@ export default function NotificationsPage() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {filteredNotifications.length > 0 ? (
+            {loading ? (
+              <div className="flex justify-center items-center space-x-2 py-8">
+                <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                <span>Loading Notification...</span>
+              </div>
+            ) : filteredNotifications.length > 0 ? (
               filteredNotifications.map((notification) => (
                 <div
-                  key={notification.id}
+                  key={notification?._id}
                   className={cn(
-                    "flex items-start space-x-4 rounded-lg border p-4 transition-colors",
-                    !notification.read && "bg-muted/50",
+                    "flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 rounded-lg border p-3 sm:p-4 transition-colors",
+                    !notification.isRead && "bg-muted/50",
                   )}
                 >
                   <div className="mt-1">{getNotificationIcon(notification.type)}</div>
-                  <div className="flex-1 space-y-1">
-                    <div className="flex items-center justify-between">
-                      <p className="font-medium">{notification.title}</p>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs text-muted-foreground">{notification.time}</span>
-                        {!notification.read && (
+                  <div className="flex-1 space-y-1 w-full">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                      <p className="font-medium">{notification?.name}</p>
+                      <div className="flex flex-row flex-wrap items-center gap-2">
+                        <span className="text-xs text-muted-foreground">
+                          {notification?.createdAt
+                            ? new Date(notification.createdAt).toLocaleString()
+                            : ""}
+                        </span>
+                        {!notification.isRead && (
                           <Button
                             variant="ghost"
                             size="sm"
                             className="h-6 px-2"
-                            onClick={() => markAsRead(notification.id)}
+                            onClick={() => markAsRead(notification?._id?.toString() ?? "")}
                           >
                             Mark as read
                           </Button>
@@ -188,15 +171,15 @@ export default function NotificationsPage() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-6 w-6"
-                          onClick={() => deleteNotification(notification.id)}
+                          className="h-6 w-6 bg-red-500 hover:bg-red-600 text-white"
+                          onClick={() => deleteNotification(notification?._id?.toString() ?? "")}
                         >
                           <Trash className="h-4 w-4" />
                           <span className="sr-only">Delete</span>
                         </Button>
                       </div>
                     </div>
-                    <p className="text-sm text-muted-foreground">{notification.message}</p>
+                    <p className="text-sm text-muted-foreground">{notification?.description}</p>
                   </div>
                 </div>
               ))

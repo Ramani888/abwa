@@ -283,3 +283,16 @@ export const serverUpdateSupplierPayment = async (data: ISupplierPayment) => {
 export const serverDeleteSupplierPayment = async (_id: string) => {
   return await serverRequest(`/supplier-payment?_id=${_id}`, "DELETE", null, true);
 }
+
+/// Notification ///
+export const serverGetNotification = async () => {
+  return await serverRequest(`/notification`, "GET", null, true);
+}
+
+export const serverUpdateNotification = async (_id: string) => {
+  return await serverRequest(`/notification?_id=${_id}`, "PUT", null, true);
+}
+
+export const serverDeleteNotification = async (_id: string) => {
+  return await serverRequest(`/notification?_id=${_id}`, "DELETE", null, true);
+}
