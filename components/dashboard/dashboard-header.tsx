@@ -18,12 +18,13 @@ import { DashboardSidebar } from "./dashboard-sidebar"
 import { PlanBadge } from "./plan-badge"
 import { Badge } from "@/components/ui/badge"
 import { usePlan } from "./plan-context"
+import { useNotification } from "../notification-provider"
 
 export function DashboardHeader() {
   const pathname = usePathname()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  const [unreadNotifications] = useState(3) // Static count for demo
   const { currentPlan } = usePlan()
+  const { unreadCount } = useNotification() // <-- use context here
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -57,12 +58,12 @@ export function DashboardHeader() {
           <Link href="/dashboard/notifications">
             <Button variant="outline" size="icon" className="relative">
               <Bell className="h-5 w-5" />
-              {unreadNotifications > 0 && (
+              {unreadCount > 0 && (
                 <Badge
                   className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center text-[10px]"
                   variant="destructive"
                 >
-                  {unreadNotifications}
+                  {unreadCount}
                 </Badge>
               )}
               <span className="sr-only">Notifications</span>

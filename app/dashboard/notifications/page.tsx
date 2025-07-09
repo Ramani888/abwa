@@ -1,59 +1,43 @@
 "use client"
 
-import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Bell, CheckCircle, AlertTriangle, ShoppingCart, Database, Trash, Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { INotification } from "@/types/notification"
-import { serverDeleteNotification, serverGetNotification, serverUpdateNotification } from "@/services/serverApi"
+import { serverDeleteNotification, serverUpdateNotification } from "@/services/serverApi"
+import { useState } from "react"
+import { useNotification } from "@/components/notification-provider"
 
 export default function NotificationsPage() {
   const [activeTab, setActiveTab] = useState("all")
-  const [loading, setLoading] = useState(true)
-  const [notificationData, setNotificationData] = useState<INotification[]>([])
+  const { notifications, unreadCount, refreshNotifications, loading } = useNotification()
 
-  const getNotificationData = async () => {
-    try {
-      setLoading(true)
-      const res = await serverGetNotification();
-      setNotificationData(res?.data)
-      setLoading(false)
-    } catch (error) {
-      setLoading(false)
-      setNotificationData([])
-      console.error("Error fetching notifications:", error)
-    }
-  }
-
-  const filteredNotifications = notificationData?.filter((notification) => {
+  const filteredNotifications = notifications?.filter((notification) => {
     if (activeTab === "all") return true
     if (activeTab === "unread") return !notification.isRead
     return notification.type === activeTab
   })
 
-  const unreadCount = notificationData?.filter((notification) => !notification.isRead).length
-
   const markAllAsRead = async () => {
     try {
-      const unreadNotifications = notificationData?.filter(n => !n.isRead);
+      const unreadNotifications = notifications?.filter(n => !n.isRead)
       await Promise.all(
         unreadNotifications.map(notification =>
           serverUpdateNotification(notification?._id?.toString() ?? "")
         )
-      );
-      getNotificationData();
+      )
+      refreshNotifications()
     } catch (error) {
-      console.error("Error marking all notifications as read:", error);
+      console.error("Error marking all notifications as read:", error)
     }
   }
 
   const markAsRead = async (id: string) => {
     try {
-      await serverUpdateNotification(id);
-      getNotificationData();
+      await serverUpdateNotification(id)
+      refreshNotifications()
     } catch (error) {
       console.error("Error marking notification as read:", error)
     }
@@ -61,8 +45,8 @@ export default function NotificationsPage() {
 
   const deleteNotification = async (id: string) => {
     try {
-      await serverDeleteNotification(id);
-      getNotificationData();
+      await serverDeleteNotification(id)
+      refreshNotifications()
     } catch (error) {
       console.error("Error deleting notification:", error)
     }
@@ -82,10 +66,6 @@ export default function NotificationsPage() {
         return <Bell className="h-5 w-5 text-gray-500" />
     }
   }
-
-  useEffect(() => {
-    getNotificationData();
-  }, [])
 
   return (
     <div className="w-full px-2 sm:px-4 mx-auto">

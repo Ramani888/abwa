@@ -6,6 +6,7 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { AuthProvider } from "@/components/auth-provider"
 import { ReduxProvider } from "@/components/redux-provider"
 import ThemedToaster from "@/components/themed-toaster"
+import { NotificationProvider } from "@/components/notification-provider"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -44,8 +45,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <ThemeProvider>
           <AuthProvider>
             <ReduxProvider>
-              <ThemedToaster />
-              {children}
+              <NotificationProvider>
+                <ThemedToaster />
+                {children}
+              </NotificationProvider>
             </ReduxProvider>
           </AuthProvider>
         </ThemeProvider>
