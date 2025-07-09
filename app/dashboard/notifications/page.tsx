@@ -124,42 +124,49 @@ export default function NotificationsPage() {
                 <div
                   key={notification?._id}
                   className={cn(
-                    "flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 rounded-lg border p-3 sm:p-4 transition-colors",
-                    !notification.isRead && "bg-muted/50",
+                    "relative flex flex-col sm:flex-row items-start sm:items-center gap-4 rounded-lg border bg-white/95 p-4 shadow-sm",
+                    // !notification.isRead && "border-primary/70 bg-primary/10"
+                    "bg-background"
                   )}
                 >
-                  <div className="mt-1">{getNotificationIcon(notification.type)}</div>
-                  <div className="flex-1 space-y-1 w-full">
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                      <p className="font-medium">{notification?.name}</p>
-                      <div className="flex flex-row flex-wrap items-center gap-2">
-                        <span className="text-xs text-muted-foreground">
-                          {notification?.createdAt
-                            ? new Date(notification.createdAt).toLocaleString()
-                            : ""}
-                        </span>
-                        {!notification.isRead && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-6 px-2"
-                            onClick={() => markAsRead(notification?._id?.toString() ?? "")}
-                          >
-                            Mark as read
-                          </Button>
-                        )}
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-6 w-6 bg-red-500 hover:bg-red-600 text-white"
-                          onClick={() => deleteNotification(notification?._id?.toString() ?? "")}
-                        >
-                          <Trash className="h-4 w-4" />
-                          <span className="sr-only">Delete</span>
-                        </Button>
-                      </div>
+                  {/* Icon */}
+                  <div className="flex-shrink-0 flex items-center justify-center h-10 w-10 rounded-full bg-muted">
+                    {getNotificationIcon(notification.type)}
+                  </div>
+
+                  {/* Content */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
+                      <span className="font-semibold text-base">{notification?.name}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {notification?.createdAt
+                          ? new Date(notification.createdAt).toLocaleString()
+                          : ""}
+                      </span>
                     </div>
-                    <p className="text-sm text-muted-foreground">{notification?.description}</p>
+                    <p className="text-sm text-muted-foreground mt-1">{notification?.description}</p>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex flex-row gap-2 mt-2 sm:mt-0 sm:ml-4">
+                    {!notification.isRead && (
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        title="Mark as read"
+                        onClick={() => markAsRead(notification?._id?.toString() ?? "")}
+                      >
+                        <CheckCircle className="h-5 w-5" />
+                      </Button>
+                    )}
+                    <Button
+                      variant="destructive"
+                      size="icon"
+                      title="Delete"
+                      onClick={() => deleteNotification(notification?._id?.toString() ?? "")}
+                    >
+                      <Trash className="h-5 w-5" />
+                    </Button>
                   </div>
                 </div>
               ))
