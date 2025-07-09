@@ -30,6 +30,7 @@ import {
 import { usePermission } from "@/hooks/usePermission"
 import { Permissions } from "@/utils/consts/permission"
 import { ISupplierPayment } from "@/types/supplier"
+import { formatCurrency } from "@/utils/helpers/general"
 
 export function SupplierPaymentTable({ setRefreshFunction }: { setRefreshFunction?: (fn: () => Promise<void>) => void }) {
   const { hasPermission, hasAnyPermission } = usePermission();
@@ -141,7 +142,7 @@ export function SupplierPaymentTable({ setRefreshFunction }: { setRefreshFunctio
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-1">
-                      <span className="text-sm font-medium">₹{item?.amount?.toFixed(2) ?? '0.00'}</span>
+                      <span className="text-sm font-medium">{formatCurrency(Number(item?.amount))}</span>
                     </div>
                   </TableCell>
                   <TableCell>

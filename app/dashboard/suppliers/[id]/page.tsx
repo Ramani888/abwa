@@ -12,6 +12,7 @@ import { serverGetSupplierDetailOrder } from "@/services/serverApi"
 import { useSelector } from "react-redux"
 import { RootState } from "@/lib/store"
 import { ISupplierPayment } from "@/types/supplier"
+import { formatCurrency } from "@/utils/helpers/general"
 
 export default function SupplierDetailsPage({ params }: { params: { id: string } }) {
   const { supplierPayment, loading: supplierPaymentLoading } = useSelector((state: RootState) => state.supplierPayment)
@@ -75,12 +76,12 @@ export default function SupplierDetailsPage({ params }: { params: { id: string }
               Edit Supplier
             </Button>
           </Link>
-          <Link href={`/dashboard/suppliers/${params.id}/orders`} className="w-full sm:w-auto">
+          {/* <Link href={`/dashboard/suppliers/${params.id}/orders`} className="w-full sm:w-auto">
             <Button className="w-full sm:w-auto">
               <ShoppingBag className="mr-2 h-4 w-4" />
               View All Purchase Orders
             </Button>
-          </Link>
+          </Link> */}
         </div>
       </div>
 
@@ -92,8 +93,8 @@ export default function SupplierDetailsPage({ params }: { params: { id: string }
               <ArrowLeft className="h-6 w-6 text-red-500" />
             </div>
             <div>
-              <div className="text-sm text-muted-foreground font-medium">Due Amount</div>
-              <div className="text-2xl font-bold text-red-600 break-words">₹{pendingTotal.toFixed(2)}</div>
+              <div className="text-sm text-muted-foreground font-medium">{pendingTotal > 0 ? 'Due Amount' : 'Credited Amount'}</div>
+              <div className="text-2xl font-bold text-red-600 break-words">{formatCurrency(pendingTotal)}</div>
             </div>
           </CardContent>
         </Card>
@@ -104,7 +105,7 @@ export default function SupplierDetailsPage({ params }: { params: { id: string }
             </div>
             <div>
               <div className="text-sm text-muted-foreground font-medium">Paid Amount</div>
-              <div className="text-2xl font-bold text-green-600 break-words">₹{paidTotal.toFixed(2)}</div>
+              <div className="text-2xl font-bold text-green-600 break-words">{formatCurrency(paidTotal)}</div>
             </div>
           </CardContent>
         </Card>
@@ -115,7 +116,7 @@ export default function SupplierDetailsPage({ params }: { params: { id: string }
             </div>
             <div>
               <div className="text-sm text-muted-foreground font-medium">Total Amount</div>
-              <div className="text-2xl font-bold text-blue-600 break-words">₹{totalAmount.toFixed(2)}</div>
+              <div className="text-2xl font-bold text-blue-600 break-words">{formatCurrency(totalAmount)}</div>
             </div>
           </CardContent>
         </Card>
@@ -156,11 +157,11 @@ export default function SupplierDetailsPage({ params }: { params: { id: string }
                 <div className="space-y-2">
                   <div className="flex flex-col sm:flex-row sm:justify-between">
                     <span className="text-muted-foreground">Total Orders:</span>
-                    <span>{supplierData?.totalOrder}</span>
+                    <span>{formatCurrency(Number(supplierData?.totalOrder), false, false)}</span>
                   </div>
                   <div className="flex flex-col sm:flex-row sm:justify-between">
                     <span className="text-muted-foreground">Total Spent:</span>
-                    <span>₹{supplierData?.totalSpent?.toFixed(2)}</span>
+                    <span>{formatCurrency(Number(supplierData?.totalSpent))}</span>
                   </div>
                   <div className="flex flex-col sm:flex-row sm:justify-between">
                     <span className="text-muted-foreground">Last Order:</span>
@@ -194,7 +195,7 @@ export default function SupplierDetailsPage({ params }: { params: { id: string }
                     <TableRow key={order?._id}>
                       <TableCell className="font-medium">{order?._id}</TableCell>
                       <TableCell>{order?.captureDate ? new Date(order?.captureDate).toLocaleDateString() : ""}</TableCell>
-                      <TableCell>₹{order?.total?.toFixed(2)}</TableCell>
+                      <TableCell>{formatCurrency(Number(order?.total))}</TableCell>
                       <TableCell>
                         <Badge className="capitalize" variant={order?.paymentStatus === "paid" ? "default" : "destructive"}>{order?.paymentStatus}</Badge>
                       </TableCell>

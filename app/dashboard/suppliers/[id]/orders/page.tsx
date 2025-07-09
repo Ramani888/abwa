@@ -10,6 +10,7 @@ import { ArrowLeft, FileText } from "lucide-react"
 import Link from "next/link"
 import { Input } from "@/components/ui/input"
 import { serverGetAllPurchaseOrdersBySupplierId, serverGetSupplier } from "@/services/serverApi"
+import { formatCurrency } from "@/utils/helpers/general"
 
 export default function SupplierPurchaseOrdersPage({ params }: { params: { id: string } }) {
   const [supplierData, setSupplierData] = useState<any>(null)
@@ -107,8 +108,8 @@ export default function SupplierPurchaseOrdersPage({ params }: { params: { id: s
                     <TableRow key={order?._id}>
                       <TableCell className="font-medium">{order?._id}</TableCell>
                       <TableCell>{order?.captureDate ? new Date(order?.captureDate).toLocaleDateString() : ""}</TableCell>
-                      <TableCell>{order?.products?.length}</TableCell>
-                      <TableCell>₹{order?.total?.toFixed(2)}</TableCell>
+                      <TableCell>{formatCurrency(Number(order?.products?.length), false, false)}</TableCell>
+                      <TableCell>{formatCurrency(Number(order?.total))}</TableCell>
                       {/* <TableCell>
                         <Badge
                           variant={
@@ -132,11 +133,11 @@ export default function SupplierPurchaseOrdersPage({ params }: { params: { id: s
                               View
                             </Button>
                           </Link>
-                          <Link href={`/dashboard/purchase-order/${order?._id}/invoice`}>
+                          {/* <Link href={`/dashboard/purchase-order/${order?._id}/invoice`}>
                             <Button variant="outline" size="sm">
                               <FileText className="h-4 w-4" />
                             </Button>
-                          </Link>
+                          </Link> */}
                         </div>
                       </TableCell>
                     </TableRow>

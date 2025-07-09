@@ -28,6 +28,7 @@ import { serverDeleteSupplier, serverGetSupplier } from "@/services/serverApi"
 import { usePermission } from "@/hooks/usePermission"
 import { Permissions } from "@/utils/consts/permission"
 import { ISupplier } from "@/types/supplier"
+import { formatCurrency } from "@/utils/helpers/general"
 
 export function SuppliersTable({ setRefreshFunction }: { setRefreshFunction?: (fn: () => Promise<void>) => void }) {
   const { hasPermission, hasAnyPermission } = usePermission();
@@ -140,10 +141,10 @@ export function SuppliersTable({ setRefreshFunction }: { setRefreshFunction?: (f
                   <TableCell>
                     <div className="flex items-center gap-1">
                       <ShoppingBag className="h-4 w-4 text-muted-foreground" />
-                      {supplier?.totalOrder ?? 0}
+                      {formatCurrency(Number(supplier?.totalOrder), false, false)}
                     </div>
                   </TableCell>
-                  <TableCell>₹{supplier?.totalSpent?.toFixed(2) ?? '0.00'}</TableCell>
+                  <TableCell>{formatCurrency(Number(supplier?.totalSpent))}</TableCell>
                   {hasAnyPermission([Permissions.UPDATE_SUPPLIER, Permissions.DELETE_SUPPLIER]) && (
                     <TableCell className="text-right">
                       <DropdownMenu>
