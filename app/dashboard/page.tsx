@@ -10,6 +10,7 @@ import { useSelector } from 'react-redux'
 import { RootState } from "@/lib/store"
 import { IProduct } from "@/types/product"
 import { Skeleton } from "@/components/ui/skeleton" // If you have a Skeleton component
+import { formatCurrency } from "@/utils/helpers/general"
 
 interface totalProductData extends IProduct {
   packingSize?: string
@@ -180,7 +181,7 @@ export default function DashboardPage() {
             <CardTitle className="text-xs sm:text-sm font-medium">Total Revenue</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-xl sm:text-2xl font-bold">₹{totalRevenue}</div>
+            <div className="text-xl sm:text-2xl font-bold">{formatCurrency(Number(totalRevenue))}</div>
             <p className="text-xs text-muted-foreground">
               {Number(orderPercentChange) > 0 ? "+" : ""}
               {orderPercentChange}% from last month

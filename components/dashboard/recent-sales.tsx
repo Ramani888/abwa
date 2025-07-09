@@ -1,5 +1,6 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { RootState } from "@/lib/store"
+import { formatCurrency } from "@/utils/helpers/general"
 import { useSelector } from "react-redux"
 
 // Helper to get initials from name or email
@@ -45,7 +46,7 @@ export function RecentSales() {
       _id: order?._id,
       name: order?.customerData?.name || "Unknown",
       email: order?.customerData?.email || "unknown@example.com",
-      amount: `₹${order.total?.toLocaleString() || "0.00"}`,
+      amount: formatCurrency(order?.total),
       date: order.createdAt ? getRelativeDate(order?.captureDate ? String(order.captureDate) : "") : "",
       initials: getInitials(order?.customerData?.name, order?.customerData?.email),
     }))
