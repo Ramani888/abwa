@@ -30,6 +30,7 @@ import { serverDeleteCategory, serverGetCategory } from "@/services/serverApi"
 import { usePermission } from "@/hooks/usePermission"
 import { Permissions } from "@/utils/consts/permission"
 import { Switch } from "../ui/switch"
+import { formatCurrency } from "@/utils/helpers/general"
 
 export function CategoriesTable({ setRefreshFunction }: { setRefreshFunction?: (fn: () => Promise<void>) => void }) {
   const { hasPermission, hasAnyPermission } = usePermission();
@@ -132,7 +133,7 @@ export function CategoriesTable({ setRefreshFunction }: { setRefreshFunction?: (
                 <TableRow key={category?._id}>
                   <TableCell className="font-medium">{category?.name}</TableCell>
                   <TableCell>{category?.description}</TableCell>
-                  <TableCell>{category?.productCount}</TableCell>
+                  <TableCell>{formatCurrency(Number(category?.productCount), false, false)}</TableCell>
                   <TableCell>
                     <Badge variant={category?.isActive ? 'default' : 'secondary'} className="mb-2">{category?.isActive ? 'Active' : 'Deactive'}</Badge>
                   </TableCell>

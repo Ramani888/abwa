@@ -30,6 +30,7 @@ import { serverDeleteProduct, serverGetProduct } from "@/services/serverApi"
 import { IProduct } from "@/types/product"
 import { usePermission } from "@/hooks/usePermission"
 import { Permissions } from "@/utils/consts/permission"
+import { formatCurrency } from "@/utils/helpers/general"
 
 export function ProductsTable({ setRefreshFunction }: { setRefreshFunction?: (fn: () => Promise<void>) => void }) {
   const { hasPermission, hasAnyPermission } = usePermission();
@@ -183,7 +184,7 @@ export function ProductsTable({ setRefreshFunction }: { setRefreshFunction?: (fn
                     </TableCell>
                     <TableCell className="font-medium">{product?.name}</TableCell>
                     <TableCell>{product?.categoryName}</TableCell>
-                    <TableCell>{product?.variantsCount}</TableCell>
+                    <TableCell>{formatCurrency(Number(product?.variantsCount), false, false)}</TableCell>
                     <TableCell>
                       {product?.captureDate
                         ? new Date(product.captureDate).toLocaleDateString("en-US", {
@@ -256,14 +257,14 @@ export function ProductsTable({ setRefreshFunction }: { setRefreshFunction?: (fn
                                   <TableCell>{variant.unit}</TableCell>
                                   <TableCell>{variant.sku}</TableCell>
                                   <TableCell>{variant.barcode}</TableCell>
-                                  <TableCell>₹{variant.mrp}</TableCell>
-                                  <TableCell>₹{variant.retailPrice}</TableCell>
-                                  <TableCell>₹{variant.wholesalePrice}</TableCell>
-                                  <TableCell>₹{variant.purchasePrice}</TableCell>
-                                  <TableCell>{variant.minStockLevel}</TableCell>
+                                  <TableCell>{formatCurrency(variant.mrp)}</TableCell>
+                                  <TableCell>{formatCurrency(variant.retailPrice)}</TableCell>
+                                  <TableCell>{formatCurrency(variant.wholesalePrice)}</TableCell>
+                                  <TableCell>{formatCurrency(variant.purchasePrice)}</TableCell>
+                                  <TableCell>{formatCurrency(variant.minStockLevel, false, false)}</TableCell>
                                   <TableCell>{variant.taxRate}%</TableCell>
                                   <TableCell>
-                                    {variant.quantity}
+                                    {formatCurrency(variant.quantity, false, false)}
                                   </TableCell>
                                   <TableCell>
                                     <Badge variant={variant.status === "In Stock" ? "default" : "destructive"}>
