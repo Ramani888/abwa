@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { usePermission } from "@/hooks/usePermission"
 import { Permissions } from "@/utils/consts/permission"
+import { formatCurrency } from "@/utils/helpers/general"
 
 export function CustomerPaymentTable({ setRefreshFunction }: { setRefreshFunction?: (fn: () => Promise<void>) => void }) {
   const { hasPermission, hasAnyPermission } = usePermission();
@@ -170,7 +171,7 @@ export function CustomerPaymentTable({ setRefreshFunction }: { setRefreshFunctio
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-1">
-                      <span className="text-sm font-medium">₹{item?.amount?.toFixed(2) ?? '0.00'}</span>
+                      <span className="text-sm font-medium">{formatCurrency(item?.amount ?? 0)}</span>
                     </div>
                   </TableCell>
                   <TableCell>

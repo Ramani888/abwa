@@ -10,6 +10,7 @@ import { ArrowLeft, FileText } from "lucide-react"
 import Link from "next/link"
 import { Input } from "@/components/ui/input"
 import { serverGetAllOrdersByCustomerId, serverGetCustomers } from "@/services/serverApi"
+import { formatCurrency } from "@/utils/helpers/general"
 
 export default function CustomerOrdersPage({ params }: { params: { id: string } }) {
   const [customerData, setCustomerData] = useState<any>(null)
@@ -109,8 +110,8 @@ export default function CustomerOrdersPage({ params }: { params: { id: string } 
                     <TableRow key={order?._id}>
                       <TableCell className="font-medium">{order?._id}</TableCell>
                       <TableCell>{order?.captureDate ? new Date(order?.captureDate).toLocaleDateString() : ""}</TableCell>
-                      <TableCell>{order?.products?.length}</TableCell>
-                      <TableCell>₹{order?.total?.toFixed(2)}</TableCell>
+                      <TableCell>{formatCurrency(order?.products?.length ?? 0, false, false)}</TableCell>
+                      <TableCell>{formatCurrency(order?.total ?? 0)}</TableCell>
                       {/* <TableCell>
                         <Badge
                           variant={

@@ -12,6 +12,7 @@ import { serverGetCustomerDetailOrder } from "@/services/serverApi"
 import { useSelector } from "react-redux"
 import { RootState } from "@/lib/store"
 import { ICustomerPayment } from "@/types/customer"
+import { formatCurrency } from "@/utils/helpers/general"
 
 export default function CustomerDetailsPage({ params }: { params: { id: string } }) {
   const { customerPayment, loading: customerPaymentLoading } = useSelector((state: RootState) => state.customerPayment)
@@ -94,7 +95,7 @@ export default function CustomerDetailsPage({ params }: { params: { id: string }
             </div>
             <div>
               <div className="text-sm text-muted-foreground font-medium">Due Amount</div>
-              <div className="text-2xl font-bold text-red-600 break-words">₹{pendingTotal.toFixed(2)}</div>
+              <div className="text-2xl font-bold text-red-600 break-words">{formatCurrency(pendingTotal)}</div>
             </div>
           </CardContent>
         </Card>
@@ -105,7 +106,7 @@ export default function CustomerDetailsPage({ params }: { params: { id: string }
             </div>
             <div>
               <div className="text-sm text-muted-foreground font-medium">Paid Amount</div>
-              <div className="text-2xl font-bold text-green-600 break-words">₹{paidTotal.toFixed(2)}</div>
+              <div className="text-2xl font-bold text-green-600 break-words">{formatCurrency(paidTotal)}</div>
             </div>
           </CardContent>
         </Card>
@@ -116,7 +117,7 @@ export default function CustomerDetailsPage({ params }: { params: { id: string }
             </div>
             <div>
               <div className="text-sm text-muted-foreground font-medium">Total Amount</div>
-              <div className="text-2xl font-bold text-blue-600 break-words">₹{totalAmount.toFixed(2)}</div>
+              <div className="text-2xl font-bold text-blue-600 break-words">{formatCurrency(totalAmount)}</div>
             </div>
           </CardContent>
         </Card>
@@ -163,11 +164,11 @@ export default function CustomerDetailsPage({ params }: { params: { id: string }
                 <div className="space-y-2">
                   <div className="flex flex-col sm:flex-row sm:justify-between">
                     <span className="text-muted-foreground">Total Orders:</span>
-                    <span>{customerData?.totalOrder}</span>
+                    <span>{formatCurrency(customerData?.totalOrder ?? 0, false, false)}</span>
                   </div>
                   <div className="flex flex-col sm:flex-row sm:justify-between">
                     <span className="text-muted-foreground">Total Spent:</span>
-                    <span>₹{customerData?.totalSpent?.toFixed(2)}</span>
+                    <span>{formatCurrency(customerData?.totalSpent ?? 0)}</span>
                   </div>
                   <div className="flex flex-col sm:flex-row sm:justify-between">
                     <span className="text-muted-foreground">Last Order:</span>
@@ -217,7 +218,7 @@ export default function CustomerDetailsPage({ params }: { params: { id: string }
                     <TableRow key={order?._id}>
                       <TableCell className="font-medium">{order?._id}</TableCell>
                       <TableCell>{order?.captureDate ? new Date(order?.captureDate).toLocaleDateString() : ""}</TableCell>
-                      <TableCell>₹{order?.total?.toFixed(2)}</TableCell>
+                      <TableCell>{formatCurrency(order?.total ?? 0)}</TableCell>
                       <TableCell>
                         <Badge className="capitalize" variant={order?.paymentStatus === "paid" ? "default" : "destructive"}>{order?.paymentStatus}</Badge>
                       </TableCell>
