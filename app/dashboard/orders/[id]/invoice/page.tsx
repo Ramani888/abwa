@@ -19,6 +19,7 @@ import printJS from "print-js"
 import { serverGetOrder } from "@/services/serverApi"
 import { IOrder } from "@/types/order"
 import { useAuth } from "@/components/auth-provider"
+import { formatCurrency } from "@/utils/helpers/general"
 
 export default function InvoicePage({ params }: { params: { id: string } }) {
   const { owner } = useAuth();
@@ -274,14 +275,14 @@ export default function InvoicePage({ params }: { params: { id: string } }) {
                     <TableRow key={item?._id} className={idx % 2 === 0 ? "bg-white" : "bg-emerald-50"}>
                       <TableCell>{item?.productData?.name}</TableCell>
                       <TableCell>{item?.variantData?.packingSize}</TableCell>
-                      <TableCell className="text-center">₹{item?.mrp || item?.variantData?.mrp}</TableCell>
-                      <TableCell className="text-center">₹{item?.price}</TableCell>
-                      <TableCell className="text-center">{item?.unit}</TableCell>
-                      <TableCell className="text-center">{item?.carton}</TableCell>
-                      <TableCell className="text-center">{item?.quantity}</TableCell>
-                      <TableCell className="text-center">{item?.gstRate}%</TableCell>
-                      <TableCell className="text-center">₹{item?.gstAmount?.toFixed(2)}</TableCell>
-                      <TableCell className="text-right">₹{item?.total?.toFixed(2)}</TableCell>
+                      <TableCell className="text-center">{formatCurrency(Number(item?.mrp || item?.variantData?.mrp))}</TableCell>
+                      <TableCell className="text-center">{formatCurrency(Number(item?.price))}</TableCell>
+                      <TableCell className="text-center">{formatCurrency(Number(item?.unit), false, false)}</TableCell>
+                      <TableCell className="text-center">{formatCurrency(Number(item?.carton), false, false)}</TableCell>
+                      <TableCell className="text-center">{formatCurrency(Number(item?.quantity), false, false)}</TableCell>
+                      <TableCell className="text-center">{formatCurrency(Number(item?.gstRate), false, false)}%</TableCell>
+                      <TableCell className="text-center">{formatCurrency(Number(item?.gstAmount))}</TableCell>
+                      <TableCell className="text-right">{formatCurrency(Number(item?.total))}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -293,19 +294,19 @@ export default function InvoicePage({ params }: { params: { id: string } }) {
               <div className="w-full xs:w-3/4 sm:w-1/2 md:w-1/3 border border-emerald-400 rounded-xl p-3 sm:p-5 bg-emerald-50">
                 <div className="flex justify-between text-emerald-900 text-sm sm:text-base">
                   <span>Taxable Amount:</span>
-                  <span>₹{orderData?.subTotal?.toFixed(2)}</span>
+                  <span>{formatCurrency(Number(orderData?.subTotal))}</span>
                 </div>
                 <div className="flex justify-between text-emerald-900 text-sm sm:text-base">
                   <span>Total GST:</span>
-                  <span>₹{((orderData?.totalGst ?? 0)).toFixed(2)}</span>
+                  <span>{formatCurrency(Number(orderData?.totalGst))}</span>
                 </div>
                 <div className="flex justify-between text-emerald-900 text-sm sm:text-base">
                   <span>Round Off:</span>
-                  <span>₹{((orderData?.roundOff ?? 0)).toFixed(2)}</span>
+                  <span>{formatCurrency(Number(orderData?.roundOff))}</span>
                 </div>
                 <div className="flex justify-between font-extrabold text-lg sm:text-xl mt-2 sm:mt-3 border-t pt-2 sm:pt-3 text-emerald-900">
                   <span>Total:</span>
-                  <span>₹{orderData?.total?.toFixed(2)}</span>
+                  <span>{formatCurrency(Number(orderData?.total))}</span>
                 </div>
               </div>
             </div>

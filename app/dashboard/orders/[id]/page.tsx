@@ -10,6 +10,7 @@ import { ArrowLeft, Edit, FileText } from "lucide-react"
 import Link from "next/link"
 import { IOrder } from "@/types/order"
 import { serverGetOrder } from "@/services/serverApi"
+import { formatCurrency } from "@/utils/helpers/general"
 
 export default function OrderDetailsPage({ params }: { params: { id: string } }) {
   const [order, setOrder] = useState<IOrder>()
@@ -157,14 +158,14 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
                   <TableRow key={index}>
                     <TableCell className="font-medium">{item?.productData?.name}</TableCell>
                     <TableCell className="text-right">{item?.variantData?.packingSize}</TableCell>
-                    <TableCell className="text-right">₹{item?.mrp?.toFixed(2) ?? item?.variantData?.mrp?.toFixed(2)}</TableCell>
-                    <TableCell className="text-right">₹{item?.price?.toFixed(2)}</TableCell>
-                    <TableCell className="text-right">{item?.unit ?? 1}</TableCell>
-                    <TableCell className="text-right">{item?.carton ?? 1}</TableCell>
-                    <TableCell className="text-right">{item?.quantity ?? ((item?.unit ?? 1) * (item?.carton ?? 1))}</TableCell>
+                    <TableCell className="text-right">{formatCurrency(item?.mrp ?? item?.variantData?.mrp)}</TableCell>
+                    <TableCell className="text-right">{formatCurrency(item?.price)}</TableCell>
+                    <TableCell className="text-right">{formatCurrency(item?.unit ?? 1, false, false)}</TableCell>
+                    <TableCell className="text-right">{formatCurrency(item?.carton ?? 1, false, false)}</TableCell>
+                    <TableCell className="text-right">{formatCurrency(item?.quantity ?? ((item?.unit ?? 1) * (item?.carton ?? 1)), false, false)}</TableCell>
                     <TableCell className="text-right">{item?.gstRate} %</TableCell>
-                    <TableCell className="text-right">₹{item?.gstAmount}</TableCell>
-                    <TableCell className="text-right">₹{item?.total?.toFixed(2)}</TableCell>
+                    <TableCell className="text-right">{formatCurrency(item?.gstAmount)}</TableCell>
+                    <TableCell className="text-right">{formatCurrency(item?.total)}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -175,19 +176,19 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
             <div className="w-full md:w-1/2 space-y-2">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Subtotal:</span>
-                <span>₹{order?.subTotal?.toFixed(2)}</span>
+                <span>{formatCurrency(Number(order?.subTotal))}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Total GST:</span>
-                <span>₹{order?.totalGst?.toFixed(2)}</span>
+                <span>{formatCurrency(Number(order?.totalGst))}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Round-off:</span>
-                <span>₹{order?.roundOff?.toFixed(2)}</span>
+                <span>{formatCurrency(Number(order?.roundOff))}</span>
               </div>
               <div className="flex justify-between font-bold">
                 <span>Total:</span>
-                <span>₹{order?.total?.toFixed(2)}</span>
+                <span>{formatCurrency(Number(order?.total))}</span>
               </div>
             </div>
           </div>

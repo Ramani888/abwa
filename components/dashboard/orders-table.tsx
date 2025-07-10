@@ -31,6 +31,7 @@ import { Permissions } from "@/utils/consts/permission"
 import { IOrder } from "@/types/order"
 import { serverDeleteOrder, serverGetOrder } from "@/services/serverApi"
 import { paymentStatuses } from "@/utils/consts/product"
+import { formatCurrency } from "@/utils/helpers/general"
 
 export function OrdersTable({ setRefreshFunction }: { setRefreshFunction?: (fn: () => Promise<void>) => void }) {
   const { hasPermission, hasAnyPermission } = usePermission();
@@ -189,7 +190,7 @@ export function OrdersTable({ setRefreshFunction }: { setRefreshFunction?: (fn: 
                           : ""
                       : ""}
                   </TableCell>
-                  <TableCell>₹{order?.total}</TableCell>
+                  <TableCell>{formatCurrency(order?.total)}</TableCell>
                   <TableCell>
                     <Badge variant={order.paymentStatus === "paid" ? "default" : "destructive"} className="capitalize">{order?.paymentStatus}</Badge>
                   </TableCell>
