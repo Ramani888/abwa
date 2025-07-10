@@ -31,6 +31,7 @@ import { Permissions } from "@/utils/consts/permission"
 import { serverDeletePurchaseOrder, serverGetPurchaseOrder } from "@/services/serverApi"
 import { IPurchaseOrder } from "@/types/purchaseOrder"
 import { paymentStatuses } from "@/utils/consts/product"
+import { formatCurrency } from "@/utils/helpers/general"
 
 export function PurchaseOrdersTable({ setRefreshFunction }: { setRefreshFunction?: (fn: () => Promise<void>) => void }) {
   const { hasPermission, hasAnyPermission } = usePermission();
@@ -167,7 +168,7 @@ export function PurchaseOrdersTable({ setRefreshFunction }: { setRefreshFunction
                           : ""
                       : ""}
                   </TableCell>
-                  <TableCell>₹{order?.total}</TableCell>
+                  <TableCell>{formatCurrency(Number(order?.total))}</TableCell>
                   <TableCell>
                     <Badge variant={order.paymentStatus === "paid" ? "default" : "destructive"} className="capitalize">{order?.paymentStatus}</Badge>
                   </TableCell>
@@ -196,16 +197,16 @@ export function PurchaseOrdersTable({ setRefreshFunction }: { setRefreshFunction
                             </Link>
                           </DropdownMenuItem>
                         )}
-                        <DropdownMenuItem asChild>
+                        {/* <DropdownMenuItem asChild>
                           <Link href={`/dashboard/purchase-order/${order?._id}/invoice`}>
                             <FileText className="mr-2 h-4 w-4" />
                             View Invoice
                           </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handlePrintInvoice(order?._id ?? '')}>
+                        </DropdownMenuItem> */}
+                        {/* <DropdownMenuItem onClick={() => handlePrintInvoice(order?._id ?? '')}>
                           <Printer className="mr-2 h-4 w-4" />
                           Print Invoice
-                        </DropdownMenuItem>
+                        </DropdownMenuItem> */}
                         <DropdownMenuSeparator />
                         {hasPermission(Permissions.DELETE_PURCHASE_ORDER) && (
                           <DropdownMenuItem onClick={() => handleDeleteClick(order?._id ?? '')} className="text-destructive">

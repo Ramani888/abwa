@@ -10,6 +10,7 @@ import { ArrowLeft, Edit, FileText } from "lucide-react"
 import Link from "next/link"
 import { serverGetPurchaseOrder } from "@/services/serverApi"
 import { IPurchaseOrder } from "@/types/purchaseOrder"
+import { formatCurrency } from "@/utils/helpers/general"
 
 export default function PurchaseOrderDetailsPage({ params }: { params: { id: string } }) {
   const [purchaseOrder, setPurchaseOrder] = useState<IPurchaseOrder>()
@@ -64,12 +65,12 @@ export default function PurchaseOrderDetailsPage({ params }: { params: { id: str
               Edit Purchase Order
             </Button>
           </Link>
-          <Link href={`/dashboard/purchase-order/${params.id}/invoice`} className="w-full sm:w-auto">
+          {/* <Link href={`/dashboard/purchase-order/${params.id}/invoice`} className="w-full sm:w-auto">
             <Button className="w-full sm:w-auto">
               <FileText className="mr-2 h-4 w-4" />
               View Invoice
             </Button>
-          </Link>
+          </Link> */}
         </div>
       </div>
 
@@ -155,15 +156,15 @@ export default function PurchaseOrderDetailsPage({ params }: { params: { id: str
                       <TableCell className="font-medium">{item?.productData?.name}</TableCell>
                       <TableCell className="text-right">{item?.variantData?.packingSize}</TableCell>
                       <TableCell className="text-right">
-                        ₹{(item?.mrp ?? item?.variantData?.mrp ?? 0).toFixed(2)}
+                        {formatCurrency(item?.mrp ?? item?.variantData?.mrp ?? 0)}
                       </TableCell>
-                      <TableCell className="text-right">₹{item?.price?.toFixed(2)}</TableCell>
-                      <TableCell className="text-right">{item?.unit ?? 1}</TableCell>
-                      <TableCell className="text-right">{item?.carton ?? 1}</TableCell>
-                      <TableCell className="text-right">{item?.quantity ?? ((item?.unit ?? 1) * (item?.carton ?? 1))}</TableCell>
-                      <TableCell className="text-right">{item?.gstRate} %</TableCell>
-                      <TableCell className="text-right">₹{item?.gstAmount}</TableCell>
-                      <TableCell className="text-right">₹{item?.total?.toFixed(2)}</TableCell>
+                      <TableCell className="text-right">{formatCurrency(item?.price)}</TableCell>
+                      <TableCell className="text-right">{formatCurrency(item?.unit ?? 1, false, false)}</TableCell>
+                      <TableCell className="text-right">{formatCurrency(item?.carton ?? 1, false, false)}</TableCell>
+                      <TableCell className="text-right">{formatCurrency(item?.quantity ?? ((item?.unit ?? 1) * (item?.carton ?? 1)), false, false)}</TableCell>
+                      <TableCell className="text-right">{formatCurrency(item?.gstRate, false, false)} %</TableCell>
+                      <TableCell className="text-right">{formatCurrency(item?.gstAmount)}</TableCell>
+                      <TableCell className="text-right">{formatCurrency(item?.total)}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -174,19 +175,19 @@ export default function PurchaseOrderDetailsPage({ params }: { params: { id: str
               <div className="w-full sm:w-2/3 md:w-1/2 space-y-2">
                 <div className="flex justify-between gap-2">
                   <span className="text-muted-foreground">Subtotal:</span>
-                  <span>₹{purchaseOrder?.subTotal?.toFixed(2)}</span>
+                  <span>{formatCurrency(Number(purchaseOrder?.subTotal))}</span>
                 </div>
                 <div className="flex justify-between gap-2">
                   <span className="text-muted-foreground">Total GST:</span>
-                  <span>₹{purchaseOrder?.totalGst?.toFixed(2)}</span>
+                  <span>{formatCurrency(Number(purchaseOrder?.totalGst))}</span>
                 </div>
                 <div className="flex justify-between gap-2">
                   <span className="text-muted-foreground">Round-off:</span>
-                  <span>₹{purchaseOrder?.roundOff?.toFixed(2)}</span>
+                  <span>{formatCurrency(Number(purchaseOrder?.roundOff))}</span>
                 </div>
                 <div className="flex justify-between gap-2 font-bold">
                   <span>Total:</span>
-                  <span>₹{purchaseOrder?.total?.toFixed(2)}</span>
+                  <span>{formatCurrency(Number(purchaseOrder?.total))}</span>
                 </div>
               </div>
             </div>
