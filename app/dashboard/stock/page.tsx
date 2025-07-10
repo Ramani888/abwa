@@ -10,6 +10,7 @@ import { useSelector } from "react-redux"
 import { RootState } from "@/lib/store"
 import { Skeleton } from "@/components/ui/skeleton"
 import { IProduct } from "@/types/product"
+import { formatCurrency } from "@/utils/helpers/general"
 
 function CardSkeleton() {
   return (
@@ -90,7 +91,7 @@ export default function StockPage() {
               <CardTitle className="text-sm font-medium">Total Products</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{totalProducts}</div>
+              <div className="text-2xl font-bold">{formatCurrency(totalProducts, false, false)}</div>
               <p className="text-xs text-muted-foreground">Across all categories</p>
             </CardContent>
           </Card>
@@ -106,7 +107,7 @@ export default function StockPage() {
               <AlertTriangle className="h-4 w-4 text-amber-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{totalLowStockProduct}</div>
+              <div className="text-2xl font-bold">{formatCurrency(totalLowStockProduct, false, false)}</div>
               <p className="text-xs text-muted-foreground">Below minimum stock level</p>
             </CardContent>
           </Card>
@@ -122,7 +123,7 @@ export default function StockPage() {
               <AlertTriangle className="h-4 w-4 text-destructive" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{totalOutOfStockProduct}</div>
+              <div className="text-2xl font-bold">{formatCurrency(totalOutOfStockProduct, false, false)}</div>
               <p className="text-xs text-muted-foreground">Need immediate restock</p>
             </CardContent>
           </Card>
@@ -138,7 +139,7 @@ export default function StockPage() {
               <AlertTriangle className="h-4 w-4 text-green-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{totalInStockProduct}</div>
+              <div className="text-2xl font-bold">{formatCurrency(totalInStockProduct, false, false)}</div>
               <p className="text-xs text-muted-foreground">Above minimum stock level</p>
             </CardContent>
           </Card>
