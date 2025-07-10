@@ -14,6 +14,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { useState, useMemo } from "react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { exportToCsv } from "@/utils/helpers/report"
+import { formatCurrency } from "@/utils/helpers/general"
 
 export default function AnalyticsPage() {
   const { customers, loading: customerLoading } = useSelector((state: RootState) => state.customers)
@@ -288,7 +289,7 @@ export default function AnalyticsPage() {
                 <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">₹{totalRevenue.toLocaleString(undefined, { maximumFractionDigits: 2 })}</div>
+                <div className="text-2xl font-bold">{formatCurrency(totalRevenue)}</div>
                 <p className="text-xs text-muted-foreground">Compared to last period</p>
               </CardContent>
             </Card>
@@ -297,7 +298,7 @@ export default function AnalyticsPage() {
                 <CardTitle className="text-sm font-medium">Retail Sales</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">₹{retailSales.toLocaleString(undefined, { maximumFractionDigits: 2 })}</div>
+                <div className="text-2xl font-bold">{formatCurrency(retailSales)}</div>
                 <p className="text-xs text-muted-foreground">Compared to last period</p>
               </CardContent>
             </Card>
@@ -306,7 +307,7 @@ export default function AnalyticsPage() {
                 <CardTitle className="text-sm font-medium">Wholesale Sales</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">₹{wholesaleSales.toLocaleString(undefined, { maximumFractionDigits: 2 })}</div>
+                <div className="text-2xl font-bold">{formatCurrency(wholesaleSales)}</div>
                 <p className="text-xs text-muted-foreground">Compared to last period</p>
               </CardContent>
             </Card>
@@ -315,7 +316,7 @@ export default function AnalyticsPage() {
                 <CardTitle className="text-sm font-medium">New Customers</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">+{newCustomers}</div>
+                <div className="text-2xl font-bold">+{formatCurrency(newCustomers, false, false)}</div>
                 <p className="text-xs text-muted-foreground">Compared to last period</p>
               </CardContent>
             </Card>
