@@ -13,6 +13,7 @@ import { RootState } from "@/lib/store"
 import { useMemo, useRef, useState } from "react"
 import { exportToCsv } from "@/utils/helpers/report"
 import { Skeleton } from "@/components/ui/skeleton"
+import { formatCurrency } from "@/utils/helpers/general"
 
 export default function ReportsPage() {
   const { customers, loading: customerLoading } = useSelector((state: RootState) => state.customers)
@@ -240,7 +241,7 @@ export default function ReportsPage() {
                     <CardTitle className="text-sm font-medium">Total Sales</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold">₹{totalSales.toLocaleString(undefined, { maximumFractionDigits: 2 })}</div>
+                    <div className="text-2xl font-bold">{formatCurrency(totalSales)}</div>
                     <p className="text-xs text-muted-foreground">
                       {salesChange >= 0 ? "+" : ""}
                       {salesChange.toFixed(1)}% from last period
@@ -253,7 +254,7 @@ export default function ReportsPage() {
                     <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold">{totalOrders}</div>
+                    <div className="text-2xl font-bold">{formatCurrency(totalOrders, false, false)}</div>
                     <p className="text-xs text-muted-foreground">
                       {totalOrders - lastPeriodOrders >= 0 ? "+" : ""}
                       {(totalOrders - lastPeriodOrders)} since last period
@@ -266,7 +267,7 @@ export default function ReportsPage() {
                     <CardTitle className="text-sm font-medium">Average Order Value</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold">₹{avgOrderValue.toLocaleString(undefined, { maximumFractionDigits: 2 })}</div>
+                    <div className="text-2xl font-bold">{formatCurrency(avgOrderValue)}</div>
                     <p className="text-xs text-muted-foreground">
                       {avgOrderValueChange >= 0 ? "+" : ""}
                       {avgOrderValueChange.toFixed(1)}% from last period

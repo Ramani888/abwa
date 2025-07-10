@@ -6,6 +6,7 @@ import { useSelector } from "react-redux"
 import { RootState } from "@/lib/store"
 import { useMemo, useImperativeHandle, forwardRef } from "react"
 import { exportToCsv } from "@/utils/helpers/report"
+import { formatCurrency } from "@/utils/helpers/general"
 
 function filterOrdersByPeriod(orders: any[], period: string) {
   const now = new Date()
@@ -98,9 +99,9 @@ export const ProductReportTable = forwardRef(function ProductReportTable(
         id: product._id,
         name: product.name,
         category: product.categoryName || "",
-        sold,
-        revenue: `₹${revenue.toLocaleString(undefined, { maximumFractionDigits: 2 })}`,
-        profit: `₹${profit.toLocaleString(undefined, { maximumFractionDigits: 2 })}`,
+        sold: formatCurrency(sold, false, false),
+        revenue: `${formatCurrency(revenue)}`,
+        profit: `${formatCurrency(profit)}`,
         profitMargin: Number(profitMargin.toFixed(1)),
       }
     })
@@ -126,8 +127,8 @@ export const ProductReportTable = forwardRef(function ProductReportTable(
             <TableHead>Category</TableHead>
             <TableHead className="text-right">Units Sold</TableHead>
             <TableHead className="text-right">Revenue</TableHead>
-            <TableHead className="text-right hidden xs:table-cell">Profit</TableHead>
-            <TableHead className="hidden xs:table-cell">Profit Margin</TableHead>
+            <TableHead className="text-right">Profit</TableHead>
+            <TableHead className="text-right">Profit Margin</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -137,8 +138,8 @@ export const ProductReportTable = forwardRef(function ProductReportTable(
               <TableCell>{product.category}</TableCell>
               <TableCell className="text-right">{product.sold}</TableCell>
               <TableCell className="text-right">{product.revenue}</TableCell>
-              <TableCell className="text-right hidden xs:table-cell">{product.profit}</TableCell>
-              <TableCell className="w-[120px] hidden xs:table-cell">
+              <TableCell className="text-right">{product.profit}</TableCell>
+              <TableCell className="text-right">
                 <div className="flex flex-col gap-1">
                   <Progress value={product.profitMargin} />
                   <span className="text-xs text-muted-foreground">{product.profitMargin}%</span>

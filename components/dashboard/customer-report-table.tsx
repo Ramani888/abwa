@@ -7,10 +7,7 @@ import { useSelector } from "react-redux"
 import { RootState } from "@/lib/store"
 import { useMemo, useImperativeHandle, forwardRef } from "react"
 import { exportToCsv } from "@/utils/helpers/report"
-
-function formatCurrency(amount: number) {
-  return `₹${amount.toLocaleString(undefined, { maximumFractionDigits: 2 })}`
-}
+import { formatCurrency } from "@/utils/helpers/general"
 
 function getInitials(name: string) {
   return name
@@ -114,7 +111,7 @@ export const CustomerReportTable = forwardRef(function CustomerReportTable(
         id: customer._id,
         name: customer.name,
         type: customer.customerType,
-        orders: orderCount,
+        orders: formatCurrency(orderCount, false, false),
         spent: formatCurrency(totalSpent),
         avgOrderValue: formatCurrency(avgOrderValue),
         lastPurchase: formatLastPurchase(lastPurchaseDate),
@@ -143,8 +140,8 @@ export const CustomerReportTable = forwardRef(function CustomerReportTable(
             <TableHead>Type</TableHead>
             <TableHead className="text-right">Orders</TableHead>
             <TableHead className="text-right">Total Spent</TableHead>
-            <TableHead className="text-right hidden xs:table-cell">Avg. Order Value</TableHead>
-            <TableHead className="hidden xs:table-cell">Last Purchase</TableHead>
+            <TableHead className="text-right">Avg. Order Value</TableHead>
+            <TableHead className="text-right">Last Purchase</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -165,8 +162,8 @@ export const CustomerReportTable = forwardRef(function CustomerReportTable(
               </TableCell>
               <TableCell className="text-right">{customer.orders}</TableCell>
               <TableCell className="text-right">{customer.spent}</TableCell>
-              <TableCell className="text-right hidden xs:table-cell">{customer.avgOrderValue}</TableCell>
-              <TableCell className="hidden xs:table-cell">{customer.lastPurchase}</TableCell>
+              <TableCell className="text-right">{customer.avgOrderValue}</TableCell>
+              <TableCell className="text-right">{customer.lastPurchase}</TableCell>
             </TableRow>
           ))}
         </TableBody>
