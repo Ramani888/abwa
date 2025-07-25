@@ -21,6 +21,7 @@ import { units } from "@/utils/consts/product"
 import { getProducts } from "@/lib/features/productSlice"
 import { useDispatch } from "react-redux"
 import { AppDispatch } from "@/lib/store"
+import { formatCurrency, formatIndianNumber } from "@/utils/helpers/general"
 
 const newVariantSchema = Yup.object({
   packingSize: Yup.string().required("Packing size is required"),
@@ -463,12 +464,12 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
                               <TableCell className="border px-2 py-1">{variant.sku}</TableCell>
                               <TableCell className="border px-2 py-1">{variant.barcode}</TableCell>
                               <TableCell className="border px-2 py-1">{variant.unit}</TableCell>
-                              <TableCell className="border px-2 py-1">₹{variant.mrp}</TableCell>
-                              <TableCell className="border px-2 py-1">₹{variant.retailPrice}</TableCell>
-                              <TableCell className="border px-2 py-1">₹{variant.wholesalePrice}</TableCell>
-                              <TableCell className="border px-2 py-1">₹{variant.purchasePrice}</TableCell>
-                              <TableCell className="border px-2 py-1">{variant.minStockLevel}</TableCell>
-                              <TableCell className="border px-2 py-1">{variant.taxRate}</TableCell>
+                              <TableCell className="border px-2 py-1">{formatCurrency(variant.mrp)}</TableCell>
+                              <TableCell className="border px-2 py-1">{formatCurrency(variant.retailPrice)}</TableCell>
+                              <TableCell className="border px-2 py-1">{formatCurrency(variant.wholesalePrice)}</TableCell>
+                              <TableCell className="border px-2 py-1">{formatCurrency(variant.purchasePrice)}</TableCell>
+                              <TableCell className="border px-2 py-1">{formatCurrency(variant.minStockLevel, false, false)}</TableCell>
+                              <TableCell className="border px-2 py-1">{formatCurrency(variant.taxRate, false, false)}</TableCell>
                               <TableCell className="border px-2 py-1">
                                 <Button
                                   type="button"
@@ -595,7 +596,22 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
                         <Label>MRP</Label>
                         <div className="relative">
                           <IndianRupee className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                          <Field as={Input} name="newVariant.mrp" type="number" placeholder="MRP" className="pl-8" />
+                          <Field name="newVariant.mrp">
+                            {({ field, form }: any) => (
+                              <Input
+                                type="text"
+                                placeholder="MRP"
+                                className="pl-8"
+                                value={field.value ? formatIndianNumber(field.value) : ""}
+                                onChange={e => {
+                                  const rawValue = e.target.value.replace(/,/g, "");
+                                  if (/^\d*\.?\d*$/.test(rawValue)) {
+                                    form.setFieldValue(field.name, rawValue);
+                                  }
+                                }}
+                              />
+                            )}
+                          </Field>
                         </div>
                         {variantErrors.mrp && (
                           <div className="text-red-500 text-sm">{variantErrors.mrp}</div>
@@ -605,7 +621,22 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
                         <Label>Retail Price</Label>
                         <div className="relative">
                           <IndianRupee className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                          <Field as={Input} name="newVariant.retailPrice" type="number" placeholder="Retail Price" className="pl-8" />
+                          <Field name="newVariant.retailPrice">
+                            {({ field, form }: any) => (
+                              <Input
+                                type="text"
+                                placeholder="Retail Price"
+                                className="pl-8"
+                                value={field.value ? formatIndianNumber(field.value) : ""}
+                                onChange={e => {
+                                  const rawValue = e.target.value.replace(/,/g, "");
+                                  if (/^\d*\.?\d*$/.test(rawValue)) {
+                                    form.setFieldValue(field.name, rawValue);
+                                  }
+                                }}
+                              />
+                            )}
+                          </Field>
                         </div>
                         {variantErrors.retailPrice && (
                           <div className="text-red-500 text-sm">{variantErrors.retailPrice}</div>
@@ -615,7 +646,22 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
                         <Label>Wholesale Price</Label>
                         <div className="relative">
                           <IndianRupee className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                          <Field as={Input} name="newVariant.wholesalePrice" type="number" placeholder="Wholesale Price" className="pl-8" />
+                          <Field name="newVariant.wholesalePrice">
+                            {({ field, form }: any) => (
+                              <Input
+                                type="text"
+                                placeholder="Wholesale Price"
+                                className="pl-8"
+                                value={field.value ? formatIndianNumber(field.value) : ""}
+                                onChange={e => {
+                                  const rawValue = e.target.value.replace(/,/g, "");
+                                  if (/^\d*\.?\d*$/.test(rawValue)) {
+                                    form.setFieldValue(field.name, rawValue);
+                                  }
+                                }}
+                              />
+                            )}
+                          </Field>
                         </div>
                         {variantErrors.wholesalePrice && (
                           <div className="text-red-500 text-sm">{variantErrors.wholesalePrice}</div>
@@ -625,7 +671,22 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
                         <Label>Purchase Price</Label>
                         <div className="relative">
                           <IndianRupee className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                          <Field as={Input} name="newVariant.purchasePrice" type="number" placeholder="Purchase Price" className="pl-8" />
+                          <Field name="newVariant.purchasePrice">
+                            {({ field, form }: any) => (
+                              <Input
+                                type="text"
+                                placeholder="Purchase Price"
+                                className="pl-8"
+                                value={field.value ? formatIndianNumber(field.value) : ""}
+                                onChange={e => {
+                                  const rawValue = e.target.value.replace(/,/g, "");
+                                  if (/^\d*\.?\d*$/.test(rawValue)) {
+                                    form.setFieldValue(field.name, rawValue);
+                                  }
+                                }}
+                              />
+                            )}
+                          </Field>
                         </div>
                         {variantErrors.purchasePrice && (
                           <div className="text-red-500 text-sm">{variantErrors.purchasePrice}</div>
@@ -635,7 +696,22 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
                         <Label>Min Stock Level</Label>
                         <div className="relative">
                           <Boxes className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                          <Field as={Input} name="newVariant.minStockLevel" type="number" placeholder="Min Stock Level" className="pl-8" />
+                          <Field name="newVariant.minStockLevel">
+                            {({ field, form }: any) => (
+                              <Input
+                                type="text"
+                                placeholder="Min Stock Level"
+                                className="pl-8"
+                                value={field.value ? formatIndianNumber(field.value) : ""}
+                                onChange={e => {
+                                  const rawValue = e.target.value.replace(/,/g, "");
+                                  if (/^\d*\.?\d*$/.test(rawValue)) {
+                                    form.setFieldValue(field.name, rawValue);
+                                  }
+                                }}
+                              />
+                            )}
+                          </Field>
                         </div>
                         {variantErrors.minStockLevel && (
                           <div className="text-red-500 text-sm">{variantErrors.minStockLevel}</div>
@@ -645,7 +721,22 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
                         <Label>Tax Rate (%)</Label>
                         <div className="relative">
                           <Percent className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                          <Field as={Input} name="newVariant.taxRate" type="number" placeholder="Tax Rate" className="pl-8" />
+                          <Field name="newVariant.taxRate">
+                            {({ field, form }: any) => (
+                              <Input
+                                type="text"
+                                placeholder="Tax Rate"
+                                className="pl-8"
+                                value={field.value ? formatIndianNumber(field.value) : ""}
+                                onChange={e => {
+                                  const rawValue = e.target.value.replace(/,/g, "");
+                                  if (/^\d*\.?\d*$/.test(rawValue)) {
+                                    form.setFieldValue(field.name, rawValue);
+                                  }
+                                }}
+                              />
+                            )}
+                          </Field>
                         </div>
                         {variantErrors.taxRate && (
                           <div className="text-red-500 text-sm">{variantErrors.taxRate}</div>
