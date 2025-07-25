@@ -10,12 +10,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "@/components/ui/use-toast";
-import { ArrowLeft, User, FileText, List, DollarSign } from "lucide-react";
+import { ArrowLeft, User, FileText, List, IndianRupeeIcon } from "lucide-react";
 import { serverGetCustomerPayment, serverGetCustomers, serverUpdateCustomerPayment } from "@/services/serverApi";
 import { paymentMethods } from "@/utils/consts/product";
 import { useDispatch } from "react-redux";
 import { AppDispatch } from "@/lib/store";
 import { getCustomerPayments } from "@/lib/features/customerPaymentSlice";
+import { formatIndianNumber } from "@/utils/helpers/general";
 
 interface CustomerPaymentData {
   _id: string;
@@ -243,15 +244,26 @@ export default function EditCustomerPaymentPage({ params }: { params: { id: stri
                   <div className="space-y-2">
                     <Label htmlFor="amount">Amount (₹)</Label>
                     <div className="relative">
-                      <DollarSign className="absolute left-2.5 top-3 h-4 w-4 text-muted-foreground" />
-                      <Field
-                        as={Input}
-                        id="amount"
-                        name="amount"
-                        type="number"
-                        placeholder="Enter amount"
-                        className="pl-8"
-                      />
+                      <IndianRupeeIcon className="absolute left-2.5 top-3 h-4 w-4 text-muted-foreground" />
+                      <Field name="amount">
+                        {({ field, form }: any) => (
+                          <Input
+                            id="amount"
+                            type="text"
+                            placeholder="Enter amount"
+                            className="pl-8"
+                            value={field.value ? formatIndianNumber(field.value) : ""}
+                            onChange={e => {
+                              // Remove commas for raw value
+                              const rawValue = e.target.value.replace(/,/g, "");
+                              // Only allow numbers
+                              if (/^\d*$/.test(rawValue)) {
+                                form.setFieldValue("amount", rawValue);
+                              }
+                            }}
+                          />
+                        )}
+                      </Field>
                     </div>
                     <ErrorMessage name="amount" component="p" className="text-red-500 text-sm" />
                   </div>
@@ -284,7 +296,7 @@ export default function EditCustomerPaymentPage({ params }: { params: { id: stri
                   <div className="space-y-2">
                     <Label htmlFor="paymentMode">Payment Mode</Label>
                     <div className="relative">
-                      <DollarSign className="absolute left-2.5 top-3 h-4 w-4 text-muted-foreground" />
+                      <IndianRupeeIcon className="absolute left-2.5 top-3 h-4 w-4 text-muted-foreground" />
                       <Select
                         value={values.paymentMode}
                         onValueChange={(val) => setFieldValue("paymentMode", val)}

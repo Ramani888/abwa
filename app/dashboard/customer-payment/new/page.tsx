@@ -18,6 +18,7 @@ import { paymentMethods } from "@/utils/consts/product"
 import { getCustomerPayments } from "@/lib/features/customerPaymentSlice"
 import { useDispatch } from "react-redux"
 import { AppDispatch } from "@/lib/store"
+import { formatIndianNumber } from "@/utils/helpers/general"
 
 export default function NewCustomerPaymentPage() {
   const router = useRouter()
@@ -149,14 +150,25 @@ export default function NewCustomerPaymentPage() {
                     <Label htmlFor="amount">Amount (₹)</Label>
                     <div className="relative">
                       <IndianRupeeIcon className="absolute left-2.5 top-3 h-4 w-4 text-muted-foreground" />
-                      <Field
-                        as={Input}
-                        id="amount"
-                        name="amount"
-                        type="number"
-                        placeholder="Enter amount"
-                        className="pl-8"
-                      />
+                      <Field name="amount">
+                        {({ field, form }: any) => (
+                          <Input
+                            id="amount"
+                            type="text"
+                            placeholder="Enter amount"
+                            className="pl-8"
+                            value={field.value ? formatIndianNumber(field.value) : ""}
+                            onChange={e => {
+                              // Remove commas for raw value
+                              const rawValue = e.target.value.replace(/,/g, "");
+                              // Only allow numbers
+                              if (/^\d*$/.test(rawValue)) {
+                                form.setFieldValue("amount", rawValue);
+                              }
+                            }}
+                          />
+                        )}
+                      </Field>
                     </div>
                     <ErrorMessage name="amount" component="p" className="text-red-500 text-sm" />
                   </div>
