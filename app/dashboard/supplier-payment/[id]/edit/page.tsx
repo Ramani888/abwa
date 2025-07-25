@@ -13,6 +13,9 @@ import { toast } from "@/components/ui/use-toast";
 import { ArrowLeft, User, FileText, List, DollarSign } from "lucide-react";
 import { serverGetCustomerPayment, serverGetCustomers, serverGetSupplier, serverGetSupplierPayment, serverUpdateCustomerPayment, serverUpdateSupplierPayment } from "@/services/serverApi";
 import { paymentMethods } from "@/utils/consts/product";
+import { getSupplierPayments } from "@/lib/features/supplierPaymentSlice";
+import { useDispatch } from "react-redux";
+import { AppDispatch } from "@/lib/store";
 
 interface SupplierPaymentData {
   _id: string;
@@ -41,6 +44,7 @@ const validationSchema = Yup.object({
 });
 
 export default function EditSupplierPaymentPage({ params }: { params: { id: string } }) {
+  const dispatch = useDispatch<AppDispatch>();
   const [initialValues, setInitialValues] = useState<SupplierPaymentData>(defaultFormState);
   const [supplierData, setSupplierData] = useState<any[]>([]);
   const [selectedSupplier, setSelectedSupplier] = useState<string>("");
@@ -126,6 +130,7 @@ export default function EditSupplierPaymentPage({ params }: { params: { id: stri
         setError("Failed to update supplier payment");
       }
 
+      dispatch(getSupplierPayments())
       setSubmitting(false);
     } catch (error) {
       setSubmitting(false);

@@ -16,8 +16,12 @@ import { serverGetCustomers, serverGetProduct, serverUpdateOrder, serverGetOrder
 import { ICustomer } from "@/types/customer"
 import { IProduct } from "@/types/product"
 import { paymentMethods, paymentStatuses } from "@/utils/consts/product"
+import { getOrders } from "@/lib/features/orderSlice"
+import { useDispatch } from "react-redux"
+import { AppDispatch } from "@/lib/store"
 
 export default function EditOrderPage({ params }: { params: { id: string } }) {
+  const dispatch = useDispatch<AppDispatch>()
   const [activeTab, setActiveTab] = useState<"retail" | "wholesale">("retail")
   const [orderItems, setOrderItems] = useState<
     Array<{
@@ -292,6 +296,7 @@ export default function EditOrderPage({ params }: { params: { id: string } }) {
       if (res?.success) {
         router.push(`/dashboard/orders`)
       }
+      dispatch(getOrders())
       setIsSubmitting(false)
     } catch (error) {
       setIsSubmitting(false)

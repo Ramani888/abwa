@@ -15,9 +15,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ArrowLeft, User, Mail, Phone, MapPin, DollarSign, FileText, List } from "lucide-react"
 import { serverAddCustomer } from "@/services/serverApi"
 import { Switch } from "@/components/ui/switch"
+import { getCustomers } from "@/lib/features/customerSlice"
+import { useDispatch } from "react-redux"
+import { AppDispatch } from "@/lib/store"
 
 export default function NewCustomerPage() {
   const router = useRouter()
+  const dispatch = useDispatch<AppDispatch>()
 
   const initialValues = {
     name: "",
@@ -67,6 +71,7 @@ export default function NewCustomerPage() {
     } catch (error) {
       console.error("Error creating customer:", error)
     } finally {
+      dispatch(getCustomers())
       setSubmitting(false)
     }
   }

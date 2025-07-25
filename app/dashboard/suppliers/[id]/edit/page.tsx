@@ -10,6 +10,9 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { ArrowLeft, User, Phone, Mail, MapPin, Landmark, Calendar } from "lucide-react"
 import { serverGetSupplier, serverUpdateSupplier } from "@/services/serverApi"
+import { getSuppliers } from "@/lib/features/supplierSlice"
+import { useDispatch } from "react-redux"
+import { AppDispatch } from "@/lib/store"
 
 const validationSchema = Yup.object({
   name: Yup.string().required("Supplier name is required"),
@@ -26,6 +29,7 @@ const validationSchema = Yup.object({
 
 export default function EditSupplierPage({ params }: { params: { id: string } }) {
   const router = useRouter();
+  const dispatch = useDispatch<AppDispatch>()
   const [initialValues, setInitialValues] = useState({
     name: "",
     number: "",
@@ -98,6 +102,7 @@ export default function EditSupplierPage({ params }: { params: { id: string } })
             } catch (error: any) {
               setErrors({ name: error?.message || "Failed to update supplier" })
             } finally {
+              dispatch(getSuppliers())
               setSubmitting(false)
             }
           }}

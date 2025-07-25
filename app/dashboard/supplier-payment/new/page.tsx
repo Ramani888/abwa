@@ -15,9 +15,13 @@ import { useState, useEffect, use } from "react"
 import { set } from "date-fns"
 import { serverAddCustomerPayment, serverAddSupplierPayment, serverGetCustomers, serverGetSupplier } from "@/services/serverApi"
 import { paymentMethods } from "@/utils/consts/product"
+import { getSupplierPayments } from "@/lib/features/supplierPaymentSlice"
+import { useDispatch } from "react-redux"
+import { AppDispatch } from "@/lib/store"
 
 export default function NewSupplierPaymentPage() {
   const router = useRouter()
+  const dispatch = useDispatch<AppDispatch>()
   const [supplierData, setSupplierData] = useState<any[]>([])
   const [selectedSupplier, setSelectedSupplier] = useState("")
   const [loading, setLoading] = useState(false);
@@ -66,6 +70,7 @@ export default function NewSupplierPaymentPage() {
     } catch (error) {
       console.error("Error creating payment:", error)
     } finally {
+      dispatch(getSupplierPayments())
       setSubmitting(false)
     }
   }

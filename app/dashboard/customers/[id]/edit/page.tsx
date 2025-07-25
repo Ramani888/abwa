@@ -16,6 +16,9 @@ import { toast } from "@/components/ui/use-toast";
 import { ArrowLeft, Mail, Phone, MapPin, User, DollarSign, FileText, List } from "lucide-react";
 import { serverGetCustomers, serverUpdateCustomer } from "@/services/serverApi";
 import { Switch } from "@/components/ui/switch";
+import { getCustomers } from "@/lib/features/customerSlice";
+import { useDispatch } from "react-redux";
+import { AppDispatch } from "@/lib/store";
 
 interface CustomerData {
   _id: string;
@@ -66,6 +69,7 @@ const validationSchema = Yup.object({
 });
 
 export default function EditCustomerPage({ params }: { params: { id: string } }) {
+  const dispatch = useDispatch<AppDispatch>()
   const [initialValues, setInitialValues] = useState<CustomerData>(defaultFormState);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -138,6 +142,7 @@ export default function EditCustomerPage({ params }: { params: { id: string } })
       } catch (err: any) {
         setError("An error occurred while updating the customer: " + (err?.message || "Unknown error"));
       } finally {
+        dispatch(getCustomers())
         setSubmitting(false);
       }
     },

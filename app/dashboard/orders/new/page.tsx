@@ -16,8 +16,12 @@ import { serverAddOrder, serverGetCustomers, serverGetProduct } from "@/services
 import { ICustomer } from "@/types/customer"
 import { IProduct } from "@/types/product"
 import { paymentMethods, paymentStatuses } from "@/utils/consts/product"
+import { getOrders } from "@/lib/features/orderSlice"
+import { useDispatch } from "react-redux"
+import { AppDispatch } from "@/lib/store"
 
 export default function NewOrderPage() {
+  const dispatch = useDispatch<AppDispatch>()
   const [activeTab, setActiveTab] = useState("retail")
   const [orderItems, setOrderItems] = useState<
     Array<{
@@ -239,6 +243,7 @@ export default function NewOrderPage() {
       if (res?.success) {
         router.push("/dashboard/orders")
       }
+      dispatch(getOrders())
       setIsSubmitting(false)
     } catch (error) {
       console.error("Error creating order:", error)

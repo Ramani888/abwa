@@ -18,6 +18,9 @@ import { IProduct } from "@/types/product"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { units } from "@/utils/consts/product"
+import { getProducts } from "@/lib/features/productSlice"
+import { useDispatch } from "react-redux"
+import { AppDispatch } from "@/lib/store"
 
 const newVariantSchema = Yup.object({
   packingSize: Yup.string().required("Packing size is required"),
@@ -97,6 +100,7 @@ const newVariantSchema = Yup.object({
 })
 
 export default function EditProductPage({ params }: { params: { id: string } }) {
+  const dispatch = useDispatch<AppDispatch>()
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [categoryData, setCategoryData] = useState<ICategory[]>([])
@@ -331,6 +335,7 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
               if (res?.success) {
                 router.push(`/dashboard/products`)
               }
+              dispatch(getProducts())
               setIsSaving(false)
               setSubmitting(false)
             } catch (error) {

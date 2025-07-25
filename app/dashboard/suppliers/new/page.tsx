@@ -11,6 +11,9 @@ import { Textarea } from "@/components/ui/textarea"
 import { ArrowLeft, Calendar } from "lucide-react"
 import { User, Phone, Mail, MapPin, Landmark } from "lucide-react"
 import { serverAddSupplier } from "@/services/serverApi"
+import { getSuppliers } from "@/lib/features/supplierSlice"
+import { useDispatch } from "react-redux"
+import { AppDispatch } from "@/lib/store"
 
 const initialValues = {
   name: "",
@@ -36,6 +39,7 @@ const validationSchema = Yup.object({
 
 export default function NewSupplierPage() {
   const router = useRouter()
+  const dispatch = useDispatch<AppDispatch>()
   return (
     <div className="w-full">
       <div className="flex items-center mb-6">
@@ -58,6 +62,7 @@ export default function NewSupplierPage() {
             } catch (error: any) {
               setErrors({ name: error?.message || "Failed to add supplier" })
             } finally {
+              dispatch(getSuppliers())
               setSubmitting(false)
             }
           }}

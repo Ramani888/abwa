@@ -13,6 +13,9 @@ import { toast } from "@/components/ui/use-toast";
 import { ArrowLeft, User, FileText, List, DollarSign } from "lucide-react";
 import { serverGetCustomerPayment, serverGetCustomers, serverUpdateCustomerPayment } from "@/services/serverApi";
 import { paymentMethods } from "@/utils/consts/product";
+import { useDispatch } from "react-redux";
+import { AppDispatch } from "@/lib/store";
+import { getCustomerPayments } from "@/lib/features/customerPaymentSlice";
 
 interface CustomerPaymentData {
   _id: string;
@@ -41,6 +44,7 @@ const validationSchema = Yup.object({
 });
 
 export default function EditCustomerPaymentPage({ params }: { params: { id: string } }) {
+  const dispatch = useDispatch<AppDispatch>()
   const [initialValues, setInitialValues] = useState<CustomerPaymentData>(defaultFormState);
   const [customerData, setCustomerData] = useState<any[]>([]);
   const [selectedCustomer, setSelectedCustomer] = useState<string>("");
@@ -125,7 +129,7 @@ export default function EditCustomerPaymentPage({ params }: { params: { id: stri
       } else {
         setError("Failed to update customer payment");
       }
-
+      dispatch(getCustomerPayments())
       setSubmitting(false);
     } catch (error) {
       setSubmitting(false);
