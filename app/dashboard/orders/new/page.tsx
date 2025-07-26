@@ -19,6 +19,7 @@ import { paymentMethods, paymentStatuses } from "@/utils/consts/product"
 import { getOrders } from "@/lib/features/orderSlice"
 import { useDispatch } from "react-redux"
 import { AppDispatch } from "@/lib/store"
+import { formatCurrency } from "@/utils/helpers/general"
 
 export default function NewOrderPage() {
   const dispatch = useDispatch<AppDispatch>()
@@ -451,8 +452,8 @@ export default function NewOrderPage() {
                       <TableRow key={item.id}>
                         <TableCell>{item.name}</TableCell>
                         <TableCell>{item.size}</TableCell>
-                        <TableCell>₹{item.mrp?.toFixed(2)}</TableCell>
-                        <TableCell>₹{item.price.toFixed(2)}</TableCell>
+                        <TableCell>{formatCurrency(item.mrp)}</TableCell>
+                        <TableCell>{formatCurrency(item.price)}</TableCell>
                         <TableCell>
                           <div className="flex items-center space-x-2">
                             <Button
@@ -540,9 +541,9 @@ export default function NewOrderPage() {
                           />
                         </TableCell>
                         <TableCell>
-                          {item.gstRate !== undefined && item.gstRate !== null ? `₹${item.gstAmount.toFixed(2)}` : <span className="text-muted-foreground">N/A</span>}
+                          {item.gstRate !== undefined && item.gstRate !== null ? formatCurrency(item.gstAmount) : <span className="text-muted-foreground">N/A</span>}
                         </TableCell>
-                        <TableCell>₹{item.total.toFixed(2)}</TableCell>
+                        <TableCell>{formatCurrency(item.total)}</TableCell>
                         <TableCell>
                           <Button variant="ghost" size="icon" onClick={() => handleRemoveItem(item.id)}>
                             <Trash className="h-4 w-4" />
@@ -572,11 +573,11 @@ export default function NewOrderPage() {
             <div className="space-y-4">
               <div className="flex justify-between py-2">
                 <span>Subtotal:</span>
-                <span>₹{calculateSubtotal().toFixed(2)}</span>
+                <span>{formatCurrency(calculateSubtotal())}</span>
               </div>
               <div className="flex justify-between py-2">
                 <span>Total GST:</span>
-                <span>₹{calculateTotalGST().toFixed(2)}</span>
+                <span>{formatCurrency(calculateTotalGST())}</span>
               </div>
               <div className="flex justify-between py-2 items-center">
                 <span>Round-off:</span>
@@ -599,7 +600,7 @@ export default function NewOrderPage() {
               </div>
               <div className="flex justify-between py-2 font-bold">
                 <span>Total (after round-off):</span>
-                <span>₹{calculateFinalTotal().toFixed(2)}</span>
+                <span>{formatCurrency(calculateFinalTotal())}</span>
               </div>
               <div className="mb-2 text-xs text-muted-foreground">
                 Round-off is editable. Leave blank for zero. Auto suggestion shown.
