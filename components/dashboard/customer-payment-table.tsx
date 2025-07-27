@@ -205,6 +205,14 @@ export function CustomerPaymentTable({ setRefreshFunction }: { setRefreshFunctio
                               </Link>
                             </DropdownMenuItem>
                           )}
+                          {hasPermission(Permissions.VIEW_CUSTOMER_PAYMENT) && (
+                            <DropdownMenuItem asChild>
+                              <Link href={`/dashboard/customer-payment/${item?._id?.toString()}/sleep`}>
+                                <Eye className="mr-2 h-4 w-4" />
+                                Slip
+                              </Link>
+                            </DropdownMenuItem>
+                          )}
                           <DropdownMenuSeparator />
                           {hasPermission(Permissions.DELETE_CUSTOMER_PAYMENT) && (
                             <DropdownMenuItem className="text-destructive" onClick={() => handleDelete(item?._id)}>
