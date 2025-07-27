@@ -253,6 +253,13 @@ export default function NewPurchaseOrderPage() {
     }
   }
 
+  // Add this useEffect after your state declarations to clear payment method if status is unpaid
+  useEffect(() => {
+    if (paymentStatus === "unpaid") {
+      setPaymentMethod("");
+    }
+  }, [paymentStatus]);
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-[50vh]">
@@ -584,7 +591,11 @@ export default function NewPurchaseOrderPage() {
 
                 <div className="space-y-2">
                   <Label htmlFor="paymentMethod">Payment Method</Label>
-                  <Select value={paymentMethod} onValueChange={setPaymentMethod}>
+                  <Select
+                    value={paymentMethod}
+                    onValueChange={setPaymentMethod}
+                    disabled={paymentStatus === "unpaid"}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Select payment method" />
                     </SelectTrigger>
@@ -599,6 +610,7 @@ export default function NewPurchaseOrderPage() {
                 </div>
               </div>
 
+              {/* --- Extra fields based on payment method --- */}
               {(() => {
                 const selectedMethod = paymentMethods.find(pm => pm.value === paymentMethod);
                 if (selectedMethod && selectedMethod.extraFieldName) {
@@ -627,6 +639,7 @@ export default function NewPurchaseOrderPage() {
                 }
                 return null;
               })()}
+              {/* --- End extra fields --- */}
 
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="space-y-2">

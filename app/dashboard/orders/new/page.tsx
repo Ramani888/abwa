@@ -269,6 +269,13 @@ export default function NewOrderPage() {
     }
   }
 
+  // When payment status changes, clear payment method if unpaid
+  useEffect(() => {
+    if (paymentStatus === "unpaid") {
+      setPaymentMethod("");
+    }
+  }, [paymentStatus]);
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-[50vh]">
@@ -642,7 +649,11 @@ export default function NewOrderPage() {
 
                 <div className="space-y-2">
                   <Label htmlFor="paymentMethod">Payment Method</Label>
-                  <Select value={paymentMethod} onValueChange={setPaymentMethod}>
+                  <Select
+                    value={paymentMethod}
+                    onValueChange={setPaymentMethod}
+                    disabled={paymentStatus === "unpaid"}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Select payment method" />
                     </SelectTrigger>
