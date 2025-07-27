@@ -19,6 +19,7 @@ import { getSupplierPayments } from "@/lib/features/supplierPaymentSlice"
 import { useDispatch } from "react-redux"
 import { AppDispatch } from "@/lib/store"
 import { formatIndianNumber } from "@/utils/helpers/general"
+import { Dialog, DialogContent, DialogHeader, DialogFooter, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 
 const paymentModeIcons: Record<string, React.ReactNode> = {
   card: <CreditCard className="absolute left-2.5 top-3 h-4 w-4 text-muted-foreground" />,
@@ -34,6 +35,8 @@ export default function NewSupplierPaymentPage() {
   const [supplierData, setSupplierData] = useState<any[]>([])
   const [selectedSupplier, setSelectedSupplier] = useState("")
   const [loading, setLoading] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [pendingSubmit, setPendingSubmit] = useState<any>(null);
 
   const getSupplierData = async () => {
     try {
@@ -80,28 +83,20 @@ export default function NewSupplierPaymentPage() {
     { setSubmitting }: { setSubmitting: (isSubmitting: boolean) => void }
   ) => {
     try {
-      // Find the selected payment method
       const selectedMethod = paymentMethods.find(pm => pm.value === values.paymentMode);
-
-      // Prepare data to submit: always send the core fields, and only the relevant extra field
       const dataToSubmit: any = {
         ...values,
         amount: Number(values.amount),
         captureDate: new Date(values.captureDate),
       };
-
-      // Remove all possible extra fields first
       delete dataToSubmit.cardNumber;
       delete dataToSubmit.upiTransactionId;
       delete dataToSubmit.bankReferenceNumber;
       delete dataToSubmit.chequeNumber;
       delete dataToSubmit.gatewayTransactionId;
-
-      // Add only the relevant extra field if present
       if (selectedMethod && selectedMethod.extraFieldName) {
         dataToSubmit[selectedMethod.extraFieldName] = (values as Record<string, any>)[selectedMethod.extraFieldName];
       }
-
       const res = await serverAddSupplierPayment(dataToSubmit);
       if (res?.success) {
         router.push("/dashboard/supplier-payment");
@@ -112,7 +107,31 @@ export default function NewSupplierPaymentPage() {
       dispatch(getSupplierPayments());
       setSubmitting(false);
     }
-  }
+  };
+
+  // Handler for Formik's onSubmit
+  const handleFormSubmit = (values: typeof initialValues, actions: any) => {
+    setPendingSubmit({ values, actions });
+    setShowConfirm(true);
+  };
+
+  // Handler for confirming dialog
+  const handleConfirm = () => {
+    if (pendingSubmit) {
+      handleSubmit(pendingSubmit.values, pendingSubmit.actions);
+      setPendingSubmit(null);
+      setShowConfirm(false);
+    }
+  };
+
+  // Handler for canceling dialog
+  const handleCancel = () => {
+    if (pendingSubmit?.actions) {
+      pendingSubmit.actions.setSubmitting(false);
+    }
+    setPendingSubmit(null);
+    setShowConfirm(false);
+  };
 
   return (
     <div className="w-full">
@@ -127,10 +146,7 @@ export default function NewSupplierPaymentPage() {
         <Formik
           initialValues={initialValues}
           validationSchema={validationSchema}
-          onSubmit={(values, actions) => {
-            // Use selectedSupplier for supplier field
-            handleSubmit({ ...values, supplierId: selectedSupplier }, actions)
-          }}
+          onSubmit={handleFormSubmit}
         >
           {({ values, setFieldValue, isSubmitting }) => (
             <Form>
@@ -263,9 +279,8 @@ export default function NewSupplierPaymentPage() {
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Payment Mode with icon */}
+                  {/* Extra field for payment mode with icon */}
                   <div className="space-y-2">
-                    {/* Extra field for payment mode with icon */}
                     {(() => {
                       const selectedMethod = paymentMethods.find(pm => pm.value === values.paymentMode);
                       if (selectedMethod && selectedMethod.extraFieldName) {
@@ -317,6 +332,30 @@ export default function NewSupplierPaymentPage() {
                   )}
                 </Button>
               </CardFooter>
+              {/* Confirmation Dialog */}
+              <Dialog
+                open={showConfirm}
+                onOpenChange={(open) => {
+                  if (!open) handleCancel();
+                }}
+              >
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Confirm Submission</DialogTitle>
+                    <DialogDescription>
+                      Are you sure you want to add this supplier payment?
+                    </DialogDescription>
+                  </DialogHeader>
+                  <DialogFooter>
+                    <Button variant="outline" onClick={handleCancel}>
+                      Cancel
+                    </Button>
+                    <Button onClick={handleConfirm}>
+                      Confirm
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             </Form>
           )}
         </Formik>

@@ -17,6 +17,7 @@ import { getSupplierPayments } from "@/lib/features/supplierPaymentSlice";
 import { useDispatch } from "react-redux";
 import { AppDispatch } from "@/lib/store";
 import { formatIndianNumber } from "@/utils/helpers/general";
+import { Dialog, DialogContent, DialogHeader, DialogFooter, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 
 interface SupplierPaymentData {
   _id: string;
@@ -69,6 +70,8 @@ export default function EditSupplierPaymentPage({ params }: { params: { id: stri
   const [selectedSupplier, setSelectedSupplier] = useState<string>("");
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [pendingSubmit, setPendingSubmit] = useState<any>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -128,6 +131,30 @@ export default function EditSupplierPaymentPage({ params }: { params: { id: stri
   useEffect(() => {
     getSupplierData();
   }, []);
+
+  // Handler for Formik's onSubmit
+  const handleFormSubmit = (values: SupplierPaymentData, actions: any) => {
+    setPendingSubmit({ values, actions });
+    setShowConfirm(true);
+  };
+
+  // Handler for confirming dialog
+  const handleConfirm = () => {
+    if (pendingSubmit) {
+      handleSubmit(pendingSubmit.values, pendingSubmit.actions);
+      setPendingSubmit(null);
+      setShowConfirm(false);
+    }
+  };
+
+  // Handler for canceling dialog
+  const handleCancel = () => {
+    if (pendingSubmit?.actions) {
+      pendingSubmit.actions.setSubmitting(false);
+    }
+    setPendingSubmit(null);
+    setShowConfirm(false);
+  };
 
   const handleSubmit = async (
     values: SupplierPaymentData,
@@ -233,7 +260,7 @@ export default function EditSupplierPaymentPage({ params }: { params: { id: stri
         <Formik
           initialValues={initialValues}
           validationSchema={validationSchema}
-          onSubmit={handleSubmit}
+          onSubmit={handleFormSubmit}
           enableReinitialize
         >
           {({ isSubmitting, values, setFieldValue }) => (
@@ -421,6 +448,30 @@ export default function EditSupplierPaymentPage({ params }: { params: { id: stri
                   )}
                 </Button>
               </CardFooter>
+              {/* Confirmation Dialog */}
+              <Dialog
+                open={showConfirm}
+                onOpenChange={(open) => {
+                  if (!open) handleCancel();
+                }}
+              >
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Confirm Update</DialogTitle>
+                    <DialogDescription>
+                      Are you sure you want to update this supplier payment?
+                    </DialogDescription>
+                  </DialogHeader>
+                  <DialogFooter>
+                    <Button variant="outline" onClick={handleCancel}>
+                      Cancel
+                    </Button>
+                    <Button onClick={handleConfirm}>
+                      Confirm
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             </Form>
           )}
         </Formik>
