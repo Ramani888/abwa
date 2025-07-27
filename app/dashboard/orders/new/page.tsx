@@ -320,7 +320,16 @@ export default function NewOrderPage() {
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
                 </div>
-                <Select value={selectedCustomer} onValueChange={setSelectedCustomer}>
+                <Select
+                  value={selectedCustomer}
+                  onValueChange={(val) => {
+                    if (val === "__add_new__") {
+                      router.push("/dashboard/customers/new");
+                    } else {
+                      setSelectedCustomer(val);
+                    }
+                  }}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select a customer" />
                   </SelectTrigger>
@@ -330,6 +339,9 @@ export default function NewOrderPage() {
                         {customer?.name} - {customer?.number}
                       </SelectItem>
                     ))}
+                    <SelectItem value="__add_new__" className="text-primary font-semibold">
+                      + Add New Customer
+                    </SelectItem>
                     {filteredCustomers?.length === 0 && (
                       <SelectItem value="-1" disabled>
                         No customers found
@@ -395,7 +407,16 @@ export default function NewOrderPage() {
             >
               <div className="col-span-1 sm:col-span-6">
                 <Label htmlFor="product">Product</Label>
-                <Select value={selectedProduct} onValueChange={handleSelectProduct}>
+                <Select
+                  value={selectedProduct}
+                  onValueChange={(val) => {
+                    if (val === "__add_new_product__") {
+                      router.push("/dashboard/products/new");
+                    } else {
+                      handleSelectProduct(val);
+                    }
+                  }}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select a product" />
                   </SelectTrigger>
@@ -405,6 +426,14 @@ export default function NewOrderPage() {
                         {product.name}
                       </SelectItem>
                     ))}
+                    <SelectItem value="__add_new_product__" className="text-primary font-semibold">
+                      + Add New Product
+                    </SelectItem>
+                    {productData?.length === 0 && (
+                      <SelectItem value="-1" disabled>
+                        No products found
+                      </SelectItem>
+                    )}
                   </SelectContent>
                 </Select>
               </div>
