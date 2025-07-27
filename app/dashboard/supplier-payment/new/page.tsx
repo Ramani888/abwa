@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ArrowLeft, User, FileText, List, IndianRupeeIcon } from "lucide-react"
+import { ArrowLeft, User, FileText, List, IndianRupeeIcon, CreditCard, Landmark, QrCode, Receipt, Banknote } from "lucide-react"
 import { useState, useEffect, use } from "react"
 import { set } from "date-fns"
 import { serverAddCustomerPayment, serverAddSupplierPayment, serverGetCustomers, serverGetSupplier } from "@/services/serverApi"
@@ -19,6 +19,14 @@ import { getSupplierPayments } from "@/lib/features/supplierPaymentSlice"
 import { useDispatch } from "react-redux"
 import { AppDispatch } from "@/lib/store"
 import { formatIndianNumber } from "@/utils/helpers/general"
+
+const paymentModeIcons: Record<string, React.ReactNode> = {
+  card: <CreditCard className="absolute left-2.5 top-3 h-4 w-4 text-muted-foreground" />,
+  upi: <QrCode className="absolute left-2.5 top-3 h-4 w-4 text-muted-foreground" />,
+  neft_rtgs: <Landmark className="absolute left-2.5 top-3 h-4 w-4 text-muted-foreground" />,
+  cheque: <Receipt className="absolute left-2.5 top-3 h-4 w-4 text-muted-foreground" />,
+  online_payment: <Banknote className="absolute left-2.5 top-3 h-4 w-4 text-muted-foreground" />,
+};
 
 export default function NewSupplierPaymentPage() {
   const router = useRouter()
@@ -48,10 +56,15 @@ export default function NewSupplierPaymentPage() {
 
   const initialValues = {
     supplierId: "",
-    captureDate: today, // set default to today
+    captureDate: today,
     amount: "",
     paymentType: "",
     paymentMode: "",
+    cardNumber: "",
+    upiTransactionId: "",
+    bankReferenceNumber: "",
+    chequeNumber: "",
+    gatewayTransactionId: "",
   }
 
   const validationSchema = Yup.object({
@@ -62,17 +75,42 @@ export default function NewSupplierPaymentPage() {
     paymentMode: Yup.string().required("Payment Mode is required"),
   })
 
-  const handleSubmit = async (values: typeof initialValues, { setSubmitting }: { setSubmitting: (isSubmitting: boolean) => void }) => {
+  const handleSubmit = async (
+    values: typeof initialValues,
+    { setSubmitting }: { setSubmitting: (isSubmitting: boolean) => void }
+  ) => {
     try {
-      const res = await serverAddSupplierPayment({...values, amount: Number(values.amount), captureDate: new Date(values.captureDate)});
+      // Find the selected payment method
+      const selectedMethod = paymentMethods.find(pm => pm.value === values.paymentMode);
+
+      // Prepare data to submit: always send the core fields, and only the relevant extra field
+      const dataToSubmit: any = {
+        ...values,
+        amount: Number(values.amount),
+        captureDate: new Date(values.captureDate),
+      };
+
+      // Remove all possible extra fields first
+      delete dataToSubmit.cardNumber;
+      delete dataToSubmit.upiTransactionId;
+      delete dataToSubmit.bankReferenceNumber;
+      delete dataToSubmit.chequeNumber;
+      delete dataToSubmit.gatewayTransactionId;
+
+      // Add only the relevant extra field if present
+      if (selectedMethod && selectedMethod.extraFieldName) {
+        dataToSubmit[selectedMethod.extraFieldName] = (values as Record<string, any>)[selectedMethod.extraFieldName];
+      }
+
+      const res = await serverAddSupplierPayment(dataToSubmit);
       if (res?.success) {
-        router.push("/dashboard/supplier-payment")
+        router.push("/dashboard/supplier-payment");
       }
     } catch (error) {
-      console.error("Error creating payment:", error)
+      console.error("Error creating payment:", error);
     } finally {
-      dispatch(getSupplierPayments())
-      setSubmitting(false)
+      dispatch(getSupplierPayments());
+      setSubmitting(false);
     }
   }
 
@@ -212,17 +250,44 @@ export default function NewSupplierPaymentPage() {
                           <SelectValue placeholder="Select payment mode" />
                         </SelectTrigger>
                         <SelectContent>
-                          {paymentMethods?.map((item) => {
-                            return (
-                              <SelectItem key={item.value} value={item.value}>
-                                {item.label}
-                              </SelectItem>
-                            )
-                          })}
+                          {paymentMethods?.map((item) => (
+                            <SelectItem key={item.value} value={item.value}>
+                              {item.label}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>
                     <ErrorMessage name="paymentMode" component="p" className="text-red-500 text-sm" />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Payment Mode with icon */}
+                  <div className="space-y-2">
+                    {/* Extra field for payment mode with icon */}
+                    {(() => {
+                      const selectedMethod = paymentMethods.find(pm => pm.value === values.paymentMode);
+                      if (selectedMethod && selectedMethod.extraFieldName) {
+                        return (
+                          <div>
+                            <Label htmlFor={selectedMethod.extraFieldName}>{selectedMethod.extraFieldLabel}</Label>
+                            <div className="relative mt-2">
+                              {paymentModeIcons[selectedMethod.value] || null}
+                              <Field
+                                as={Input}
+                                id={selectedMethod.extraFieldName}
+                                name={selectedMethod.extraFieldName}
+                                placeholder={selectedMethod.extraFieldLabel}
+                                className="pl-8"
+                              />
+                              <ErrorMessage name={selectedMethod.extraFieldName} component="p" className="text-red-500 text-sm" />
+                            </div>
+                          </div>
+                        );
+                      }
+                      return null;
+                    })()}
                   </div>
                 </div>
               </CardContent>

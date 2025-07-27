@@ -9,9 +9,8 @@ import { ISupplier, ISupplierPayment } from "@/types/supplier";
 import { IOrder } from "@/types/order";
 import { IPurchaseOrder } from "@/types/purchaseOrder";
 
-const serverUrl = 'https://abb-i6cd.vercel.app/api';
-// const serverUrl = 'http://localhost:3010/api';
-const TOKEN = "";
+// const serverUrl = 'https://abb-i6cd.vercel.app/api';
+const serverUrl = 'http://localhost:3010/api';
 
 const errorCodes = [
   StatusCodes.INTERNAL_SERVER_ERROR,

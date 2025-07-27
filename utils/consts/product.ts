@@ -12,16 +12,61 @@ export const units = [
   { name: "Piece", symbol: "pcs", description: "For individual small items." }
 ];
 
+// export const paymentMethods = [
+//   { label: "Cash", value: "cash", note: "Walk-in or cash-based transactions" },
+//   { label: "Card", value: "card", note: "Credit/debit card via POS machine" },
+//   { label: "UPI", value: "upi", note: "Google Pay, PhonePe, etc." },
+//   { label: "NEFT/RTGS", value: "neft_rtgs", note: "Bank transfer methods" },
+//   { label: "Cheque", value: "cheque", note: "Used by traders for bulk orders" },
+//   { label: "Credit", value: "credit", note: "No immediate payment; buy now, pay later" },
+//   { label: "Online Payment", value: "online_payment", note: "Generic for Razorpay/Paytm/etc. gateways" },
+//   { label: "Wallet", value: "wallet", note: "Paytm wallet, Amazon Pay, etc." },
+//   { label: "Other", value: "other", note: "Fallback for unsupported types" }
+// ];
+
 export const paymentMethods = [
-  { label: "Cash", value: "cash", note: "Walk-in or cash-based transactions" },
-  { label: "Card", value: "card", note: "Credit/debit card via POS machine" },
-  { label: "UPI", value: "upi", note: "Google Pay, PhonePe, etc." },
-  { label: "NEFT/RTGS", value: "neft_rtgs", note: "Bank transfer methods" },
-  { label: "Cheque", value: "cheque", note: "Used by traders for bulk orders" },
-  { label: "Credit", value: "credit", note: "No immediate payment; buy now, pay later" },
-  { label: "Online Payment", value: "online_payment", note: "Generic for Razorpay/Paytm/etc. gateways" },
-  { label: "Wallet", value: "wallet", note: "Paytm wallet, Amazon Pay, etc." },
-  { label: "Other", value: "other", note: "Fallback for unsupported types" }
+  {
+    label: "Cash",
+    value: "cash",
+    note: "For walk-in customers or direct cash payments.",
+    extraFieldName: null,
+    extraFieldLabel: null
+  },
+  {
+    label: "Card (Credit/Debit)",
+    value: "card",
+    note: "Payments via POS machine using credit or debit card.",
+    extraFieldName: "cardNumber",
+    extraFieldLabel: "Card Number (Last 4 Digits)"
+  },
+  {
+    label: "UPI",
+    value: "upi",
+    note: "Unified Payments Interface - Google Pay, PhonePe, BHIM, etc.",
+    extraFieldName: "upiTransactionId",
+    extraFieldLabel: "UPI Transaction ID"
+  },
+  {
+    label: "Bank Transfer (NEFT/RTGS)",
+    value: "neft_rtgs",
+    note: "Direct bank transfers via NEFT or RTGS.",
+    extraFieldName: "bankReferenceNumber",
+    extraFieldLabel: "Bank Reference No. / UTR"
+  },
+  {
+    label: "Cheque",
+    value: "cheque",
+    note: "Used by customers for post-dated or bulk order payments.",
+    extraFieldName: "chequeNumber",
+    extraFieldLabel: "Cheque Number"
+  },
+  {
+    label: "Online Payment Gateway",
+    value: "online_payment",
+    note: "Payments through gateways like Razorpay, Paytm, etc.",
+    extraFieldName: "gatewayTransactionId",
+    extraFieldLabel: "Transaction ID"
+  }
 ];
 
 export const paymentStatuses = [

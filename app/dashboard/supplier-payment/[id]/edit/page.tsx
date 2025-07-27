@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "@/components/ui/use-toast";
-import { ArrowLeft, User, FileText, List, IndianRupeeIcon } from "lucide-react";
+import { ArrowLeft, User, FileText, List, IndianRupeeIcon, CreditCard, Landmark, QrCode, Receipt, Banknote } from "lucide-react";
 import { serverGetSupplier, serverGetSupplierPayment, serverUpdateSupplierPayment } from "@/services/serverApi";
 import { paymentMethods } from "@/utils/consts/product";
 import { getSupplierPayments } from "@/lib/features/supplierPaymentSlice";
@@ -25,6 +25,11 @@ interface SupplierPaymentData {
   amount: number;
   paymentType: string;
   paymentMode: string;
+  cardNumber?: string;
+  upiTransactionId?: string;
+  bankReferenceNumber?: string;
+  chequeNumber?: string;
+  gatewayTransactionId?: string;
 }
 
 const defaultFormState: SupplierPaymentData = {
@@ -34,6 +39,11 @@ const defaultFormState: SupplierPaymentData = {
   amount: 0,
   paymentType: "",
   paymentMode: "",
+  cardNumber: "",
+  upiTransactionId: "",
+  bankReferenceNumber: "",
+  chequeNumber: "",
+  gatewayTransactionId: "",
 };
 
 const validationSchema = Yup.object({
@@ -43,6 +53,14 @@ const validationSchema = Yup.object({
   paymentType: Yup.string().required("Payment Type is required"),
   paymentMode: Yup.string().required("Payment Mode is required"),
 });
+
+const paymentModeIcons: Record<string, React.ReactNode> = {
+  card: <CreditCard className="absolute left-2.5 top-3 h-4 w-4 text-muted-foreground" />,
+  upi: <QrCode className="absolute left-2.5 top-3 h-4 w-4 text-muted-foreground" />,
+  neft_rtgs: <Landmark className="absolute left-2.5 top-3 h-4 w-4 text-muted-foreground" />,
+  cheque: <Receipt className="absolute left-2.5 top-3 h-4 w-4 text-muted-foreground" />,
+  online_payment: <Banknote className="absolute left-2.5 top-3 h-4 w-4 text-muted-foreground" />,
+};
 
 export default function EditSupplierPaymentPage({ params }: { params: { id: string } }) {
   const dispatch = useDispatch<AppDispatch>();
@@ -61,6 +79,7 @@ export default function EditSupplierPaymentPage({ params }: { params: { id: stri
       try {
         const res = await serverGetSupplierPayment();
         const supplierPaymentData = res?.data?.find((item: any) => item?._id === params?.id);
+        console.log("Supplier Payment Data:", supplierPaymentData);
 
         if (!supplierPaymentData) {
           setError("Supplier payment not found");
@@ -75,6 +94,11 @@ export default function EditSupplierPaymentPage({ params }: { params: { id: stri
           amount: supplierPaymentData?.amount || 0,
           paymentType: supplierPaymentData?.paymentType || "",
           paymentMode: supplierPaymentData?.paymentMode || "",
+          cardNumber: supplierPaymentData?.cardNumber || "",
+          upiTransactionId: supplierPaymentData?.upiTransactionId || "",
+          bankReferenceNumber: supplierPaymentData?.bankReferenceNumber || "",
+          chequeNumber: supplierPaymentData?.chequeNumber || "",
+          gatewayTransactionId: supplierPaymentData?.gatewayTransactionId || "",
         });
         setSelectedSupplier(supplierPaymentData?.supplierId || "");
         setIsLoading(false);
@@ -112,11 +136,27 @@ export default function EditSupplierPaymentPage({ params }: { params: { id: stri
     setError(null);
 
     try {
-      const dataToSubmit = {
+      // Find the selected payment method
+      const selectedMethod = paymentMethods.find(pm => pm.value === values.paymentMode);
+
+      // Prepare data to submit: always send the core fields, and only the relevant extra field
+      const dataToSubmit: any = {
         ...values,
         amount: values.amount ? Number(values.amount) : 0,
         captureDate: values.captureDate ? new Date(values.captureDate) : new Date(),
       };
+
+      // Remove all possible extra fields first
+      delete dataToSubmit.cardNumber;
+      delete dataToSubmit.upiTransactionId;
+      delete dataToSubmit.bankReferenceNumber;
+      delete dataToSubmit.chequeNumber;
+      delete dataToSubmit.gatewayTransactionId;
+
+      // Add only the relevant extra field if present
+      if (selectedMethod && selectedMethod.extraFieldName) {
+        dataToSubmit[selectedMethod.extraFieldName] = values[selectedMethod.extraFieldName as keyof SupplierPaymentData];
+      }
 
       const res = await serverUpdateSupplierPayment(dataToSubmit);
 
@@ -323,6 +363,35 @@ export default function EditSupplierPaymentPage({ params }: { params: { id: stri
                       </Select>
                     </div>
                     <ErrorMessage name="paymentMode" component="p" className="text-red-500 text-sm" />
+                  </div>
+                </div>
+
+                {/* Extra fields based on payment mode selection */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    {/* Extra field for payment mode with icon */}
+                    {(() => {
+                      const selectedMethod = paymentMethods.find(pm => pm.value === values.paymentMode);
+                      if (selectedMethod && selectedMethod.extraFieldName) {
+                        return (
+                          <div>
+                            <Label htmlFor={selectedMethod.extraFieldName}>{selectedMethod.extraFieldLabel}</Label>
+                            <div className="relative mt-2">
+                              {paymentModeIcons[selectedMethod.value] || null}
+                              <Field
+                                as={Input}
+                                id={selectedMethod.extraFieldName}
+                                name={selectedMethod.extraFieldName}
+                                placeholder={selectedMethod.extraFieldLabel}
+                                className="pl-8"
+                              />
+                              <ErrorMessage name={selectedMethod.extraFieldName} component="p" className="text-red-500 text-sm" />
+                            </div>
+                          </div>
+                        );
+                      }
+                      return null;
+                    })()}
                   </div>
                 </div>
               </CardContent>
