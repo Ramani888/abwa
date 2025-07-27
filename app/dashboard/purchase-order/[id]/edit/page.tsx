@@ -50,6 +50,11 @@ export default function EditPurchaseOrderPage({ params }: { params: { id: string
   const [productData, setProductData] = useState<IProduct[]>([])
   const [paymentStatus, setPaymentStatus] = useState("paid")
   const [captureDate, setCaptureDate] = useState<string>(new Date().toISOString().slice(0, 10)) // <-- Add captureDate state
+  const [cardNumber, setCardNumber] = useState("");
+  const [upiTransactionId, setUpiTransactionId] = useState("");
+  const [bankReferenceNumber, setBankReferenceNumber] = useState("");
+  const [chequeNumber, setChequeNumber] = useState("");
+  const [gatewayTransactionId, setGatewayTransactionId] = useState("");
   const router = useRouter()
 
   // Fetch suppliers and products
@@ -89,6 +94,11 @@ export default function EditPurchaseOrderPage({ params }: { params: { id: string
               }
             })
           )
+          setCardNumber(orderData?.cardNumber || "");
+          setUpiTransactionId(orderData?.upiTransactionId || "");
+          setBankReferenceNumber(orderData?.bankReferenceNumber || "");
+          setChequeNumber(orderData?.chequeNumber || "");
+          setGatewayTransactionId(orderData?.gatewayTransactionId || "");
         }
       } catch (error) {
         setSupplierData([])
@@ -265,7 +275,7 @@ export default function EditPurchaseOrderPage({ params }: { params: { id: string
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    const bodyData = {
+    const bodyData: Record<string, any> = {
       _id: params?.id,
       supplierId: selectedSupplier,
       subTotal: calculateSubtotal(),
@@ -277,6 +287,17 @@ export default function EditPurchaseOrderPage({ params }: { params: { id: string
       notes,
       captureDate, // <-- Include captureDate
       products: orderItems,
+    }
+    const selectedMethod = paymentMethods.find(pm => pm.value === paymentMethod);
+    if (selectedMethod && selectedMethod.extraFieldName) {
+      const fieldValueMap: Record<string, string> = {
+        cardNumber,
+        upiTransactionId,
+        bankReferenceNumber,
+        chequeNumber,
+        gatewayTransactionId,
+      };
+      bodyData[selectedMethod.extraFieldName] = fieldValueMap[selectedMethod.extraFieldName];
     }
     try {
       setIsSubmitting(true)
@@ -635,6 +656,35 @@ export default function EditPurchaseOrderPage({ params }: { params: { id: string
                   </Select>
                 </div>
               </div>
+
+              {(() => {
+                const selectedMethod = paymentMethods.find(pm => pm.value === paymentMethod);
+                if (selectedMethod && selectedMethod.extraFieldName) {
+                  const fieldMap: Record<string, [string, React.Dispatch<React.SetStateAction<string>>]> = {
+                    cardNumber: [cardNumber, setCardNumber],
+                    upiTransactionId: [upiTransactionId, setUpiTransactionId],
+                    bankReferenceNumber: [bankReferenceNumber, setBankReferenceNumber],
+                    chequeNumber: [chequeNumber, setChequeNumber],
+                    gatewayTransactionId: [gatewayTransactionId, setGatewayTransactionId],
+                  };
+                  const [fieldValue, setFieldValue] = fieldMap[selectedMethod.extraFieldName] || ["", () => {}];
+                  return (
+                    <div className="space-y-2">
+                      <Label htmlFor={selectedMethod.extraFieldName}>
+                        {selectedMethod.extraFieldLabel}
+                      </Label>
+                      <Input
+                        id={selectedMethod.extraFieldName}
+                        type="text"
+                        placeholder={selectedMethod.extraFieldLabel || ""}
+                        value={fieldValue}
+                        onChange={e => setFieldValue(e.target.value)}
+                      />
+                    </div>
+                  );
+                }
+                return null;
+              })()}
 
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="space-y-2">

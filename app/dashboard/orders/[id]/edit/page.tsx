@@ -56,6 +56,11 @@ export default function EditOrderPage({ params }: { params: { id: string } }) {
   const [productData, setProductData] = useState<IProduct[]>([])
   const [paymentStatus, setPaymentStatus] = useState("paid")
   const [captureDate, setCaptureDate] = useState(new Date().toISOString().slice(0, 10)) // <-- Add state for captureDate
+  const [cardNumber, setCardNumber] = useState("");
+  const [upiTransactionId, setUpiTransactionId] = useState("");
+  const [bankReferenceNumber, setBankReferenceNumber] = useState("");
+  const [chequeNumber, setChequeNumber] = useState("");
+  const [gatewayTransactionId, setGatewayTransactionId] = useState("");
   const router = useRouter()
 
   // Fetch customers and products
@@ -76,26 +81,32 @@ export default function EditOrderPage({ params }: { params: { id: string } }) {
           setCaptureDate(orderData?.captureDate
             ? new Date(orderData.captureDate).toISOString().slice(0, 10)
             : new Date().toISOString().slice(0, 10)
-          ) // <-- Set captureDate from order
-          setOrderItems(
-            orderData?.products?.map((item: any) => {
-              return {
-                id: item?._id?.toString() || Date.now().toString(),
-                productId: item?.productId,
-                variantId: item?.variantId || "",
-                name: item?.productData?.name + (item?.variantData?.packingSize ? " - " + item?.variantData?.packingSize : ""),
-                price: item?.price,
-                mrp: item?.mrp ?? item?.variantData?.mrp ?? 0, // <-- Add MRP here
-                unit: item?.unit ?? 1,
-                carton: item?.carton ?? 1,
-                quantity: item?.quantity ?? ((item?.unit ?? 1) * (item?.carton ?? 1)),
-                gstRate: item?.gstRate ?? 0,
-                gstAmount: item?.gstAmount ?? 0,
-                total: item?.total ?? 0,
-                size: item?.variantData?.packingSize ? String(item?.variantData?.packingSize) : "",
-              }
-            })
           )
+          setOrderItems(
+            orderData?.products?.map((item: any) => ({
+              id: item?._id?.toString() || Date.now().toString(),
+              productId: item?.productId,
+              variantId: item?.variantId || "",
+              name: item?.productData?.name + (item?.variantData?.packingSize ? " - " + item?.variantData?.packingSize : ""),
+              price: item?.price,
+              mrp: item?.mrp ?? item?.variantData?.mrp ?? 0,
+              unit: item?.unit ?? 1,
+              carton: item?.carton ?? 1,
+              quantity: item?.quantity ?? ((item?.unit ?? 1) * (item?.carton ?? 1)),
+              gstRate: item?.gstRate ?? 0,
+              gstAmount: item?.gstAmount ?? 0,
+              total: item?.total ?? 0,
+              size: item?.variantData?.packingSize ? String(item?.variantData?.packingSize) : "",
+            }))
+          );
+
+          // --- Set extra field values based on payment method ---
+          setCardNumber(orderData?.cardNumber || "");
+          setUpiTransactionId(orderData?.upiTransactionId || "");
+          setBankReferenceNumber(orderData?.bankReferenceNumber || "");
+          setChequeNumber(orderData?.chequeNumber || "");
+          setGatewayTransactionId(orderData?.gatewayTransactionId || "");
+          // --- End extra field values ---
         }
       } catch (error) {
         setCustomerData([])
@@ -290,6 +301,17 @@ export default function EditOrderPage({ params }: { params: { id: string } }) {
       notes,
       captureDate, // <-- Include captureDate
       products: orderItems,
+    } as any;
+    const selectedMethod = paymentMethods.find(pm => pm.value === paymentMethod);
+    if (selectedMethod && selectedMethod.extraFieldName) {
+      const fieldValueMap: Record<string, string> = {
+        cardNumber,
+        upiTransactionId,
+        bankReferenceNumber,
+        chequeNumber,
+        gatewayTransactionId,
+      };
+      bodyData[selectedMethod.extraFieldName] = fieldValueMap[selectedMethod.extraFieldName];
     }
     try {
       setIsSubmitting(true)
@@ -691,6 +713,37 @@ export default function EditOrderPage({ params }: { params: { id: string } }) {
                   </Select>
                 </div>
               </div>
+
+              {/* --- Extra fields based on payment method --- */}
+              {(() => {
+                const selectedMethod = paymentMethods.find(pm => pm.value === paymentMethod);
+                if (selectedMethod && selectedMethod.extraFieldName) {
+                  const fieldMap: Record<string, [string, React.Dispatch<React.SetStateAction<string>>]> = {
+                    cardNumber: [cardNumber, setCardNumber],
+                    upiTransactionId: [upiTransactionId, setUpiTransactionId],
+                    bankReferenceNumber: [bankReferenceNumber, setBankReferenceNumber],
+                    chequeNumber: [chequeNumber, setChequeNumber],
+                    gatewayTransactionId: [gatewayTransactionId, setGatewayTransactionId],
+                  };
+                  const [fieldValue, setFieldValue] = fieldMap[selectedMethod.extraFieldName] || ["", () => {}];
+                  return (
+                    <div className="space-y-2">
+                      <Label htmlFor={selectedMethod.extraFieldName}>
+                        {selectedMethod.extraFieldLabel}
+                      </Label>
+                      <Input
+                        id={selectedMethod.extraFieldName}
+                        type="text"
+                        placeholder={selectedMethod.extraFieldLabel || ""}
+                        value={fieldValue}
+                        onChange={e => setFieldValue(e.target.value)}
+                      />
+                    </div>
+                  );
+                }
+                return null;
+              })()}
+              {/* --- End extra fields --- */}
 
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="space-y-2">

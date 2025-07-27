@@ -56,6 +56,11 @@ export default function NewOrderPage() {
   const [productData, setProductData] = useState<IProduct[]>([])
   const [paymentStatus, setPaymentStatus] = useState("paid")
   const [captureDate, setCaptureDate] = useState(new Date().toISOString().slice(0, 10)) // <-- Add state for captureDate
+  const [cardNumber, setCardNumber] = useState("")
+  const [upiTransactionId, setUpiTransactionId] = useState("")
+  const [bankReferenceNumber, setBankReferenceNumber] = useState("")
+  const [chequeNumber, setChequeNumber] = useState("")
+  const [gatewayTransactionId, setGatewayTransactionId] = useState("")
   const router = useRouter()
 
   const filteredCustomers = customerData?.filter(
@@ -224,7 +229,7 @@ export default function NewOrderPage() {
 
   // Remove form event, just a plain function
   const handleSubmit = async () => {
-    const bodyData = {
+    const bodyData: any = {
       customerType: activeTab,
       customerId: selectedCustomer,
       subTotal: calculateSubtotal(),
@@ -234,8 +239,20 @@ export default function NewOrderPage() {
       paymentMethod,
       paymentStatus,
       notes,
-      captureDate, // <-- Add captureDate here
-      products: orderItems
+      captureDate,
+      products: orderItems,
+    }
+
+    const selectedMethod = paymentMethods.find(pm => pm.value === paymentMethod);
+    if (selectedMethod && selectedMethod.extraFieldName) {
+      const fieldValueMap: Record<string, string> = {
+        cardNumber,
+        upiTransactionId,
+        bankReferenceNumber,
+        chequeNumber,
+        gatewayTransactionId,
+      };
+      bodyData[selectedMethod.extraFieldName] = fieldValueMap[selectedMethod.extraFieldName];
     }
 
     try {
@@ -639,6 +656,36 @@ export default function NewOrderPage() {
                   </Select>
                 </div>
               </div>
+
+              {(() => {
+                const selectedMethod = paymentMethods.find(pm => pm.value === paymentMethod);
+                if (selectedMethod && selectedMethod.extraFieldName) {
+                  // Map field name to state/setter
+                  const fieldMap: Record<string, [string, React.Dispatch<React.SetStateAction<string>>]> = {
+                    cardNumber: [cardNumber, setCardNumber],
+                    upiTransactionId: [upiTransactionId, setUpiTransactionId],
+                    bankReferenceNumber: [bankReferenceNumber, setBankReferenceNumber],
+                    chequeNumber: [chequeNumber, setChequeNumber],
+                    gatewayTransactionId: [gatewayTransactionId, setGatewayTransactionId],
+                  };
+                  const [fieldValue, setFieldValue] = fieldMap[selectedMethod.extraFieldName] || ["", () => {}];
+                  return (
+                    <div className="space-y-2">
+                      <Label htmlFor={selectedMethod.extraFieldName}>
+                        {selectedMethod.extraFieldLabel}
+                      </Label>
+                      <Input
+                        id={selectedMethod.extraFieldName}
+                        type="text"
+                        placeholder={selectedMethod.extraFieldLabel || ""}
+                        value={fieldValue}
+                        onChange={e => setFieldValue(e.target.value)}
+                      />
+                    </div>
+                  );
+                }
+                return null;
+              })()}
 
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
