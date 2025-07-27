@@ -88,14 +88,54 @@ export default function CustomerDetailsPage({ params }: { params: { id: string }
 
       {/* Responsive Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 mb-6">
-        <Card className="border border-red-500 transition-all duration-200">
+        <Card
+          className={
+            "transition-all duration-200 " +
+            (pendingTotal > 0
+              ? "border border-red-500"
+              : pendingTotal < 0
+              ? "border border-green-500"
+              : "border border-gray-400")
+          }
+        >
           <CardContent className="flex items-center gap-4 py-6">
-            <div className="flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
-              <ArrowLeft className="h-6 w-6 text-red-500" />
+            <div className={
+              "flex items-center justify-center h-12 w-12 rounded-full " +
+              (pendingTotal > 0
+                ? "bg-red-100"
+                : pendingTotal < 0
+                ? "bg-green-100"
+                : "bg-gray-100")
+            }>
+              <ArrowLeft className={
+                "h-6 w-6 " +
+                (pendingTotal > 0
+                  ? "text-red-500"
+                  : pendingTotal < 0
+                  ? "text-green-600"
+                  : "text-gray-600")
+              } />
             </div>
             <div>
-              <div className="text-sm text-muted-foreground font-medium">Due Amount</div>
-              <div className="text-2xl font-bold text-red-600 break-words">{formatCurrency(pendingTotal)}</div>
+              <div className="text-sm text-muted-foreground font-medium">
+                {pendingTotal > 0
+                  ? "Due Amount"
+                  : pendingTotal < 0
+                  ? "Credit Amount"
+                  : "No Due"}
+              </div>
+              <div
+                className={
+                  "text-2xl font-bold break-words " +
+                  (pendingTotal > 0
+                    ? "text-red-600"
+                    : pendingTotal < 0
+                    ? "text-green-600"
+                    : "text-gray-600")
+                }
+              >
+                {formatCurrency(Math.abs(pendingTotal))}
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -172,7 +212,7 @@ export default function CustomerDetailsPage({ params }: { params: { id: string }
                   </div>
                   <div className="flex flex-col sm:flex-row sm:justify-between">
                     <span className="text-muted-foreground">Last Order:</span>
-                    <span>{customerData?.lastOrderDate ? new Date(customerData?.lastOrderDate).toLocaleDateString() : ""}</span>
+                    <span>{customerData?.lastOrderDate ? new Date(customerData?.lastOrderDate).toLocaleDateString() : "N/A"}</span>
                   </div>
                   {customerData?.customerType === "wholesale" && (
                     <>
@@ -214,23 +254,33 @@ export default function CustomerDetailsPage({ params }: { params: { id: string }
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {customerData?.orders?.map((order: any) => (
-                    <TableRow key={order?._id}>
-                      <TableCell className="font-medium">{order?._id}</TableCell>
-                      <TableCell>{order?.captureDate ? new Date(order?.captureDate).toLocaleDateString() : ""}</TableCell>
-                      <TableCell>{formatCurrency(order?.total ?? 0)}</TableCell>
-                      <TableCell>
-                        <Badge className="capitalize" variant={order?.paymentStatus === "paid" ? "default" : "destructive"}>{order?.paymentStatus}</Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Link href={`/dashboard/orders/${order?._id}`}>
-                          <Button variant="outline" size="sm">
-                            View
-                          </Button>
-                        </Link>
+                  {customerData?.orders && customerData.orders.length > 0 ? (
+                    customerData.orders.map((order: any) => (
+                      <TableRow key={order?._id}>
+                        <TableCell className="font-medium">{order?._id}</TableCell>
+                        <TableCell>{order?.captureDate ? new Date(order?.captureDate).toLocaleDateString() : ""}</TableCell>
+                        <TableCell>{formatCurrency(order?.total ?? 0)}</TableCell>
+                        <TableCell>
+                          <Badge className="capitalize" variant={order?.paymentStatus === "paid" ? "default" : "destructive"}>
+                            {order?.paymentStatus}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Link href={`/dashboard/orders/${order?._id}`}>
+                            <Button variant="outline" size="sm">
+                              View
+                            </Button>
+                          </Link>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center text-muted-foreground">
+                        No data found
                       </TableCell>
                     </TableRow>
-                  ))}
+                  )}
                 </TableBody>
               </Table>
             </div>
