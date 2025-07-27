@@ -7,6 +7,7 @@ import { getOrders } from "@/lib/features/orderSlice"
 import { getSupplierPayments } from "@/lib/features/supplierPaymentSlice"
 import { getSuppliers } from "@/lib/features/supplierSlice"
 import { getCustomerPayments } from "@/lib/features/customerPaymentSlice"
+import { getPurchaseOrders } from "@/lib/features/purchaseOrderSlice"
 
 export function useAppData() {
   const dispatch = useDispatch<AppDispatch>()
@@ -18,6 +19,7 @@ export function useAppData() {
     dispatch(getSupplierPayments())
     dispatch(getSuppliers())
     dispatch(getCustomerPayments())
+    dispatch(getPurchaseOrders())
   }, [dispatch])
 
   return { fetchAllData }

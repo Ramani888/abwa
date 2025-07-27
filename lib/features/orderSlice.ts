@@ -1,6 +1,5 @@
-import { serverGetOrder, serverGetProduct } from '@/services/serverApi'
+import { serverGetOrder } from '@/services/serverApi'
 import { IOrder } from '@/types/order'
-import { IProduct } from '@/types/product'
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 
 interface OrderState {

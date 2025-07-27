@@ -16,10 +16,11 @@ import { set } from "date-fns"
 import { serverAddCustomerPayment, serverAddSupplierPayment, serverGetCustomers, serverGetSupplier } from "@/services/serverApi"
 import { paymentMethods } from "@/utils/consts/product"
 import { getSupplierPayments } from "@/lib/features/supplierPaymentSlice"
-import { useDispatch } from "react-redux"
+import { useDispatch, useSelector } from "react-redux"
 import { AppDispatch } from "@/lib/store"
-import { formatIndianNumber } from "@/utils/helpers/general"
+import { formatCurrency, formatIndianNumber } from "@/utils/helpers/general"
 import { Dialog, DialogContent, DialogHeader, DialogFooter, DialogTitle, DialogDescription } from "@/components/ui/dialog"
+import { RootState } from "@/lib/store"
 
 const paymentModeIcons: Record<string, React.ReactNode> = {
   card: <CreditCard className="absolute left-2.5 top-3 h-4 w-4 text-muted-foreground" />,
@@ -37,6 +38,9 @@ export default function NewSupplierPaymentPage() {
   const [loading, setLoading] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [pendingSubmit, setPendingSubmit] = useState<any>(null);
+  const { supplierPayment } = useSelector((state: RootState) => state.supplierPayment || { supplierPayment: [] });
+  const { purchaseOrders } = useSelector((state: RootState) => state.purchaseOrders || { purchaseOrders: [] });
+  const [dueAmount, setDueAmount] = useState<number | null>(null);
 
   const getSupplierData = async () => {
     try {
@@ -54,6 +58,29 @@ export default function NewSupplierPaymentPage() {
   useEffect(() => {
     getSupplierData();
   }, []);
+
+  useEffect(() => {
+    if (!selectedSupplier) {
+      setDueAmount(null);
+      return;
+    }
+    // Filter payments and orders for the selected supplier
+    const filteredSupplierPayment = supplierPayment?.filter((data: any) => data.supplierId === selectedSupplier);
+    const filteredSupplierOrders = purchaseOrders?.filter((order: any) => order.supplierId === selectedSupplier);
+
+    const paidTotal = filteredSupplierPayment?.reduce(
+      (sum: number, data: any) => sum + (data.amount || 0),
+      0
+    ) || 0;
+
+    const totalAmount = filteredSupplierOrders?.reduce(
+      (sum: number, order: any) => sum + (order.total || 0),
+      0
+    ) || 0;
+
+    const pendingTotal = totalAmount - paidTotal;
+    setDueAmount(pendingTotal ?? null);
+  }, [selectedSupplier, supplierPayment, purchaseOrders]);
 
   const today = new Date().toISOString().split("T")[0];
 
@@ -201,9 +228,29 @@ export default function NewSupplierPaymentPage() {
                     </div>
                     <ErrorMessage name="captureDate" component="p" className="text-red-500 text-sm" />
                   </div>
-                  {/* Amount with icon */}
+                  {/* Amount with icon and due amount */}
                   <div className="space-y-2">
-                    <Label htmlFor="amount">Amount (₹)</Label>
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="amount">Amount (₹)</Label>
+                      {dueAmount !== null && (
+                        <div
+                          className={
+                            "ml-4 whitespace-nowrap text-sm font-semibold " +
+                            (dueAmount > 0
+                              ? "text-red-500"
+                              : dueAmount < 0
+                              ? "text-green-500"
+                              : "text-gray-500")
+                          }
+                        >
+                          {dueAmount > 0
+                            ? `Due Amount: ${formatCurrency(dueAmount)}`
+                            : dueAmount < 0
+                            ? `Credit Amount: ${formatCurrency(Math.abs(dueAmount))}`
+                            : "No Due"}
+                        </div>
+                      )}
+                    </div>
                     <div className="relative">
                       <IndianRupeeIcon className="absolute left-2.5 top-3 h-4 w-4 text-muted-foreground" />
                       <Field name="amount">
