@@ -14,10 +14,11 @@ import { ArrowLeft, User, FileText, List, IndianRupeeIcon, CreditCard, Landmark,
 import { Dialog, DialogContent, DialogHeader, DialogFooter, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { serverGetCustomerPayment, serverGetCustomers, serverUpdateCustomerPayment } from "@/services/serverApi";
 import { paymentMethods } from "@/utils/consts/product";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch } from "@/lib/store";
 import { getCustomerPayments } from "@/lib/features/customerPaymentSlice";
-import { formatIndianNumber } from "@/utils/helpers/general";
+import { formatCurrency, formatIndianNumber } from "@/utils/helpers/general";
+import { RootState } from "@/lib/store";
 
 interface CustomerPaymentData {
   _id: string;
@@ -74,6 +75,9 @@ export default function EditCustomerPaymentPage({ params }: { params: { id: stri
   const [showConfirm, setShowConfirm] = useState(false);
   const [pendingSubmit, setPendingSubmit] = useState<any>(null);
   const router = useRouter();
+  const { customerPayment } = useSelector((state: RootState) => state.customerPayment);
+  const { orders } = useSelector((state: RootState) => state.orders || { orders: [] });
+  const [dueAmount, setDueAmount] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchCustomerPayment = async () => {
@@ -131,6 +135,29 @@ export default function EditCustomerPaymentPage({ params }: { params: { id: stri
   useEffect(() => {
     getCustomerData();
   }, []);
+
+  // Update due amount when customer is selected or data changes
+  useEffect(() => {
+    if (!selectedCustomer) {
+      setDueAmount(null);
+      return;
+    }
+    const filteredCustomerPayment = customerPayment?.filter((data: any) => data.customerId === selectedCustomer);
+    const filteredCustomerOrders = orders?.filter((order: any) => order.customerId === selectedCustomer);
+
+    const paidTotal = filteredCustomerPayment?.reduce(
+      (sum: number, data: any) => sum + (data.amount || 0),
+      0
+    ) || 0;
+
+    const totalAmount = filteredCustomerOrders?.reduce(
+      (sum: number, order: any) => sum + (order.total || 0),
+      0
+    ) || 0;
+
+    const pendingTotal = totalAmount - paidTotal;
+    setDueAmount(pendingTotal ?? null);
+  }, [selectedCustomer, customerPayment, orders]);
 
   const handleSubmit = async (
     values: CustomerPaymentData,
@@ -300,9 +327,29 @@ export default function EditCustomerPaymentPage({ params }: { params: { id: stri
                     </div>
                     <ErrorMessage name="captureDate" component="p" className="text-red-500 text-sm" />
                   </div>
-                  {/* Amount with icon */}
+                  {/* Amount with icon and due amount */}
                   <div className="space-y-2">
-                    <Label htmlFor="amount">Amount (₹)</Label>
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="amount">Amount (₹)</Label>
+                      {dueAmount !== null && (
+                        <div
+                          className={
+                            "ml-4 whitespace-nowrap text-sm font-semibold " +
+                            (dueAmount > 0
+                              ? "text-red-500"
+                              : dueAmount < 0
+                              ? "text-green-500"
+                              : "text-gray-500")
+                          }
+                        >
+                          {dueAmount > 0
+                            ? `Due Amount: ${formatCurrency(dueAmount)}`
+                            : dueAmount < 0
+                            ? `Credit Amount: ${formatCurrency(Math.abs(dueAmount))}`
+                            : "No Due"}
+                        </div>
+                      )}
+                    </div>
                     <div className="relative">
                       <IndianRupeeIcon className="absolute left-2.5 top-3 h-4 w-4 text-muted-foreground" />
                       <Field name="amount">

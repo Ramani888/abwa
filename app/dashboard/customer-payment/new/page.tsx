@@ -16,19 +16,24 @@ import { set } from "date-fns"
 import { serverAddCustomerPayment, serverGetCustomers } from "@/services/serverApi"
 import { paymentMethods } from "@/utils/consts/product"
 import { getCustomerPayments } from "@/lib/features/customerPaymentSlice"
-import { useDispatch } from "react-redux"
-import { AppDispatch } from "@/lib/store"
-import { formatIndianNumber } from "@/utils/helpers/general"
+import { useDispatch, useSelector } from "react-redux"
+import { AppDispatch, RootState } from "@/lib/store"
+import { formatCurrency, formatIndianNumber } from "@/utils/helpers/general"
 import { Dialog, DialogContent, DialogHeader, DialogFooter, DialogTitle, DialogDescription } from "@/components/ui/dialog"
+import { ICustomerPayment } from "@/types/customer"
 
 export default function NewCustomerPaymentPage() {
   const router = useRouter()
   const dispatch = useDispatch<AppDispatch>()
+  const { customerPayment, loading: customerPaymentLoading } = useSelector((state: RootState) => state.customerPayment)
+  const { orders, loading: ordersLoading } = useSelector((state: RootState) => state.orders)
+
   const [customerData, setCustomerData] = useState<any[]>([])
   const [selectedCustomer, setSelectedCustomer] = useState("")
   const [loading, setLoading] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [pendingSubmit, setPendingSubmit] = useState<any>(null);
+  const [dueAmount, setDueAmount] = useState<number | null>(null);
 
   const paymentModeIcons: Record<string, React.ReactNode> = {
     card: <CreditCard className="absolute left-2.5 top-3 h-4 w-4 text-muted-foreground" />,
@@ -130,6 +135,28 @@ export default function NewCustomerPaymentPage() {
     setShowConfirm(false);
   };
 
+  // Update due amount when customer is selected
+  const handleCustomerChange = (val: string, setFieldValue: any) => {
+    setSelectedCustomer(val);
+    setFieldValue("customerId", val);
+    const filteredCustomerPayment = customerPayment?.filter((data: any) => data.customerId === val)
+    const filteredCustomerOrders = orders?.filter((order: any) => order.customerId === val);
+    
+    const paidTotal = filteredCustomerPayment?.reduce(
+      (sum: number, data: ICustomerPayment) => sum + (data.amount || 0),
+      0
+    ) || 0;
+  
+    const totalAmount = filteredCustomerOrders?.reduce(
+      (sum: number, order: any) => sum + (order.total || 0),
+      0
+    ) || 0;
+  
+    const pendingTotal = totalAmount - paidTotal;
+
+    setDueAmount(pendingTotal ?? null);
+  };
+
   return (
     <div className="w-full">
       <div className="flex items-center mb-6">
@@ -159,10 +186,7 @@ export default function NewCustomerPaymentPage() {
                     <User className="absolute left-2.5 top-3 h-4 w-4 text-muted-foreground" />
                     <Select
                       value={selectedCustomer}
-                      onValueChange={(val) => {
-                        setSelectedCustomer(val)
-                        setFieldValue("customerId", val)
-                      }}
+                      onValueChange={(val) => handleCustomerChange(val, setFieldValue)}
                     >
                       <SelectTrigger className="pl-8">
                         <SelectValue placeholder="Select a customer" />
@@ -196,30 +220,52 @@ export default function NewCustomerPaymentPage() {
                     </div>
                     <ErrorMessage name="captureDate" component="p" className="text-red-500 text-sm" />
                   </div>
-                  {/* Amount with icon */}
+                  {/* Amount with icon and due amount on right */}
                   <div className="space-y-2">
-                    <Label htmlFor="amount">Amount (₹)</Label>
-                    <div className="relative">
-                      <IndianRupeeIcon className="absolute left-2.5 top-3 h-4 w-4 text-muted-foreground" />
-                      <Field name="amount">
-                        {({ field, form }: any) => (
-                          <Input
-                            id="amount"
-                            type="text"
-                            placeholder="Enter amount"
-                            className="pl-8"
-                            value={field.value ? formatIndianNumber(field.value) : ""}
-                            onChange={e => {
-                              // Remove commas for raw value
-                              const rawValue = e.target.value.replace(/,/g, "");
-                              // Only allow numbers
-                              if (/^\d*$/.test(rawValue)) {
-                                form.setFieldValue("amount", rawValue);
-                              }
-                            }}
-                          />
-                        )}
-                      </Field>
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="amount">Amount (₹)</Label>
+                      {dueAmount !== null && (
+                        <div
+                          className={
+                            "ml-4 whitespace-nowrap text-sm font-semibold " +
+                            (dueAmount > 0
+                              ? "text-red-500"
+                              : dueAmount < 0
+                              ? "text-green-500"
+                              : "text-gray-500")
+                          }
+                        >
+                          {dueAmount > 0
+                            ? `Due Amount: ${formatCurrency(dueAmount)}`
+                            : dueAmount < 0
+                            ? `Credit Amount: ${formatCurrency(Math.abs(dueAmount))}`
+                            : "No Due"}
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex items-center">
+                      <div className="relative flex-1">
+                        <IndianRupeeIcon className="absolute left-2.5 top-3 h-4 w-4 text-muted-foreground" />
+                        <Field name="amount">
+                          {({ field, form }: any) => (
+                            <Input
+                              id="amount"
+                              type="text"
+                              placeholder="Enter amount"
+                              className="pl-8"
+                              value={field.value ? formatIndianNumber(field.value) : ""}
+                              onChange={e => {
+                                // Remove commas for raw value
+                                const rawValue = e.target.value.replace(/,/g, "");
+                                // Only allow numbers
+                                if (/^\d*$/.test(rawValue)) {
+                                  form.setFieldValue("amount", rawValue);
+                                }
+                              }}
+                            />
+                          )}
+                        </Field>
+                      </div>
                     </div>
                     <ErrorMessage name="amount" component="p" className="text-red-500 text-sm" />
                   </div>
