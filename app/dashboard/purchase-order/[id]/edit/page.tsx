@@ -16,6 +16,7 @@ import { IProduct } from "@/types/product"
 import { ISupplier } from "@/types/supplier"
 import { paymentMethods, paymentStatuses } from "@/utils/consts/product"
 import { formatCurrency } from "@/utils/helpers/general"
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 
 export default function EditPurchaseOrderPage({ params }: { params: { id: string } }) {
   const [orderItems, setOrderItems] = useState<
@@ -55,6 +56,7 @@ export default function EditPurchaseOrderPage({ params }: { params: { id: string
   const [bankReferenceNumber, setBankReferenceNumber] = useState("");
   const [chequeNumber, setChequeNumber] = useState("");
   const [gatewayTransactionId, setGatewayTransactionId] = useState("");
+  const [showConfirm, setShowConfirm] = useState(false);
   const router = useRouter()
 
   // Fetch suppliers and products
@@ -734,13 +736,36 @@ export default function EditPurchaseOrderPage({ params }: { params: { id: string
             <Button
               type="button"
               disabled={isSubmitting || orderItems.length === 0 || !selectedSupplier}
-              onClick={handleSubmit}
+              onClick={() => setShowConfirm(true)}
             >
               {isSubmitting ? "Saving..." : "Save Changes"}
             </Button>
           </CardFooter>
         </Card>
       </section>
+
+      <Dialog open={showConfirm} onOpenChange={setShowConfirm}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Update</DialogTitle>
+          </DialogHeader>
+          <div>Are you sure you want to update this purchase order?</div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowConfirm(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={async () => {
+                setShowConfirm(false);
+                await handleSubmit({ preventDefault: () => {} } as any);
+              }}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "Saving..." : "Yes, Update Order"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </main>
   )
 }

@@ -16,6 +16,7 @@ import { IProduct } from "@/types/product"
 import { ISupplier } from "@/types/supplier"
 import { paymentMethods, paymentStatuses } from "@/utils/consts/product"
 import { formatCurrency } from "@/utils/helpers/general"
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 
 export default function NewPurchaseOrderPage() {
   const [orderItems, setOrderItems] = useState<
@@ -55,6 +56,7 @@ export default function NewPurchaseOrderPage() {
   const [bankReferenceNumber, setBankReferenceNumber] = useState("");
   const [chequeNumber, setChequeNumber] = useState("");
   const [gatewayTransactionId, setGatewayTransactionId] = useState("");
+  const [showConfirm, setShowConfirm] = useState(false);
   const router = useRouter()
 
   const filteredSuppliers = supplierData?.filter((supplier) => supplier?.name.toLowerCase().includes(searchQuery.toLowerCase()))
@@ -678,13 +680,36 @@ export default function NewPurchaseOrderPage() {
             <Button
               type="button"
               disabled={isSubmitting || orderItems.length === 0 || !selectedSupplier}
-              onClick={handleSubmit}
+              onClick={() => setShowConfirm(true)}
             >
               {isSubmitting ? "Creating..." : "Create Order"}
             </Button>
           </CardFooter>
         </Card>
       </section>
+
+      <Dialog open={showConfirm} onOpenChange={setShowConfirm}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Purchase Order Submission</DialogTitle>
+          </DialogHeader>
+          <div>Are you sure you want to create this purchase order?</div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowConfirm(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={async () => {
+                setShowConfirm(false);
+                await handleSubmit();
+              }}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "Creating..." : "Yes, Create Order"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </main>
   )
 }
