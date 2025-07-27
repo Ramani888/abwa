@@ -20,6 +20,7 @@ import { getOrders } from "@/lib/features/orderSlice"
 import { useDispatch } from "react-redux"
 import { AppDispatch } from "@/lib/store"
 import { formatCurrency } from "@/utils/helpers/general"
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 
 export default function NewOrderPage() {
   const dispatch = useDispatch<AppDispatch>()
@@ -61,6 +62,7 @@ export default function NewOrderPage() {
   const [bankReferenceNumber, setBankReferenceNumber] = useState("")
   const [chequeNumber, setChequeNumber] = useState("")
   const [gatewayTransactionId, setGatewayTransactionId] = useState("")
+  const [showConfirm, setShowConfirm] = useState(false)
   const router = useRouter()
 
   const filteredCustomers = customerData?.filter(
@@ -736,13 +738,36 @@ export default function NewOrderPage() {
             <Button
               type="button"
               disabled={isSubmitting || orderItems.length === 0 || !selectedCustomer}
-              onClick={handleSubmit}
+              onClick={() => setShowConfirm(true)}
             >
               {isSubmitting ? "Creating..." : "Create Order"}
             </Button>
           </CardFooter>
         </Card>
       </section>
+
+      <Dialog open={showConfirm} onOpenChange={setShowConfirm}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Order Submission</DialogTitle>
+          </DialogHeader>
+          <div>Are you sure you want to create this order?</div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowConfirm(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={async () => {
+                setShowConfirm(false);
+                await handleSubmit();
+              }}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "Creating..." : "Yes, Create Order"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </main>
   )
 }

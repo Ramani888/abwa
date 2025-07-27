@@ -20,6 +20,7 @@ import { getOrders } from "@/lib/features/orderSlice"
 import { useDispatch } from "react-redux"
 import { AppDispatch } from "@/lib/store"
 import { formatCurrency } from "@/utils/helpers/general"
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 
 export default function EditOrderPage({ params }: { params: { id: string } }) {
   const dispatch = useDispatch<AppDispatch>()
@@ -61,6 +62,7 @@ export default function EditOrderPage({ params }: { params: { id: string } }) {
   const [bankReferenceNumber, setBankReferenceNumber] = useState("");
   const [chequeNumber, setChequeNumber] = useState("");
   const [gatewayTransactionId, setGatewayTransactionId] = useState("");
+  const [showConfirm, setShowConfirm] = useState(false);
   const router = useRouter()
 
   // Fetch customers and products
@@ -790,12 +792,39 @@ export default function EditOrderPage({ params }: { params: { id: string } }) {
             <Button type="button" variant="outline" onClick={() => router.back()}>
               Cancel
             </Button>
-            <Button type="submit" disabled={isSubmitting || orderItems.length === 0 || !selectedCustomer} onClick={handleSubmit}>
+            <Button
+              type="button"
+              disabled={isSubmitting || orderItems.length === 0 || !selectedCustomer}
+              onClick={() => setShowConfirm(true)}
+            >
               {isSubmitting ? "Saving..." : "Save Changes"}
             </Button>
           </CardFooter>
         </Card>
       </section>
+
+      <Dialog open={showConfirm} onOpenChange={setShowConfirm}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Update</DialogTitle>
+          </DialogHeader>
+          <div>Are you sure you want to update this order?</div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowConfirm(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={async () => {
+                setShowConfirm(false);
+                await handleSubmit({ preventDefault: () => {} } as any);
+              }}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "Saving..." : "Yes, Update Order"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </main>
   )
 }
