@@ -10,7 +10,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "@/components/ui/use-toast";
-import { ArrowLeft, User, FileText, List, IndianRupeeIcon } from "lucide-react";
+import { ArrowLeft, User, FileText, List, IndianRupeeIcon, CreditCard, Landmark, QrCode, Receipt, Banknote } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogFooter, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { serverGetCustomerPayment, serverGetCustomers, serverUpdateCustomerPayment } from "@/services/serverApi";
 import { paymentMethods } from "@/utils/consts/product";
 import { useDispatch } from "react-redux";
@@ -25,6 +26,11 @@ interface CustomerPaymentData {
   amount: number;
   paymentType: string;
   paymentMode: string;
+  cardNumber?: string;
+  upiTransactionId?: string;
+  bankReferenceNumber?: string;
+  chequeNumber?: string;
+  gatewayTransactionId?: string;
 }
 
 const defaultFormState: CustomerPaymentData = {
@@ -34,6 +40,11 @@ const defaultFormState: CustomerPaymentData = {
   amount: 0,
   paymentType: "",
   paymentMode: "",
+  cardNumber: "",
+  upiTransactionId: "",
+  bankReferenceNumber: "",
+  chequeNumber: "",
+  gatewayTransactionId: "",
 };
 
 const validationSchema = Yup.object({
@@ -44,6 +55,15 @@ const validationSchema = Yup.object({
   paymentMode: Yup.string().required("Payment Mode is required"),
 });
 
+// Payment mode icons
+const paymentModeIcons: Record<string, React.ReactNode> = {
+  card: <CreditCard className="absolute left-2.5 top-3 h-4 w-4 text-muted-foreground" />,
+  upi: <QrCode className="absolute left-2.5 top-3 h-4 w-4 text-muted-foreground" />,
+  neft_rtgs: <Landmark className="absolute left-2.5 top-3 h-4 w-4 text-muted-foreground" />,
+  cheque: <Receipt className="absolute left-2.5 top-3 h-4 w-4 text-muted-foreground" />,
+  online_payment: <Banknote className="absolute left-2.5 top-3 h-4 w-4 text-muted-foreground" />,
+};
+
 export default function EditCustomerPaymentPage({ params }: { params: { id: string } }) {
   const dispatch = useDispatch<AppDispatch>()
   const [initialValues, setInitialValues] = useState<CustomerPaymentData>(defaultFormState);
@@ -51,6 +71,8 @@ export default function EditCustomerPaymentPage({ params }: { params: { id: stri
   const [selectedCustomer, setSelectedCustomer] = useState<string>("");
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [pendingSubmit, setPendingSubmit] = useState<any>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -75,6 +97,11 @@ export default function EditCustomerPaymentPage({ params }: { params: { id: stri
           amount: customerPaymentData?.amount || 0,
           paymentType: customerPaymentData?.paymentType || "",
           paymentMode: customerPaymentData?.paymentMode || "",
+          cardNumber: customerPaymentData?.cardNumber || "",
+          upiTransactionId: customerPaymentData?.upiTransactionId || "",
+          bankReferenceNumber: customerPaymentData?.bankReferenceNumber || "",
+          chequeNumber: customerPaymentData?.chequeNumber || "",
+          gatewayTransactionId: customerPaymentData?.gatewayTransactionId || "",
         });
         setSelectedCustomer(customerPaymentData?.customerId || "");
         setIsLoading(false);
@@ -112,11 +139,22 @@ export default function EditCustomerPaymentPage({ params }: { params: { id: stri
     setError(null);
 
     try {
-      const dataToSubmit = {
+      const selectedMethod = paymentMethods.find(pm => pm.value === values.paymentMode);
+      const dataToSubmit: any = {
         ...values,
         amount: values.amount ? Number(values.amount) : 0,
         captureDate: values.captureDate ? new Date(values.captureDate) : new Date(),
       };
+      // Remove all possible extra fields first
+      delete dataToSubmit.cardNumber;
+      delete dataToSubmit.upiTransactionId;
+      delete dataToSubmit.bankReferenceNumber;
+      delete dataToSubmit.chequeNumber;
+      delete dataToSubmit.gatewayTransactionId;
+      // Add only the relevant extra field if present
+      if (selectedMethod && selectedMethod.extraFieldName) {
+        dataToSubmit[selectedMethod.extraFieldName] = values[selectedMethod.extraFieldName as keyof CustomerPaymentData];
+      }
 
       const res = await serverUpdateCustomerPayment(dataToSubmit);
 
@@ -137,6 +175,28 @@ export default function EditCustomerPaymentPage({ params }: { params: { id: stri
       setError("An error occurred while updating the customer payment");
       console.error("Error updating customer payment:", error);
     }
+  };
+
+  // Confirmation dialog handlers
+  const handleFormSubmit = (values: CustomerPaymentData, actions: any) => {
+    setPendingSubmit({ values, actions });
+    setShowConfirm(true);
+  };
+
+  const handleConfirm = () => {
+    if (pendingSubmit) {
+      handleSubmit(pendingSubmit.values, pendingSubmit.actions);
+      setPendingSubmit(null);
+      setShowConfirm(false);
+    }
+  };
+
+  const handleCancel = () => {
+    if (pendingSubmit?.actions) {
+      pendingSubmit.actions.setSubmitting(false);
+    }
+    setPendingSubmit(null);
+    setShowConfirm(false);
   };
 
   if (error) {
@@ -186,7 +246,7 @@ export default function EditCustomerPaymentPage({ params }: { params: { id: stri
         <Formik
           initialValues={initialValues}
           validationSchema={validationSchema}
-          onSubmit={handleSubmit}
+          onSubmit={handleFormSubmit}
           enableReinitialize
         >
           {({ isSubmitting, values, setFieldValue }) => (
@@ -318,6 +378,34 @@ export default function EditCustomerPaymentPage({ params }: { params: { id: stri
                     <ErrorMessage name="paymentMode" component="p" className="text-red-500 text-sm" />
                   </div>
                 </div>
+
+                {/* Extra field for payment mode with icon */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    {(() => {
+                      const selectedMethod = paymentMethods.find(pm => pm.value === values.paymentMode);
+                      if (selectedMethod && selectedMethod.extraFieldName) {
+                        return (
+                          <div>
+                            <Label htmlFor={selectedMethod.extraFieldName}>{selectedMethod.extraFieldLabel}</Label>
+                            <div className="relative mt-2">
+                              {paymentModeIcons[selectedMethod.value] || null}
+                              <Field
+                                as={Input}
+                                id={selectedMethod.extraFieldName}
+                                name={selectedMethod.extraFieldName}
+                                placeholder={selectedMethod.extraFieldLabel}
+                                className="pl-8"
+                              />
+                              <ErrorMessage name={selectedMethod.extraFieldName} component="p" className="text-red-500 text-sm" />
+                            </div>
+                          </div>
+                        );
+                      }
+                      return null;
+                    })()}
+                  </div>
+                </div>
               </CardContent>
               <CardFooter className="flex flex-col sm:flex-row gap-2 sm:gap-4 justify-between">
                 <Button type="button" variant="outline" onClick={() => router.back()} className="w-full sm:w-auto">
@@ -336,6 +424,30 @@ export default function EditCustomerPaymentPage({ params }: { params: { id: stri
                   )}
                 </Button>
               </CardFooter>
+              {/* Confirmation Dialog */}
+              <Dialog
+                open={showConfirm}
+                onOpenChange={(open) => {
+                  if (!open) handleCancel();
+                }}
+              >
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Confirm Update</DialogTitle>
+                    <DialogDescription>
+                      Are you sure you want to update this customer payment?
+                    </DialogDescription>
+                  </DialogHeader>
+                  <DialogFooter>
+                    <Button variant="outline" onClick={handleCancel}>
+                      Cancel
+                    </Button>
+                    <Button onClick={handleConfirm}>
+                      Confirm
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             </Form>
           )}
         </Formik>

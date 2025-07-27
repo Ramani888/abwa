@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ArrowLeft, User, FileText, List, IndianRupeeIcon } from "lucide-react"
+import { ArrowLeft, User, FileText, List, IndianRupeeIcon, CreditCard, Landmark, QrCode, Receipt, Banknote } from "lucide-react"
 import { useState, useEffect, use } from "react"
 import { set } from "date-fns"
 import { serverAddCustomerPayment, serverGetCustomers } from "@/services/serverApi"
@@ -19,6 +19,7 @@ import { getCustomerPayments } from "@/lib/features/customerPaymentSlice"
 import { useDispatch } from "react-redux"
 import { AppDispatch } from "@/lib/store"
 import { formatIndianNumber } from "@/utils/helpers/general"
+import { Dialog, DialogContent, DialogHeader, DialogFooter, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 
 export default function NewCustomerPaymentPage() {
   const router = useRouter()
@@ -26,6 +27,16 @@ export default function NewCustomerPaymentPage() {
   const [customerData, setCustomerData] = useState<any[]>([])
   const [selectedCustomer, setSelectedCustomer] = useState("")
   const [loading, setLoading] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [pendingSubmit, setPendingSubmit] = useState<any>(null);
+
+  const paymentModeIcons: Record<string, React.ReactNode> = {
+    card: <CreditCard className="absolute left-2.5 top-3 h-4 w-4 text-muted-foreground" />,
+    upi: <QrCode className="absolute left-2.5 top-3 h-4 w-4 text-muted-foreground" />,
+    neft_rtgs: <Landmark className="absolute left-2.5 top-3 h-4 w-4 text-muted-foreground" />,
+    cheque: <Receipt className="absolute left-2.5 top-3 h-4 w-4 text-muted-foreground" />,
+    online_payment: <Banknote className="absolute left-2.5 top-3 h-4 w-4 text-muted-foreground" />,
+  };
 
   const getCustomerData = async () => {
     try {
@@ -48,10 +59,15 @@ export default function NewCustomerPaymentPage() {
 
   const initialValues = {
     customerId: "",
-    captureDate: today, // set default to today
+    captureDate: today,
     amount: "",
     paymentType: "",
     paymentMode: "",
+    cardNumber: "",
+    upiTransactionId: "",
+    bankReferenceNumber: "",
+    chequeNumber: "",
+    gatewayTransactionId: "",
   }
 
   const validationSchema = Yup.object({
@@ -64,7 +80,21 @@ export default function NewCustomerPaymentPage() {
 
   const handleSubmit = async (values: typeof initialValues, { setSubmitting }: { setSubmitting: (isSubmitting: boolean) => void }) => {
     try {
-      const res = await serverAddCustomerPayment({...values, amount: Number(values.amount), captureDate: new Date(values.captureDate)});
+      const selectedMethod = paymentMethods.find(pm => pm.value === values.paymentMode);
+      const dataToSubmit: any = {
+        ...values,
+        amount: Number(values.amount),
+        captureDate: new Date(values.captureDate),
+      };
+      delete dataToSubmit.cardNumber;
+      delete dataToSubmit.upiTransactionId;
+      delete dataToSubmit.bankReferenceNumber;
+      delete dataToSubmit.chequeNumber;
+      delete dataToSubmit.gatewayTransactionId;
+      if (selectedMethod && selectedMethod.extraFieldName) {
+        dataToSubmit[selectedMethod.extraFieldName] = values[selectedMethod.extraFieldName as keyof typeof values];
+      }
+      const res = await serverAddCustomerPayment(dataToSubmit);
       if (res?.success) {
         router.push("/dashboard/customer-payment")
       }
@@ -75,6 +105,30 @@ export default function NewCustomerPaymentPage() {
       setSubmitting(false)
     }
   }
+
+  // Handler for Formik's onSubmit
+  const handleFormSubmit = (values: typeof initialValues, actions: any) => {
+    setPendingSubmit({ values, actions });
+    setShowConfirm(true);
+  };
+
+  // Handler for confirming dialog
+  const handleConfirm = () => {
+    if (pendingSubmit) {
+      handleSubmit(pendingSubmit.values, pendingSubmit.actions);
+      setPendingSubmit(null);
+      setShowConfirm(false);
+    }
+  };
+
+  // Handler for canceling dialog
+  const handleCancel = () => {
+    if (pendingSubmit?.actions) {
+      pendingSubmit.actions.setSubmitting(false);
+    }
+    setPendingSubmit(null);
+    setShowConfirm(false);
+  };
 
   return (
     <div className="w-full">
@@ -89,10 +143,7 @@ export default function NewCustomerPaymentPage() {
         <Formik
           initialValues={initialValues}
           validationSchema={validationSchema}
-          onSubmit={(values, actions) => {
-            // Use selectedCustomer for customer field
-            handleSubmit({ ...values, customerId: selectedCustomer }, actions)
-          }}
+          onSubmit={handleFormSubmit}
         >
           {({ values, setFieldValue, isSubmitting }) => (
             <Form>
@@ -223,6 +274,34 @@ export default function NewCustomerPaymentPage() {
                     <ErrorMessage name="paymentMode" component="p" className="text-red-500 text-sm" />
                   </div>
                 </div>
+
+                {/* Extra field for payment mode with icon */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    {(() => {
+                      const selectedMethod = paymentMethods.find(pm => pm.value === values.paymentMode);
+                      if (selectedMethod && selectedMethod.extraFieldName) {
+                        return (
+                          <div>
+                            <Label htmlFor={selectedMethod.extraFieldName}>{selectedMethod.extraFieldLabel}</Label>
+                            <div className="relative mt-2">
+                              {paymentModeIcons[selectedMethod.value] || null}
+                              <Field
+                                as={Input}
+                                id={selectedMethod.extraFieldName}
+                                name={selectedMethod.extraFieldName}
+                                placeholder={selectedMethod.extraFieldLabel}
+                                className="pl-8"
+                              />
+                              <ErrorMessage name={selectedMethod.extraFieldName} component="p" className="text-red-500 text-sm" />
+                            </div>
+                          </div>
+                        );
+                      }
+                      return null;
+                    })()}
+                  </div>
+                </div>
               </CardContent>
               <CardFooter className="flex flex-col sm:flex-row gap-2 sm:gap-4 justify-between">
                 <Button type="button" variant="outline" onClick={() => router.back()} className="w-full sm:w-auto">
@@ -241,6 +320,30 @@ export default function NewCustomerPaymentPage() {
                   )}
                 </Button>
               </CardFooter>
+              {/* Confirmation Dialog */}
+              <Dialog
+                open={showConfirm}
+                onOpenChange={(open) => {
+                  if (!open) handleCancel();
+                }}
+              >
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Confirm Submission</DialogTitle>
+                    <DialogDescription>
+                      Are you sure you want to add this customer payment?
+                    </DialogDescription>
+                  </DialogHeader>
+                  <DialogFooter>
+                    <Button variant="outline" onClick={handleCancel}>
+                      Cancel
+                    </Button>
+                    <Button onClick={handleConfirm}>
+                      Confirm
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             </Form>
           )}
         </Formik>
