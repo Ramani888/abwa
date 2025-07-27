@@ -299,7 +299,13 @@ export default function NewPurchaseOrderPage() {
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
-              <Select value={selectedSupplier} onValueChange={setSelectedSupplier}>
+              <Select value={selectedSupplier} onValueChange={(val) => {
+                if (val === "__add_new_supplier__") {
+                  router.push("/dashboard/suppliers/new");
+                } else {
+                  setSelectedSupplier(val);
+                }
+              }}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select a supplier" />
                 </SelectTrigger>
@@ -309,6 +315,9 @@ export default function NewPurchaseOrderPage() {
                       {supplier?.name} - {supplier?.number}
                     </SelectItem>
                   ))}
+                  <SelectItem value="__add_new_supplier__" className="text-primary font-semibold">
+                    + Add New Supplier
+                  </SelectItem>
                   {filteredSuppliers?.length === 0 && (
                     <SelectItem value="-1" disabled>
                       No suppliers found
@@ -337,7 +346,13 @@ export default function NewPurchaseOrderPage() {
             >
               <div className="col-span-1 sm:col-span-6">
                 <Label htmlFor="product">Product</Label>
-                <Select value={selectedProduct} onValueChange={handleSelectProduct}>
+                <Select value={selectedProduct} onValueChange={(val) => {
+                  if (val === "__add_new_product__") {
+                    router.push("/dashboard/products/new");
+                  } else {
+                    handleSelectProduct(val);
+                  }
+                }}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select a product" />
                   </SelectTrigger>
@@ -347,6 +362,14 @@ export default function NewPurchaseOrderPage() {
                         {product.name}
                       </SelectItem>
                     ))}
+                    <SelectItem value="__add_new_product__" className="text-primary font-semibold">
+                      + Add New Product
+                    </SelectItem>
+                    {productData?.length === 0 && (
+                      <SelectItem value="-1" disabled>
+                        No products found
+                      </SelectItem>
+                    )}
                   </SelectContent>
                 </Select>
               </div>
