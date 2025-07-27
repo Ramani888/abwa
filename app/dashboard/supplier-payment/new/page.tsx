@@ -202,7 +202,7 @@ export default function NewSupplierPaymentPage() {
                       <SelectContent>
                         {supplierData?.map((supplier) => (
                           <SelectItem key={supplier?._id} value={supplier?._id}>
-                            {supplier?.name} - {supplier?.number}
+                            {supplier?.name}
                           </SelectItem>
                         ))}
                       </SelectContent>

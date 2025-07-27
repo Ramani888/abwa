@@ -301,7 +301,7 @@ export default function EditCustomerPaymentPage({ params }: { params: { id: stri
                       <SelectContent>
                         {customerData?.map((customer) => (
                           <SelectItem key={customer?._id} value={customer?._id}>
-                            {customer?.name} - {customer?.number}
+                            {customer?.name}
                           </SelectItem>
                         ))}
                       </SelectContent>
