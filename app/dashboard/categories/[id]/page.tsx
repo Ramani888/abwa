@@ -14,6 +14,7 @@ import { Switch } from "@/components/ui/switch"
 import { serverGetCategory, serverUpdateCategory } from "@/services/serverApi"
 import { Formik, Form, Field, ErrorMessage } from "formik"
 import * as Yup from "yup"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 
 export default function EditCategoryPage({ params }: { params: { id: string } }) {
   const [formData, setFormData] = useState({
@@ -25,6 +26,9 @@ export default function EditCategoryPage({ params }: { params: { id: string } })
   })
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
+  const [showConfirm, setShowConfirm] = useState(false)
+  const [pendingSubmit, setPendingSubmit] = useState<any>(null)
+  const [confirmLoading, setConfirmLoading] = useState(false)
   const router = useRouter()
 
   const validationSchema = Yup.object({
@@ -84,22 +88,9 @@ export default function EditCategoryPage({ params }: { params: { id: string } })
           enableReinitialize
           initialValues={formData}
           validationSchema={validationSchema}
-          onSubmit={async (values, { setSubmitting }) => {
-            try {
-              setIsSaving(true);
-              const res = await serverUpdateCategory({
-                ...values,
-                captureDate: new Date(values.captureDate),
-              });
-              if (res?.success) {
-                router.push(`/dashboard/categories`);
-              }
-            } catch (error) {
-              console.error("Error updating category:", error);
-            } finally {
-              setIsSaving(false);
-              setSubmitting(false);
-            }
+          onSubmit={(values, formikHelpers) => {
+            setPendingSubmit({ values, formikHelpers })
+            setShowConfirm(true)
           }}
         >
           {({ isSubmitting, values, setFieldValue }) => (
@@ -182,6 +173,54 @@ export default function EditCategoryPage({ params }: { params: { id: string } })
           )}
         </Formik>
       </Card>
+
+      {/* Confirmation Dialog */}
+      <Dialog open={showConfirm} onOpenChange={setShowConfirm}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Update</DialogTitle>
+          </DialogHeader>
+          <div>Are you sure you want to update this category?</div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowConfirm(false)
+                setPendingSubmit(null)
+              }}
+              disabled={confirmLoading}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={async () => {
+                if (!pendingSubmit) return
+                setConfirmLoading(true)
+                setShowConfirm(false)
+                try {
+                  const { values, formikHelpers } = pendingSubmit
+                  const res = await serverUpdateCategory({
+                    ...values,
+                    captureDate: new Date(values.captureDate),
+                  })
+                  if (res?.success) {
+                    router.push(`/dashboard/categories`)
+                  }
+                } catch (error) {
+                  console.error("Error updating category:", error)
+                } finally {
+                  setConfirmLoading(false)
+                  if (pendingSubmit?.formikHelpers) pendingSubmit.formikHelpers.setSubmitting(false)
+                  setPendingSubmit(null)
+                }
+              }}
+              disabled={confirmLoading}
+            >
+              {confirmLoading ? "Saving..." : "Yes, Update"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

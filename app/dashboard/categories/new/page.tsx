@@ -1,6 +1,7 @@
 "use client"
 
 import type React from "react"
+import { useState } from "react"
 
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -13,9 +14,13 @@ import { Switch } from "@/components/ui/switch"
 import { serverAddCategory } from "@/services/serverApi"
 import { Formik, Form, Field, ErrorMessage } from "formik"
 import * as Yup from "yup"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 
 export default function NewCategoryPage() {
   const router = useRouter()
+  const [showConfirm, setShowConfirm] = useState(false)
+  const [pendingSubmit, setPendingSubmit] = useState<any>(null)
+  const [confirmLoading, setConfirmLoading] = useState(false) // <-- add this
 
   const initialValues = {
     name: "",
@@ -33,6 +38,15 @@ export default function NewCategoryPage() {
   })
 
   const handleSubmit = async (values: typeof initialValues, { setSubmitting }: { setSubmitting: (isSubmitting: boolean) => void }) => {
+    setPendingSubmit({ values, setSubmitting })
+    setShowConfirm(true)
+  }
+
+  const handleConfirm = async () => {
+    if (!pendingSubmit) return
+    const { values, setSubmitting } = pendingSubmit
+    setConfirmLoading(true) // <-- set loading
+    setShowConfirm(false)
     try {
       const payload = {
         ...values,
@@ -46,7 +60,16 @@ export default function NewCategoryPage() {
       console.error("Error creating category:", error)
     } finally {
       setSubmitting(false)
+      setPendingSubmit(null)
+      setConfirmLoading(false) // <-- reset loading
     }
+  }
+
+  const handleCancel = () => {
+    if (pendingSubmit) pendingSubmit.setSubmitting(false)
+    setShowConfirm(false)
+    setPendingSubmit(null)
+    setConfirmLoading(false) // <-- reset loading
   }
 
   return (
@@ -140,6 +163,27 @@ export default function NewCategoryPage() {
           )}
         </Formik>
       </Card>
+
+      {/* Confirmation Dialog */}
+      <Dialog open={showConfirm} onOpenChange={setShowConfirm}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Category Submission</DialogTitle>
+          </DialogHeader>
+          <div>Are you sure you want to add this category?</div>
+          <DialogFooter>
+            <Button variant="outline" onClick={handleCancel}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleConfirm}
+              disabled={confirmLoading}
+            >
+              {confirmLoading ? "Adding..." : "Yes, Add"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
