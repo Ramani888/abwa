@@ -16,7 +16,7 @@ import { serverAddProduct, serverGetActiveCategory } from "@/services/serverApi"
 import { ICategory } from "@/types/category"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { units } from "@/utils/consts/product"
+import { packingSizesByUnit, units } from "@/utils/consts/product"
 import { getProducts } from "@/lib/features/productSlice"
 import { useDispatch } from "react-redux"
 import { AppDispatch } from "@/lib/store"
@@ -514,26 +514,6 @@ export default function NewProductPage() {
                   <div className="border p-4 rounded space-y-2 mt-4">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label>Packing Size</Label>
-                        <div className="relative">
-                          <Package className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                          <Field as={Input} name="newVariant.packingSize" placeholder="e.g. 5kg" className="pl-8" />
-                        </div>
-                        {variantErrors.packingSize && (
-                          <div className="text-red-500 text-sm">{variantErrors.packingSize}</div>
-                        )}
-                      </div>
-                      <div className="space-y-2">
-                        <Label>SKU</Label>
-                        <div className="relative">
-                          <Layers className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                          <Field as={Input} name="newVariant.sku" placeholder="SKU" className="pl-8" />
-                        </div>
-                        {variantErrors.sku && (
-                          <div className="text-red-500 text-sm">{variantErrors.sku}</div>
-                        )}
-                      </div>
-                      <div className="space-y-2">
                         <Label>Unit</Label>
                         <div className="relative">
                           <Package className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -561,6 +541,53 @@ export default function NewProductPage() {
                         </div>
                         {variantErrors.unit && (
                           <div className="text-red-500 text-sm">{variantErrors.unit}</div>
+                        )}
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Packing Size</Label>
+                        <div className="relative">
+                          <Package className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                          <Field name="newVariant.packingSize">
+                            {({ field, form }: any) => {
+                              // Find the selected unit
+                              const selectedUnit = form.values.newVariant.unit;
+                              const unitObj = packingSizesByUnit.find(
+                                (u) => u.symbol === selectedUnit
+                              );
+                              const sizes = unitObj ? unitObj.packingSizes : [];
+                              return (
+                                <Select
+                                  value={field.value}
+                                  onValueChange={(value) => form.setFieldValue(field.name, value)}
+                                  disabled={!selectedUnit}
+                                >
+                                  <SelectTrigger className="pl-8 border rounded w-full h-10">
+                                    <SelectValue placeholder="Select packing size" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {sizes.map((size: any) => (
+                                      <SelectItem key={size.value} value={String(size.label)}>
+                                        {size.label}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              );
+                            }}
+                          </Field>
+                        </div>
+                        {variantErrors.packingSize && (
+                          <div className="text-red-500 text-sm">{variantErrors.packingSize}</div>
+                        )}
+                      </div>
+                      <div className="space-y-2">
+                        <Label>SKU</Label>
+                        <div className="relative">
+                          <Layers className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                          <Field as={Input} name="newVariant.sku" placeholder="SKU" className="pl-8" />
+                        </div>
+                        {variantErrors.sku && (
+                          <div className="text-red-500 text-sm">{variantErrors.sku}</div>
                         )}
                       </div>
                       <div className="space-y-2">

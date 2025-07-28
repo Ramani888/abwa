@@ -12,6 +12,123 @@ export const units = [
   { name: "Piece", symbol: "pcs", description: "For individual small items." }
 ];
 
+export const packingSizesByUnit = [
+  {
+    unit: "Kilogram",
+    symbol: "kg",
+    packingSizes: [
+      { label: "500 g", value: 500 },         // 0.5 kg
+      { label: "1 kg", value: 1000 },
+      { label: "2 kg", value: 2000 },
+      { label: "5 kg", value: 5000 },
+      { label: "10 kg", value: 10000 },
+      { label: "25 kg", value: 25000 },
+      { label: "50 kg", value: 50000 }
+    ]
+  },
+  {
+    unit: "Gram",
+    symbol: "g",
+    packingSizes: [
+      { label: "10 g", value: 10 },
+      { label: "50 g", value: 50 },
+      { label: "100 g", value: 100 },
+      { label: "250 g", value: 250 },
+      { label: "500 g", value: 500 }
+    ]
+  },
+  {
+    unit: "Quintal",
+    symbol: "q",
+    packingSizes: [
+      { label: "1 Quintal", value: 100000 },
+      { label: "2 Quintal", value: 200000 },
+      { label: "5 Quintal", value: 500000 }
+    ]
+  },
+  {
+    unit: "Litre",
+    symbol: "L",
+    packingSizes: [
+      { label: "500 ml", value: 500 },
+      { label: "1 L", value: 1000 },
+      { label: "2 L", value: 2000 },
+      { label: "5 L", value: 5000 },
+      { label: "10 L", value: 10000 },
+      { label: "20 L", value: 20000 }
+    ]
+  },
+  {
+    unit: "Millilitre",
+    symbol: "ml",
+    packingSizes: [
+      { label: "50 ml", value: 50 },
+      { label: "100 ml", value: 100 },
+      { label: "250 ml", value: 250 },
+      { label: "500 ml", value: 500 }
+    ]
+  },
+  {
+    unit: "Box",
+    symbol: "box",
+    packingSizes: [
+      { label: "1 Box", value: 1 },
+      { label: "2 Box", value: 2 },
+      { label: "5 Box", value: 5 },
+      { label: "10 Box", value: 10 }
+    ]
+  },
+  {
+    unit: "Bottle",
+    symbol: "bottle",
+    packingSizes: [
+      { label: "100 ml", value: 100 },
+      { label: "250 ml", value: 250 },
+      { label: "500 ml", value: 500 },
+      { label: "1000 ml", value: 1000 }
+    ]
+  },
+  {
+    unit: "Bag",
+    symbol: "bag",
+    packingSizes: [
+      { label: "5 kg", value: 5000 },
+      { label: "10 kg", value: 10000 },
+      { label: "25 kg", value: 25000 },
+      { label: "40 kg", value: 40000 },
+      { label: "50 kg", value: 50000 }
+    ]
+  },
+  {
+    unit: "Packet",
+    symbol: "pkt",
+    packingSizes: [
+      { label: "10 g", value: 10 },
+      { label: "50 g", value: 50 },
+      { label: "100 g", value: 100 },
+      { label: "250 g", value: 250 }
+    ]
+  },
+  {
+    unit: "Unit",
+    symbol: "unit",
+    packingSizes: [
+      { label: "1 Unit", value: 1 }
+    ]
+  },
+  {
+    unit: "Piece",
+    symbol: "pcs",
+    packingSizes: [
+      { label: "1 pc", value: 1 },
+      { label: "2 pcs", value: 2 },
+      { label: "5 pcs", value: 5 },
+      { label: "10 pcs", value: 10 },
+      { label: "20 pcs", value: 20 }
+    ]
+  }
+];
+
 // export const paymentMethods = [
 //   { label: "Cash", value: "cash", note: "Walk-in or cash-based transactions" },
 //   { label: "Card", value: "card", note: "Credit/debit card via POS machine" },

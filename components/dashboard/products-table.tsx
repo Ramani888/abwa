@@ -253,7 +253,7 @@ export function ProductsTable({ setRefreshFunction }: { setRefreshFunction?: (fn
                             <TableBody>
                               {product.variants.map((variant, idx) => (
                                 <TableRow key={idx}>
-                                  <TableCell>{variant.packingSize} {variant.unit}</TableCell>
+                                  <TableCell>{variant.packingSize}</TableCell>
                                   <TableCell>{variant.unit}</TableCell>
                                   <TableCell>{variant.sku}</TableCell>
                                   <TableCell>{variant.barcode}</TableCell>
