@@ -1,4 +1,4 @@
-  "use client"
+"use client"
 
 import type React from "react"
 import { useState, useEffect } from "react"
@@ -22,6 +22,7 @@ import { getProducts } from "@/lib/features/productSlice"
 import { useDispatch } from "react-redux"
 import { AppDispatch } from "@/lib/store"
 import { formatCurrency, formatIndianNumber } from "@/utils/helpers/general"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 
 const newVariantSchema = Yup.object({
   packingSize: Yup.string().required("Packing size is required"),
@@ -111,6 +112,7 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
   const [editVariantIndex, setEditVariantIndex] = useState<number | null>(null)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [deleteVariantIndex, setDeleteVariantIndex] = useState<number | null>(null)
+  const [showUpdateConfirm, setShowUpdateConfirm] = useState(false);
   const router = useRouter()
 
   const validationSchema = Yup.object({
@@ -315,41 +317,20 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
             },
           }}
           validationSchema={validationSchema}
-          onSubmit={async (values, { setSubmitting }) => {
-            try {
-              setIsSaving(true)
-              const res = await serverUpdateProduct({
-                _id: values?._id,
-                name: values.name,
-                categoryId: values.categoryId,
-                description: values.description,
-                captureDate: new Date(values.captureDate), // <-- Convert to Date
-                variants: values.variants.map((v: any) => ({
-                  ...v,
-                  mrp: Number(v.mrp),
-                  retailPrice: Number(v.retailPrice),
-                  wholesalePrice: Number(v.wholesalePrice),
-                  purchasePrice: Number(v.purchasePrice),
-                  minStockLevel: Number(v.minStockLevel),
-                  taxRate: Number(v.taxRate),
-                  quantity: Number(0),
-                })),
-              })
-              if (res?.success) {
-                router.push(`/dashboard/products`)
-              }
-              dispatch(getProducts())
-              setIsSaving(false)
-              setSubmitting(false)
-            } catch (error) {
-              setIsSaving(false)
-              setSubmitting(false)
-              console.error("Error updating product:", error)
-            }
-          }}
+          onSubmit={() => { /* handled in form's onSubmit */ }}
         >
-          {({ setFieldValue, values }) => (
-            <Form>
+          {({ setFieldValue, values, isSubmitting, setSubmitting, validateForm, submitForm }) => (
+            <Form
+              onSubmit={async e => {
+                e.preventDefault();
+                const errors = await validateForm();
+                if (Object.keys(errors).length === 0) {
+                  setShowUpdateConfirm(true);
+                } else {
+                  submitForm(); // show validation errors
+                }
+              }}
+            >
               <CardHeader>
                 <CardTitle>Product Information</CardTitle>
                 <CardDescription>Update product details and inventory information</CardDescription>
@@ -885,6 +866,59 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
                   )}
                 </Button>
               </CardFooter>
+
+              {/* Confirmation Dialog */}
+              <Dialog open={showUpdateConfirm} onOpenChange={setShowUpdateConfirm}>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Confirm Update</DialogTitle>
+                  </DialogHeader>
+                  <div>
+                    Are you sure you want to update this product and its variants?
+                  </div>
+                  <DialogFooter>
+                    <Button variant="outline" onClick={() => setShowUpdateConfirm(false)}>
+                      Cancel
+                    </Button>
+                    <Button
+                      onClick={async () => {
+                        setShowUpdateConfirm(false);
+                        setIsSaving(true);
+                        try {
+                          const res = await serverUpdateProduct({
+                            _id: values?._id,
+                            name: values.name,
+                            categoryId: values.categoryId,
+                            description: values.description,
+                            captureDate: new Date(values.captureDate),
+                            variants: values.variants.map((v: any) => ({
+                              ...v,
+                              mrp: Number(v.mrp),
+                              retailPrice: Number(v.retailPrice),
+                              wholesalePrice: Number(v.wholesalePrice),
+                              purchasePrice: Number(v.purchasePrice),
+                              minStockLevel: Number(v.minStockLevel),
+                              taxRate: Number(v.taxRate),
+                              quantity: Number(0),
+                            })),
+                          });
+                          if (res?.success) {
+                            router.push(`/dashboard/products`);
+                          }
+                          dispatch(getProducts());
+                        } catch (error) {
+                          console.error("Error updating product:", error);
+                        }
+                        setIsSaving(false);
+                        setSubmitting(false);
+                      }}
+                      disabled={isSaving}
+                    >
+                      {isSaving ? "Saving..." : "Yes, Update"}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             </Form>
           )}
         </Formik>

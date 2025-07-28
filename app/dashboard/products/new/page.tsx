@@ -21,6 +21,7 @@ import { getProducts } from "@/lib/features/productSlice"
 import { useDispatch } from "react-redux"
 import { AppDispatch } from "@/lib/store"
 import { formatCurrency, formatIndianNumber } from "@/utils/helpers/general"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 
 const newVariantSchema = Yup.object({
   packingSize: Yup.string().required("Packing size is required"),
@@ -109,6 +110,7 @@ export default function NewProductPage() {
   const [editVariantIndex, setEditVariantIndex] = useState<number | null>(null)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [deleteVariantIndex, setDeleteVariantIndex] = useState<number | null>(null)
+  const [showSubmitConfirm, setShowSubmitConfirm] = useState(false);
 
   const getCustomerData = async () => {
     try {
@@ -215,13 +217,14 @@ export default function NewProductPage() {
     }),
   })
 
+  // Move handleSubmit outside Formik and call it after confirmation
   const handleSubmit = async (values: any, { setSubmitting }: { setSubmitting: (isSubmitting: boolean) => void }) => {
     try {
       const res = await serverAddProduct({
         name: values.name,
         categoryId: values.categoryId,
         description: values.description,
-        captureDate: values.captureDate, // <-- Send captureDate
+        captureDate: values.captureDate,
         variants: values.variants.map((v: any) => ({
           ...v,
           mrp: Number(v.mrp),
@@ -325,10 +328,21 @@ export default function NewProductPage() {
             },
           }}
           validationSchema={validationSchema}
-          onSubmit={handleSubmit}
+          onSubmit={() => {}} // Required by Formik, but handled manually in the form
         >
-          {({ values, setFieldValue, isSubmitting }) => (
-            <Form>
+          {({ values, setFieldValue, isSubmitting, setSubmitting, validateForm, submitForm }) => (
+            <Form
+              onSubmit={async e => {
+                e.preventDefault();
+                const errors = await validateForm();
+                if (Object.keys(errors).length === 0) {
+                  setShowSubmitConfirm(true);
+                } else {
+                  // Mark all fields as touched to show validation errors
+                  submitForm();
+                }
+              }}
+            >
               <CardHeader>
                 <CardTitle>Product Information</CardTitle>
                 <CardDescription>Add a new product to your inventory</CardDescription>
@@ -848,7 +862,11 @@ export default function NewProductPage() {
                 <Button type="button" variant="outline" onClick={() => router.back()} className="w-full sm:w-auto">
                   Cancel
                 </Button>
-                <Button type="submit" disabled={isSubmitting || values.variants.length === 0} className="w-full sm:w-auto">
+                <Button
+                  type="submit"
+                  disabled={isSubmitting || values.variants.length === 0}
+                  className="w-full sm:w-auto"
+                >
                   {isSubmitting ? (
                     <div className="flex items-center justify-center gap-2">
                       <div className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
@@ -856,9 +874,36 @@ export default function NewProductPage() {
                     </div>
                   ) : (
                     "Add Product"
-                  )}  
+                  )}
                 </Button>
               </CardFooter>
+
+              {/* Confirmation Dialog */}
+              <Dialog open={showSubmitConfirm} onOpenChange={setShowSubmitConfirm}>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Confirm Add Product</DialogTitle>
+                  </DialogHeader>
+                  <div>
+                    Are you sure you want to add this product and its variants?
+                  </div>
+                  <DialogFooter>
+                    <Button variant="outline" onClick={() => setShowSubmitConfirm(false)}>
+                      Cancel
+                    </Button>
+                    <Button
+                      onClick={async () => {
+                        setShowSubmitConfirm(false);
+                        setSubmitting(true);
+                        await handleSubmit(values, { setSubmitting });
+                      }}
+                      disabled={isSubmitting}
+                    >
+                      {isSubmitting ? "Adding..." : "Yes, Add Product"}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             </Form>
           )}
         </Formik>
