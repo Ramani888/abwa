@@ -15,6 +15,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ArrowLeft, Loader2, User, Mail, Phone, List } from "lucide-react";
 import { serverGetAllPermission, serverGetAllRole, serverInsertUser } from "@/services/serverApi";
 import { IRole } from "@/types/user";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 
 // Define permission type
 type Permission = {
@@ -37,6 +38,8 @@ export default function NewUserPage() {
   const [loading, setLoading] = useState<boolean>(false);
   const [permissions, setPermissions] = useState<Permission[]>([]);
   const [role, setRole] = useState<IRole[]>([]);
+  const [showConfirm, setShowConfirm] = useState(false); // <-- Add this state
+  const [pendingValues, setPendingValues] = useState<any>(null); // <-- To store values for confirmation
   const router = useRouter();
 
   const getPermissionData = async () => {
@@ -143,153 +146,193 @@ export default function NewUserPage() {
             name: "",
             email: "",
             number: "",
-            role: "", // Initially empty, will be set by getRoleData
+            role: "",
             selectedPermissions: [] as string[],
           }}
           validationSchema={validationSchema}
-          onSubmit={handleSubmit}
+          onSubmit={() => {}} // Required by Formik, actual submit handled in form
         >
-          {({ values, isSubmitting, setFieldValue }) => {
+          {({ values, isSubmitting, setFieldValue, validateForm, submitForm, setSubmitting }) => {
             return (
-              <Form>
-                <CardHeader>
-                  <CardTitle>User Information</CardTitle>
-                  <CardDescription>Add a new staff user to your agro shop</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="name">Full Name</Label>
-                    <div className="relative">
-                      <Field
-                        as={Input}
-                        id="name"
-                        name="name"
-                        placeholder="John Doe"
-                        className="pl-10"
-                      />
-                      <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
-                    </div>
-                    <ErrorMessage name="name" component="p" className="text-red-500 text-sm" />
-                  </div>
-
-                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <>
+                <Form
+                  onSubmit={async e => {
+                    e.preventDefault();
+                    const errors = await validateForm();
+                    if (Object.keys(errors).length === 0) {
+                      setPendingValues(values);
+                      setShowConfirm(true);
+                    } else {
+                      submitForm(); // show validation errors
+                    }
+                  }}
+                >
+                  <CardHeader>
+                    <CardTitle>User Information</CardTitle>
+                    <CardDescription>Add a new staff user to your agro shop</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="email">Email</Label>
+                      <Label htmlFor="name">Full Name</Label>
                       <div className="relative">
                         <Field
                           as={Input}
-                          id="email"
-                          name="email"
-                          type="email"
-                          placeholder="john@example.com"
+                          id="name"
+                          name="name"
+                          placeholder="John Doe"
                           className="pl-10"
                         />
-                        <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+                        <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
                       </div>
-                      <ErrorMessage name="email" component="p" className="text-red-500 text-sm" />
+                      <ErrorMessage name="name" component="p" className="text-red-500 text-sm" />
                     </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="number">Phone Number</Label>
-                      <div className="relative">
-                        <Field
-                          as={Input}
-                          id="number"
-                          name="number"
-                          type="number"
-                          placeholder="+91 9876543210"
-                          className="pl-10"
-                        />
-                        <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
-                      </div>
-                      <ErrorMessage name="number" component="p" className="text-red-500 text-sm" />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="role">Role</Label>
-                    <div className="relative">
-                      <List className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
-                      <Select
-                        value={values.role}
-                        onValueChange={(value) => setFieldValue("role", value)}
-                      >
-                        <SelectTrigger className="pl-10">
-                          <SelectValue placeholder="Select role" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {role?.map((item) => (
-                            <SelectItem key={item?._id} value={item?._id}>
-                              {item?.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <ErrorMessage name="role" component="p" className="text-red-500 text-sm" />
-                  </div>
-
-                  <div className="space-y-3">
-                    <Label>Permissions</Label>
-
-                    {loading ? (
-                      <div className="flex justify-center py-4">
-                        <Loader2 className="h-6 w-6 animate-spin text-primary" />
-                      </div>
-                    ) : (
-                      Object.entries(permissionGroups).map(([category, categoryPermissions]) => (
-                        <div className="mb-4" key={category}>
-                          <h3 className="text-sm font-medium mb-2 capitalize">{category}</h3>
-                          <div className="grid grid-cols-2 gap-2 pl-4 sm:grid-cols-2">
-                            {categoryPermissions.map((permission) => (
-                              <div key={permission._id} className="flex items-center space-x-2">
-                                <Checkbox
-                                  id={`permission-${permission._id}`}
-                                  checked={values.selectedPermissions.includes(permission._id)}
-                                  onCheckedChange={(checked) =>
-                                    setFieldValue(
-                                      "selectedPermissions",
-                                      checked
-                                        ? [...values.selectedPermissions, permission._id]
-                                        : values.selectedPermissions.filter((id) => id !== permission._id)
-                                    )
-                                  }
-                                />
-                                <Label htmlFor={`permission-${permission._id}`} className="capitalize">
-                                  {permission.name.replace(/-/g, " ")}
-                                </Label>
-                              </div>
-                            ))}
-                          </div>
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label htmlFor="email">Email</Label>
+                        <div className="relative">
+                          <Field
+                            as={Input}
+                            id="email"
+                            name="email"
+                            type="email"
+                            placeholder="john@example.com"
+                            className="pl-10"
+                          />
+                          <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
                         </div>
-                      ))
-                    )}
+                        <ErrorMessage name="email" component="p" className="text-red-500 text-sm" />
+                      </div>
 
-                    {!loading && permissions.length === 0 && (
-                      <div className="text-center py-4 text-muted-foreground">
-                        No permissions found
+                      <div className="space-y-2">
+                        <Label htmlFor="number">Phone Number</Label>
+                        <div className="relative">
+                          <Field
+                            as={Input}
+                            id="number"
+                            name="number"
+                            type="number"
+                            placeholder="+91 9876543210"
+                            className="pl-10"
+                          />
+                          <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+                        </div>
+                        <ErrorMessage name="number" component="p" className="text-red-500 text-sm" />
                       </div>
-                    )}
-                  </div>
-                </CardContent>
-                <CardFooter className="flex justify-between">
-                  <Button type="button" variant="outline" onClick={() => router.back()}>
-                    Cancel
-                  </Button>
-                  <Button type="submit" disabled={isSubmitting || loading}>
-                    {isSubmitting ? (
-                      <div className="flex items-center justify-center gap-2">
-                        <div className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                        <span>Adding....</span>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="role">Role</Label>
+                      <div className="relative">
+                        <List className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+                        <Select
+                          value={values.role}
+                          onValueChange={(value) => setFieldValue("role", value)}
+                        >
+                          <SelectTrigger className="pl-10">
+                            <SelectValue placeholder="Select role" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {role?.map((item) => (
+                              <SelectItem key={item?._id} value={item?._id}>
+                                {item?.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
-                    ) : (
-                      <div className="flex items-center justify-center gap-2">
-                        <span>Add User</span>
-                      </div>
-                    )}
-                  </Button>
-                </CardFooter>
-              </Form>
+                      <ErrorMessage name="role" component="p" className="text-red-500 text-sm" />
+                    </div>
+
+                    <div className="space-y-3">
+                      <Label>Permissions</Label>
+
+                      {loading ? (
+                        <div className="flex justify-center py-4">
+                          <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                        </div>
+                      ) : (
+                        Object.entries(permissionGroups).map(([category, categoryPermissions]) => (
+                          <div className="mb-4" key={category}>
+                            <h3 className="text-sm font-medium mb-2 capitalize">{category}</h3>
+                            <div className="grid grid-cols-2 gap-2 pl-4 sm:grid-cols-2">
+                              {categoryPermissions.map((permission) => (
+                                <div key={permission._id} className="flex items-center space-x-2">
+                                  <Checkbox
+                                    id={`permission-${permission._id}`}
+                                    checked={values.selectedPermissions.includes(permission._id)}
+                                    onCheckedChange={(checked) =>
+                                      setFieldValue(
+                                        "selectedPermissions",
+                                        checked
+                                          ? [...values.selectedPermissions, permission._id]
+                                          : values.selectedPermissions.filter((id) => id !== permission._id)
+                                      )
+                                    }
+                                  />
+                                  <Label htmlFor={`permission-${permission._id}`} className="capitalize">
+                                    {permission.name.replace(/-/g, " ")}
+                                  </Label>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ))
+                      )}
+
+                      {!loading && permissions.length === 0 && (
+                        <div className="text-center py-4 text-muted-foreground">
+                          No permissions found
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                  <CardFooter className="flex justify-between">
+                    <Button type="button" variant="outline" onClick={() => router.back()}>
+                      Cancel
+                    </Button>
+                    <Button type="submit" disabled={isSubmitting || loading}>
+                      {isSubmitting ? (
+                        <div className="flex items-center justify-center gap-2">
+                          <div className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                          <span>Adding....</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center justify-center gap-2">
+                          <span>Add User</span>
+                        </div>
+                      )}
+                    </Button>
+                  </CardFooter>
+                </Form>
+
+                {/* Confirmation Dialog */}
+                <Dialog open={showConfirm} onOpenChange={setShowConfirm}>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Confirm Add User</DialogTitle>
+                    </DialogHeader>
+                    <div>
+                      Are you sure you want to add this user?
+                    </div>
+                    <DialogFooter>
+                      <Button variant="outline" onClick={() => setShowConfirm(false)}>
+                        Cancel
+                      </Button>
+                      <Button
+                        onClick={async () => {
+                          setShowConfirm(false);
+                          setSubmitting(true);
+                          await handleSubmit(pendingValues, { setSubmitting });
+                        }}
+                        disabled={isSubmitting}
+                      >
+                        {isSubmitting ? "Adding..." : "Yes, Add User"}
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              </>
             );
           }}
         </Formik>
