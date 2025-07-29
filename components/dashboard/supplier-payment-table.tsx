@@ -176,12 +176,14 @@ export function SupplierPaymentTable({ setRefreshFunction }: { setRefreshFunctio
                               </Link>
                             </DropdownMenuItem>
                           )}
-                          <DropdownMenuSeparator />
-                          {hasPermission(Permissions.DELETE_SUPPLIER_PAYMENT) && (
-                            <DropdownMenuItem className="text-destructive" onClick={() => handleDelete(item?._id)}>
-                              <Trash className="mr-2 h-4 w-4" />
-                              Delete
-                            </DropdownMenuItem>
+                          {hasPermission(Permissions.DELETE_SUPPLIER_PAYMENT) && !item?.refOrderId && (
+                            <>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem className="text-destructive" onClick={() => handleDelete(item?._id)}>
+                                <Trash className="mr-2 h-4 w-4" />
+                                Delete
+                              </DropdownMenuItem>
+                            </>
                           )}
                         </DropdownMenuContent>
                       </DropdownMenu>
