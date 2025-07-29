@@ -11,14 +11,18 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Trash, Plus, Search, ArrowLeft, Calendar } from "lucide-react"
-import { serverGetProduct, serverGetPurchaseOrder, serverGetSupplier, serverUpdatePurchaseOrder } from "@/services/serverApi"
+import { serverDeleteSupplierPayment, serverGetProduct, serverGetPurchaseOrder, serverGetSupplier, serverUpdatePurchaseOrder, serverUpdateSupplierPayment } from "@/services/serverApi"
 import { IProduct } from "@/types/product"
 import { ISupplier } from "@/types/supplier"
 import { paymentMethods, paymentStatuses } from "@/utils/consts/product"
 import { formatCurrency } from "@/utils/helpers/general"
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { PaymentStatus, PaymentType } from "@/utils/consts/order"
+import { RootState } from "@/lib/store"
+import { useSelector } from "react-redux"
 
 export default function EditPurchaseOrderPage({ params }: { params: { id: string } }) {
+  const { supplierPayment } = useSelector((state: RootState) => state.supplierPayment)
   const [orderItems, setOrderItems] = useState<
     Array<{
       id: string
@@ -290,6 +294,30 @@ export default function EditPurchaseOrderPage({ params }: { params: { id: string
       captureDate, // <-- Include captureDate
       products: orderItems,
     }
+    
+    const getPaymentType = () => {
+      switch (paymentStatus) {
+        case PaymentStatus.Paid:
+          return PaymentType.Full;
+        case PaymentStatus.Overpaid:
+          return PaymentType.Advance;
+        case PaymentStatus.Partial:
+          return PaymentType.Partial;
+        case PaymentStatus.Refunded:
+          return PaymentType.Partial;
+        default:
+          return PaymentType.Full;
+      }
+    }
+    const findPaymentData = supplierPayment?.find(sp => sp?.refOrderId === params?.id);
+    const paymentData = {
+      ...findPaymentData,
+      supplierId: selectedSupplier,
+      amount: Number(calculateFinalTotal()),
+      paymentType: getPaymentType(),
+      paymentMode: paymentMethod,
+      captureDate: new Date(captureDate)
+    };
     const selectedMethod = paymentMethods.find(pm => pm.value === paymentMethod);
     if (selectedMethod && selectedMethod.extraFieldName) {
       const fieldValueMap: Record<string, string> = {
@@ -300,11 +328,17 @@ export default function EditPurchaseOrderPage({ params }: { params: { id: string
         gatewayTransactionId,
       };
       bodyData[selectedMethod.extraFieldName] = fieldValueMap[selectedMethod.extraFieldName];
+      (paymentData as any)[selectedMethod.extraFieldName] = fieldValueMap[selectedMethod.extraFieldName];
     }
     try {
       setIsSubmitting(true)
       const res = await serverUpdatePurchaseOrder(bodyData)
       if (res?.success) {
+        if (paymentStatus !== PaymentStatus?.Unpaid && findPaymentData) {
+          await serverUpdateSupplierPayment(paymentData);
+        } else {
+          await serverDeleteSupplierPayment(findPaymentData?._id)
+        }
         router.push(`/dashboard/purchase-order`)
       }
       setIsSubmitting(false)
