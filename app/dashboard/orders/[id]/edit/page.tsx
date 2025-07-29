@@ -12,18 +12,20 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Trash, Plus, Search, ArrowLeft, Calendar } from "lucide-react"
-import { serverGetCustomers, serverGetProduct, serverUpdateOrder, serverGetOrder } from "@/services/serverApi"
+import { serverGetCustomers, serverGetProduct, serverUpdateOrder, serverGetOrder, serverUpdateCustomerPayment, serverDeleteCustomerPayment } from "@/services/serverApi"
 import { ICustomer } from "@/types/customer"
 import { IProduct } from "@/types/product"
 import { paymentMethods, paymentStatuses } from "@/utils/consts/product"
 import { getOrders } from "@/lib/features/orderSlice"
-import { useDispatch } from "react-redux"
-import { AppDispatch } from "@/lib/store"
+import { useDispatch, useSelector } from "react-redux"
+import { AppDispatch, RootState } from "@/lib/store"
 import { formatCurrency } from "@/utils/helpers/general"
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { PaymentStatus, PaymentType } from "@/utils/consts/order"
 
 export default function EditOrderPage({ params }: { params: { id: string } }) {
   const dispatch = useDispatch<AppDispatch>()
+  const { customerPayment } = useSelector((state: RootState) => state.customerPayment)
   const [activeTab, setActiveTab] = useState<"retail" | "wholesale">("retail")
   const [orderItems, setOrderItems] = useState<
     Array<{
@@ -304,6 +306,31 @@ export default function EditOrderPage({ params }: { params: { id: string } }) {
       captureDate, // <-- Include captureDate
       products: orderItems,
     } as any;
+
+    const getPaymentType = () => {
+      switch (paymentStatus) {
+        case PaymentStatus.Paid:
+          return PaymentType.Full;
+        case PaymentStatus.Overpaid:
+          return PaymentType.Advance;
+        case PaymentStatus.Partial:
+          return PaymentType.Partial;
+        case PaymentStatus.Refunded:
+          return PaymentType.Partial;
+        default:
+          return PaymentType.Full;
+      }
+    }
+    
+    const findPaymentData = customerPayment?.find(cp => cp?.refOrderId === params?.id);
+    const paymentData = {
+      ...findPaymentData,
+      customerId: selectedCustomer,
+      amount: Number(calculateFinalTotal()),
+      paymentType: getPaymentType(),
+      paymentMode: paymentMethod,
+      captureDate: new Date(captureDate)
+    };
     const selectedMethod = paymentMethods.find(pm => pm.value === paymentMethod);
     if (selectedMethod && selectedMethod.extraFieldName) {
       const fieldValueMap: Record<string, string> = {
@@ -314,11 +341,17 @@ export default function EditOrderPage({ params }: { params: { id: string } }) {
         gatewayTransactionId,
       };
       bodyData[selectedMethod.extraFieldName] = fieldValueMap[selectedMethod.extraFieldName];
+      (paymentData as any)[selectedMethod.extraFieldName] = fieldValueMap[selectedMethod.extraFieldName];
     }
     try {
       setIsSubmitting(true)
       const res = await serverUpdateOrder(bodyData)
       if (res?.success) {
+        if (paymentStatus !== PaymentStatus?.Unpaid && findPaymentData) {
+          await serverUpdateCustomerPayment(paymentData);
+        } else {
+          await serverDeleteCustomerPayment(findPaymentData?._id)
+        }
         router.push(`/dashboard/orders`)
       }
       dispatch(getOrders())

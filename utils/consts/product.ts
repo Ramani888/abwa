@@ -191,5 +191,5 @@ export const paymentStatuses = [
   { label: "Unpaid", value: "unpaid", description: "No payment has been made yet" },
   { label: "Partial", value: "partial", description: "Partially paid; some balance remains" },
   { label: "Overpaid", value: "overpaid", description: "Paid more than required (rare but may occur)" },
-  { label: "Refunded", value: "refunded", description: "Payment has been returned (for returns/cancellations)" }
+  // { label: "Refunded", value: "refunded", description: "Payment has been returned (for returns/cancellations)" }
 ];

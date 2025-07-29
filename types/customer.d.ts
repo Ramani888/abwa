@@ -27,6 +27,12 @@ export interface ICustomerPayment {
     amount: number;
     paymentType: string; // e.g., 'cash', 'credit', 'debit'
     paymentMode: string; // e.g., 'online', 'offline'
+    cardNumber?: string;
+    upiTransactionId?: string;
+    chequeNumber?: string;
+    gatewayTransactionId?: string;
+    bankReferenceNumber?: string;
+    refOrderId?: string;
     captureDate?: Date;
     isDeleted?: boolean;
     customerData?: ICustomer;

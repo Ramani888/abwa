@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Trash, Plus, Search, ArrowLeft, Calendar } from "lucide-react"
-import { serverAddOrder, serverGetCustomers, serverGetProduct } from "@/services/serverApi"
+import { serverAddCustomerPayment, serverAddOrder, serverGetCustomers, serverGetProduct } from "@/services/serverApi"
 import { ICustomer } from "@/types/customer"
 import { IProduct } from "@/types/product"
 import { paymentMethods, paymentStatuses } from "@/utils/consts/product"
@@ -21,6 +21,7 @@ import { useDispatch } from "react-redux"
 import { AppDispatch } from "@/lib/store"
 import { formatCurrency } from "@/utils/helpers/general"
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { PaymentStatus, PaymentType } from "@/utils/consts/order"
 
 export default function NewOrderPage() {
   const dispatch = useDispatch<AppDispatch>()
@@ -245,6 +246,37 @@ export default function NewOrderPage() {
       products: orderItems,
     }
 
+    const getPaymentType = () => {
+      switch (paymentStatus) {
+        case PaymentStatus.Paid:
+          return PaymentType.Full;
+        case PaymentStatus.Overpaid:
+          return PaymentType.Advance;
+        case PaymentStatus.Partial:
+          return PaymentType.Partial;
+        case PaymentStatus.Refunded:
+          return PaymentType.Partial;
+        default:
+          return PaymentType.Full;
+      }
+    }
+
+    const paymentData: {
+      customerId: string;
+      amount: number;
+      paymentType: string;
+      paymentMode: string;
+      captureDate: Date;
+      [key: string]: any; // Allow dynamic keys
+    } = {
+      customerId: selectedCustomer,
+      // amount is gone only number with round off
+      amount: Number(calculateFinalTotal()),
+      paymentType: getPaymentType(),
+      paymentMode: paymentMethod,
+      captureDate: new Date(captureDate)
+    }
+
     const selectedMethod = paymentMethods.find(pm => pm.value === paymentMethod);
     if (selectedMethod && selectedMethod.extraFieldName) {
       const fieldValueMap: Record<string, string> = {
@@ -255,12 +287,16 @@ export default function NewOrderPage() {
         gatewayTransactionId,
       };
       bodyData[selectedMethod.extraFieldName] = fieldValueMap[selectedMethod.extraFieldName];
+      paymentData[selectedMethod.extraFieldName] = fieldValueMap[selectedMethod.extraFieldName];
     }
 
     try {
       setIsSubmitting(true)
       const res = await serverAddOrder(bodyData)
       if (res?.success) {
+        if (paymentStatus !== PaymentStatus?.Unpaid) {
+          await serverAddCustomerPayment({...paymentData, refOrderId: res?.data?._id?.toString()});
+        }
         router.push("/dashboard/orders")
       }
       dispatch(getOrders())
