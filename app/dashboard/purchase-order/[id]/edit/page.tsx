@@ -310,7 +310,16 @@ export default function EditPurchaseOrderPage({ params }: { params: { id: string
       }
     }
     const findPaymentData = supplierPayment?.find(sp => sp?.refOrderId === params?.id);
-    const paymentData = {
+
+    // Remove all possible extra fields first
+    const extraFieldNames = [
+      "cardNumber",
+      "upiTransactionId",
+      "bankReferenceNumber",
+      "chequeNumber",
+      "gatewayTransactionId",
+    ];
+    let paymentData = {
       ...findPaymentData,
       supplierId: selectedSupplier,
       amount: Number(calculateFinalTotal()),
@@ -318,6 +327,10 @@ export default function EditPurchaseOrderPage({ params }: { params: { id: string
       paymentMode: paymentMethod,
       captureDate: new Date(captureDate)
     };
+    extraFieldNames.forEach(field => {
+      delete (paymentData as any)[field];
+    });
+
     const selectedMethod = paymentMethods.find(pm => pm.value === paymentMethod);
     if (selectedMethod && selectedMethod.extraFieldName) {
       const fieldValueMap: Record<string, string> = {
@@ -330,9 +343,12 @@ export default function EditPurchaseOrderPage({ params }: { params: { id: string
       bodyData[selectedMethod.extraFieldName] = fieldValueMap[selectedMethod.extraFieldName];
       (paymentData as any)[selectedMethod.extraFieldName] = fieldValueMap[selectedMethod.extraFieldName];
     }
+
     try {
       setIsSubmitting(true)
+      console.log('bodyData', bodyData)
       const res = await serverUpdatePurchaseOrder(bodyData)
+      console.log('paymentData', paymentData)
       if (res?.success) {
         if (paymentStatus !== PaymentStatus?.Unpaid && findPaymentData) {
           await serverUpdateSupplierPayment(paymentData);

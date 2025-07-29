@@ -323,6 +323,15 @@ export default function EditOrderPage({ params }: { params: { id: string } }) {
     }
     
     const findPaymentData = customerPayment?.find(cp => cp?.refOrderId === params?.id);
+
+    // Remove all possible extra fields first
+    const extraFieldNames = [
+      "cardNumber",
+      "upiTransactionId",
+      "bankReferenceNumber",
+      "chequeNumber",
+      "gatewayTransactionId",
+    ];
     const paymentData = {
       ...findPaymentData,
       customerId: selectedCustomer,
@@ -331,6 +340,10 @@ export default function EditOrderPage({ params }: { params: { id: string } }) {
       paymentMode: paymentMethod,
       captureDate: new Date(captureDate)
     };
+    extraFieldNames.forEach(field => {
+      delete (paymentData as any)[field];
+    });
+
     const selectedMethod = paymentMethods.find(pm => pm.value === paymentMethod);
     if (selectedMethod && selectedMethod.extraFieldName) {
       const fieldValueMap: Record<string, string> = {
@@ -343,6 +356,7 @@ export default function EditOrderPage({ params }: { params: { id: string } }) {
       bodyData[selectedMethod.extraFieldName] = fieldValueMap[selectedMethod.extraFieldName];
       (paymentData as any)[selectedMethod.extraFieldName] = fieldValueMap[selectedMethod.extraFieldName];
     }
+
     try {
       setIsSubmitting(true)
       const res = await serverUpdateOrder(bodyData)
