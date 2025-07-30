@@ -195,7 +195,7 @@ export function DashboardSidebar({ isMobile = false, closeMobileMenu }: Dashboar
                     onClick={() => handleSubmenuToggle(item.href)}
                     className={cn(
                       "flex w-full items-center gap-3 rounded-lg px-3 py-2 mb-1 text-muted-foreground transition-all hover:text-primary hover:bg-muted/50",
-                      (pathname === item.href || pathname.startsWith(item.href) && item.href !== "/dashboard") && "bg-muted font-medium text-primary",
+                      ((pathname === item.href || (pathname?.startsWith(item.href) && item.href !== "/dashboard")) && "bg-muted font-medium text-primary"),
                     )}
                   >
                     <item.icon className="h-4 w-4" />
@@ -235,7 +235,7 @@ export function DashboardSidebar({ isMobile = false, closeMobileMenu }: Dashboar
                 className={cn(
                   "flex items-center gap-3 rounded-lg px-3 py-2 mb-1 text-muted-foreground transition-all hover:text-primary hover:bg-muted/50",
                   pathname === item.href && "bg-muted font-medium text-primary",
-                  pathname.startsWith(item.href) && item.href !== "/dashboard" && "bg-muted font-medium text-primary",
+                  (pathname?.startsWith(item.href)) && item.href !== "/dashboard" && "bg-muted font-medium text-primary",
                 )}
               >
                 <item.icon className="h-4 w-4" />
@@ -246,28 +246,30 @@ export function DashboardSidebar({ isMobile = false, closeMobileMenu }: Dashboar
         </nav>
       </div>
       <div className="p-4 border-t bg-muted/30">
-        <div className="flex items-center gap-3 mb-2">
-          <Avatar className="h-9 w-9">
-            <AvatarFallback className="bg-primary text-primary-foreground uppercase">
+        <div className="flex items-center gap-4 mb-4">
+          <Avatar className="h-12 w-12 shadow-lg ring-2 ring-primary/40">
+            <AvatarFallback className="bg-gradient-to-br from-primary to-primary/70 text-primary-foreground uppercase text-xl font-extrabold">
               {(owner?.shop?.name?.[0] ?? '') + (owner?.shop?.name?.[1] ?? '')}
             </AvatarFallback>
           </Avatar>
           <div>
-            <h4 className="text-sm font-medium capitalize">{owner?.shop?.name}</h4>
-            <div className="flex items-center gap-1">
-              <p className="text-xs text-muted-foreground truncate">Manage your shop</p>
-              <PlanBadge className="ml-1 text-[10px] py-0 h-4" plan={currentPlan} />
+            <h4 className="text-lg font-bold capitalize text-primary leading-tight">{owner?.shop?.name}</h4>
+            <div className="flex items-center gap-2 mt-1">
+              <PlanBadge className="text-[11px] h-5" plan={currentPlan} />
+              {/* <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded font-medium shadow-sm">
+                Manage your shop
+              </span> */}
             </div>
           </div>
         </div>
-        <div className="text-xs text-muted-foreground mt-2">
-          <div className="flex items-center gap-2 mb-1">
-            <Store className="h-3 w-3" />
-            <span className="truncate">{owner?.shop?.address}</span>
+        <div className="mt-2 grid gap-2 text-xs text-muted-foreground">
+          <div className="flex items-center gap-2">
+            <Store className="h-4 w-4" />
+            <span className="truncate font-semibold">{owner?.shop?.address}</span>
           </div>
           <div className="flex items-center gap-2">
-            <FileText className="h-3 w-3" />
-            <span>GST: {owner?.shop?.gst}</span>
+            <FileText className="h-4 w-4" />
+            <span className="font-semibold">GST: {owner?.shop?.gst}</span>
           </div>
         </div>
       </div>
