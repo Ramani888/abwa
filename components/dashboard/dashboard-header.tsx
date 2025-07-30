@@ -10,7 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { ShoppingBag, User, Settings, LogOut, Bell, Menu, Crown } from "lucide-react"
+import { ShoppingBag, User, Settings, LogOut, Bell, Menu, Crown, WifiIcon } from "lucide-react"
 import { usePathname } from "next/navigation"
 import { useState } from "react"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
@@ -19,12 +19,28 @@ import { PlanBadge } from "./plan-badge"
 import { Badge } from "@/components/ui/badge"
 import { usePlan } from "./plan-context"
 import { useNotification } from "../notification-provider"
+import { useNetworkStatus } from "../network-provider"
 
 export function DashboardHeader() {
   const pathname = usePathname()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const { currentPlan } = usePlan()
-  const { unreadCount } = useNotification() // <-- use context here
+  const { unreadCount } = useNotification()
+  const { isOnline, effectiveType, downlink } = useNetworkStatus()
+
+  let wifiColor = "text-green-500"
+  let wifiTitle = "Strong connection"
+
+  if (!isOnline) {
+    wifiColor = "text-gray-400"
+    wifiTitle = "No internet connection"
+  } else if (effectiveType === "2g" || (downlink !== undefined && downlink < 1)) {
+    wifiColor = "text-red-500"
+    wifiTitle = "Very weak connection"
+  } else if (effectiveType === "3g" || (downlink !== undefined && downlink < 3)) {
+    wifiColor = "text-yellow-500"
+    wifiTitle = "Weak connection"
+  }
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -48,13 +64,19 @@ export function DashboardHeader() {
           <span>AgroBill</span>
         </Link>
 
-        <div className="ml-4">
+        <div className="ml-4 hidden md:block">
           <PlanBadge />
         </div>
 
         <div className="flex-1" />
 
         <div className="flex items-center gap-2">
+          <span
+            title={wifiTitle}
+            className="flex items-center justify-center border rounded-full bg-background p-2"
+          >
+            <WifiIcon className={`h-6 w-6 ${wifiColor}`} />
+          </span>
           <Link href="/dashboard/notifications">
             <Button variant="outline" size="icon" className="relative">
               <Bell className="h-5 w-5" />
