@@ -2,11 +2,7 @@ import type React from "react"
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
-import { ThemeProvider } from "@/components/theme-provider"
-import { AuthProvider } from "@/components/auth-provider"
-import { ReduxProvider } from "@/components/redux-provider"
-import ThemedToaster from "@/components/themed-toaster"
-import { NotificationProvider } from "@/components/notification-provider"
+import ClientProviders from "@/components/client-provider";
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -42,16 +38,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body className={inter.className}>
-        <ThemeProvider>
-          <AuthProvider>
-            <ReduxProvider>
-              <NotificationProvider>
-                <ThemedToaster />
-                {children}
-              </NotificationProvider>
-            </ReduxProvider>
-          </AuthProvider>
-        </ThemeProvider>
+        <ClientProviders>
+          {children}
+        </ClientProviders>
       </body>
     </html>
   );
