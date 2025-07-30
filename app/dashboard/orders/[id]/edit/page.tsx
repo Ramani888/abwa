@@ -22,6 +22,7 @@ import { AppDispatch, RootState } from "@/lib/store"
 import { formatCurrency } from "@/utils/helpers/general"
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { PaymentStatus, PaymentType } from "@/utils/consts/order"
+import { getPaymentType } from "@/utils/helpers/order"
 
 export default function EditOrderPage({ params }: { params: { id: string } }) {
   const dispatch = useDispatch<AppDispatch>()
@@ -306,21 +307,6 @@ export default function EditOrderPage({ params }: { params: { id: string } }) {
       captureDate, // <-- Include captureDate
       products: orderItems,
     } as any;
-
-    const getPaymentType = () => {
-      switch (paymentStatus) {
-        case PaymentStatus.Paid:
-          return PaymentType.Full;
-        case PaymentStatus.Overpaid:
-          return PaymentType.Advance;
-        case PaymentStatus.Partial:
-          return PaymentType.Partial;
-        case PaymentStatus.Refunded:
-          return PaymentType.Partial;
-        default:
-          return PaymentType.Full;
-      }
-    }
     
     const findPaymentData = customerPayment?.find(cp => cp?.refOrderId === params?.id);
 
@@ -336,7 +322,7 @@ export default function EditOrderPage({ params }: { params: { id: string } }) {
       ...findPaymentData,
       customerId: selectedCustomer,
       amount: Number(calculateFinalTotal()),
-      paymentType: getPaymentType(),
+      paymentType: getPaymentType(paymentStatus),
       paymentMode: paymentMethod,
       captureDate: new Date(captureDate)
     };

@@ -18,6 +18,7 @@ import { paymentMethods, paymentStatuses } from "@/utils/consts/product"
 import { formatCurrency } from "@/utils/helpers/general"
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { PaymentStatus, PaymentType } from "@/utils/consts/order"
+import { getPaymentType } from "@/utils/helpers/order"
 
 export default function NewPurchaseOrderPage() {
   const [orderItems, setOrderItems] = useState<
@@ -231,21 +232,6 @@ export default function NewPurchaseOrderPage() {
       products: orderItems
     }
 
-    const getPaymentType = () => {
-      switch (paymentStatus) {
-        case PaymentStatus.Paid:
-          return PaymentType.Full;
-        case PaymentStatus.Overpaid:
-          return PaymentType.Advance;
-        case PaymentStatus.Partial:
-          return PaymentType.Partial;
-        case PaymentStatus.Refunded:
-          return PaymentType.Partial;
-        default:
-          return PaymentType.Full;
-      }
-    }
-
     const paymentData: {
       supplierId: string;
       amount: number;
@@ -256,7 +242,7 @@ export default function NewPurchaseOrderPage() {
     } = {
       supplierId: selectedSupplier,
       amount: Number(calculateFinalTotal()),
-      paymentType: getPaymentType(), // <-- Use paymentStatus directly
+      paymentType: getPaymentType(paymentStatus), // <-- Use paymentStatus directly
       paymentMode: paymentMethod,
       captureDate: new Date(captureDate),
     }

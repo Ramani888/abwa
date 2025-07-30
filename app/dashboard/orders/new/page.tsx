@@ -22,6 +22,7 @@ import { AppDispatch } from "@/lib/store"
 import { formatCurrency } from "@/utils/helpers/general"
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { PaymentStatus, PaymentType } from "@/utils/consts/order"
+import { getPaymentType } from "@/utils/helpers/order"
 
 export default function NewOrderPage() {
   const dispatch = useDispatch<AppDispatch>()
@@ -246,21 +247,6 @@ export default function NewOrderPage() {
       products: orderItems,
     }
 
-    const getPaymentType = () => {
-      switch (paymentStatus) {
-        case PaymentStatus.Paid:
-          return PaymentType.Full;
-        case PaymentStatus.Overpaid:
-          return PaymentType.Advance;
-        case PaymentStatus.Partial:
-          return PaymentType.Partial;
-        case PaymentStatus.Refunded:
-          return PaymentType.Partial;
-        default:
-          return PaymentType.Full;
-      }
-    }
-
     const paymentData: {
       customerId: string;
       amount: number;
@@ -272,7 +258,7 @@ export default function NewOrderPage() {
       customerId: selectedCustomer,
       // amount is gone only number with round off
       amount: Number(calculateFinalTotal()),
-      paymentType: getPaymentType(),
+      paymentType: getPaymentType(paymentStatus),
       paymentMode: paymentMethod,
       captureDate: new Date(captureDate)
     }

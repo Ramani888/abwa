@@ -20,6 +20,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { PaymentStatus, PaymentType } from "@/utils/consts/order"
 import { RootState } from "@/lib/store"
 import { useSelector } from "react-redux"
+import { getPaymentType } from "@/utils/helpers/order"
 
 export default function EditPurchaseOrderPage({ params }: { params: { id: string } }) {
   const { supplierPayment } = useSelector((state: RootState) => state.supplierPayment)
@@ -295,20 +296,6 @@ export default function EditPurchaseOrderPage({ params }: { params: { id: string
       products: orderItems,
     }
     
-    const getPaymentType = () => {
-      switch (paymentStatus) {
-        case PaymentStatus.Paid:
-          return PaymentType.Full;
-        case PaymentStatus.Overpaid:
-          return PaymentType.Advance;
-        case PaymentStatus.Partial:
-          return PaymentType.Partial;
-        case PaymentStatus.Refunded:
-          return PaymentType.Partial;
-        default:
-          return PaymentType.Full;
-      }
-    }
     const findPaymentData = supplierPayment?.find(sp => sp?.refOrderId === params?.id);
 
     // Remove all possible extra fields first
@@ -323,7 +310,7 @@ export default function EditPurchaseOrderPage({ params }: { params: { id: string
       ...findPaymentData,
       supplierId: selectedSupplier,
       amount: Number(calculateFinalTotal()),
-      paymentType: getPaymentType(),
+      paymentType: getPaymentType(paymentStatus),
       paymentMode: paymentMethod,
       captureDate: new Date(captureDate)
     };
