@@ -142,7 +142,7 @@ export default function AnalyticsPage() {
   }, [products, filteredOrders])
 
   // Export handlers
-  function handleExport(type: "orders" | "customers" | "products") {
+  function handleExport(type: "orders" | "customers" | "products" | "purchases" | "suppliers") {
     if (type === "orders") {
       exportToCsv(
         "orders.csv",
@@ -230,6 +230,46 @@ export default function AnalyticsPage() {
           "Purchase Price"
         ]
       )
+    } else if (type === "purchases") {
+      exportToCsv(
+        "purchases.csv",
+        filteredPurchases,
+        [
+          "_id",
+          "supplierId",
+          "total",
+          "paymentStatus",
+          "createdAt"
+        ],
+        [
+          "Purchase ID",
+          "Supplier ID",
+          "Total",
+          "Payment Status",
+          "Created At"
+        ]
+      )
+    } else if (type === "suppliers") {
+      exportToCsv(
+        "suppliers.csv",
+        filteredSuppliers,
+        [
+          "_id",
+          "name",
+          "email",
+          "number",
+          "address",
+          "createdAt"
+        ],
+        [
+          "Supplier ID",
+          "Name",
+          "Email",
+          "Phone",
+          "Address",
+          "Created At"
+        ]
+      )
     }
   }
 
@@ -253,6 +293,12 @@ export default function AnalyticsPage() {
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => handleExport("products")}>
               Export Products (Current Period)
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleExport("purchases")}>
+              Export Purchases (Current Period)
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleExport("suppliers")}>
+              Export Suppliers (Current Period)
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -278,42 +324,17 @@ export default function AnalyticsPage() {
       <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 w-full mb-4">
         {isLoading ? (
           <>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <Skeleton className="h-4 w-24 mb-2" />
-              </CardHeader>
-              <CardContent>
-                <Skeleton className="h-8 w-32 mb-2" />
-                <Skeleton className="h-3 w-28" />
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <Skeleton className="h-4 w-24 mb-2" />
-              </CardHeader>
-              <CardContent>
-                <Skeleton className="h-8 w-24 mb-2" />
-                <Skeleton className="h-3 w-24" />
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <Skeleton className="h-4 w-32 mb-2" />
-              </CardHeader>
-              <CardContent>
-                <Skeleton className="h-8 w-24 mb-2" />
-                <Skeleton className="h-3 w-28" />
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <Skeleton className="h-4 w-28 mb-2" />
-              </CardHeader>
-              <CardContent>
-                <Skeleton className="h-8 w-20 mb-2" />
-                <Skeleton className="h-3 w-24" />
-              </CardContent>
-            </Card>
+            {[...Array(6)].map((_, i) => (
+              <Card key={i}>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <Skeleton className="h-4 w-32" />
+                </CardHeader>
+                <CardContent>
+                  <Skeleton className="h-8 w-24 mb-2" />
+                  <Skeleton className="h-4 w-20" />
+                </CardContent>
+              </Card>
+            ))}
           </>
         ) : (
           <>
@@ -323,7 +344,7 @@ export default function AnalyticsPage() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{formatCurrency(totalRevenue)}</div>
-                <p className="text-xs text-muted-foreground">Compared to last period</p>
+                <p className="text-xs text-muted-foreground">Current period</p>
               </CardContent>
             </Card>
             <Card>
@@ -332,7 +353,7 @@ export default function AnalyticsPage() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{formatCurrency(retailSales)}</div>
-                <p className="text-xs text-muted-foreground">Compared to last period</p>
+                <p className="text-xs text-muted-foreground">Current period</p>
               </CardContent>
             </Card>
             <Card>
@@ -341,7 +362,7 @@ export default function AnalyticsPage() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{formatCurrency(wholesaleSales)}</div>
-                <p className="text-xs text-muted-foreground">Compared to last period</p>
+                <p className="text-xs text-muted-foreground">Current period</p>
               </CardContent>
             </Card>
             <Card>
@@ -349,8 +370,8 @@ export default function AnalyticsPage() {
                 <CardTitle className="text-sm font-medium">New Customers</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">+{formatCurrency(newCustomers, false, false)}</div>
-                <p className="text-xs text-muted-foreground">Compared to last period</p>
+                <div className="text-2xl font-bold">{formatCurrency(filteredCustomers?.length, false, false)}</div>
+                <p className="text-xs text-muted-foreground">Current period</p>
               </CardContent>
             </Card>
             <Card>
@@ -361,7 +382,7 @@ export default function AnalyticsPage() {
                 <div className="text-2xl font-bold">
                   {formatCurrency(filteredPurchases.reduce((sum, p) => sum + (p.total || 0), 0))}
                 </div>
-                <p className="text-xs text-muted-foreground">Compared to last periodd</p>
+                <p className="text-xs text-muted-foreground">Current period</p>
               </CardContent>
             </Card>
             <Card>
@@ -370,9 +391,9 @@ export default function AnalyticsPage() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {filteredSuppliers.length}
+                  {formatCurrency(filteredSuppliers?.length, false, false)}
                 </div>
-                <p className="text-xs text-muted-foreground">Compared to last period</p>
+                <p className="text-xs text-muted-foreground">Current period</p>
               </CardContent>
             </Card>
           </>
