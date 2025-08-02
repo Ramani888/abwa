@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { SalesAnalyticsChart } from "@/components/dashboard/sales-analytics-chart"
 import { CustomerAnalyticsChart } from "@/components/dashboard/customer-analytics-chart"
 import { ProductAnalyticsChart } from "@/components/dashboard/product-analytics-chart"
+import { PurchaseAnalyticsChart } from "@/components/dashboard/purchase-analytics-chart"
 import { Button } from "@/components/ui/button"
 import { Download, BarChart3, Users, Package } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -15,14 +16,17 @@ import { useState, useMemo } from "react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { exportToCsv } from "@/utils/helpers/report"
 import { formatCurrency } from "@/utils/helpers/general"
+import { SupplierAnalyticsChart } from "@/components/dashboard/supplier-analytics-chart"
 
 export default function AnalyticsPage() {
   const { customers, loading: customerLoading } = useSelector((state: RootState) => state.customers)
   const { products, loading: productLoading } = useSelector((state: RootState) => state.products)
   const { orders, loading: orderLoading } = useSelector((state: RootState) => state.orders)
+  const { purchaseOrders, loading: purchaseLoading } = useSelector((state: RootState) => state.purchaseOrders)
+  const { supplier, loading: supplierLoading } = useSelector((state: RootState) => state.suppliers)
 
   const [selectedPeriod, setSelectedPeriod] = useState("current-month")
-  const isLoading = customerLoading || productLoading || orderLoading
+  const isLoading = customerLoading || productLoading || orderLoading || purchaseLoading || supplierLoading
 
   // Filter orders by period (example: only current month)
   const filteredOrders = useMemo(() => {
@@ -52,6 +56,35 @@ export default function AnalyticsPage() {
     // Add more period filters as needed
     return customers
   }, [customers, selectedPeriod])
+
+  // Filter purchases by period (example: only current month)
+  const filteredPurchases = useMemo(() => {
+    if (!purchaseOrders) return []
+    if (selectedPeriod === "current-month") {
+      const now = new Date()
+      return purchaseOrders.filter(p => {
+        const date = new Date(p.captureDate ?? p.createdAt ?? "")
+        return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear()
+      })
+    }
+    // Add more period filters as needed
+    return purchaseOrders
+  }, [purchaseOrders, selectedPeriod])
+
+  // Filter suppliers by period (example: only current month)
+  const filteredSuppliers = useMemo(() => {
+    if (!supplier) return []
+    if (selectedPeriod === "current-month") {
+      const now = new Date()
+      return supplier.filter(s => {
+        if (!s.createdAt && !s.captureDate) return false
+        const date = new Date(s.captureDate ?? s.createdAt ?? "")
+        return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear()
+      })
+    }
+    // Add more period filters as needed
+    return supplier
+  }, [supplier, selectedPeriod])
 
   // Analytics calculations
   const totalRevenue = useMemo(
@@ -242,7 +275,7 @@ export default function AnalyticsPage() {
         </Select>
       </div>
 
-      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 w-full mb-4">
         {isLoading ? (
           <>
             <Card>
@@ -320,6 +353,28 @@ export default function AnalyticsPage() {
                 <p className="text-xs text-muted-foreground">Compared to last period</p>
               </CardContent>
             </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Purchases</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {formatCurrency(filteredPurchases.reduce((sum, p) => sum + (p.total || 0), 0))}
+                </div>
+                <p className="text-xs text-muted-foreground">Compared to last periodd</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Suppliers</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {filteredSuppliers.length}
+                </div>
+                <p className="text-xs text-muted-foreground">Compared to last period</p>
+              </CardContent>
+            </Card>
           </>
         )}
       </div>
@@ -350,6 +405,14 @@ export default function AnalyticsPage() {
           <TabsTrigger value="products" className="flex items-center">
             <Package className="mr-2 h-4 w-4" />
             Product Analytics
+          </TabsTrigger>
+          <TabsTrigger value="purchases" className="flex items-center">
+            <Package className="mr-2 h-4 w-4" />
+            Purchase Analytics
+          </TabsTrigger>
+          <TabsTrigger value="suppliers" className="flex items-center">
+            <Users className="mr-2 h-4 w-4" />
+            Supplier Analytics
           </TabsTrigger>
         </TabsList>
         <TabsContent value="sales" className="space-y-4">
@@ -422,6 +485,56 @@ export default function AnalyticsPage() {
               ) : (
                 <div className="min-w-[320px]">
                   <ProductAnalyticsChart products={productSalesMap} />
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+        <TabsContent value="purchases" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Purchase Trends</CardTitle>
+              <CardDescription>Analyze your purchase performance over time</CardDescription>
+            </CardHeader>
+            <CardContent className="overflow-x-auto">
+              {purchaseLoading ? (
+                <div className="space-y-4">
+                  <Skeleton className="h-6 w-40 mb-4" />
+                  <Skeleton className="h-[300px] w-full mb-2" />
+                  <div className="flex gap-2">
+                    <Skeleton className="h-4 w-16" />
+                    <Skeleton className="h-4 w-16" />
+                    <Skeleton className="h-4 w-16" />
+                  </div>
+                </div>
+              ) : (
+                <div className="min-w-[320px]">
+                  <PurchaseAnalyticsChart purchases={filteredPurchases} />
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+        <TabsContent value="suppliers" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Supplier Insights</CardTitle>
+              <CardDescription>Understand your supplier base and distribution</CardDescription>
+            </CardHeader>
+            <CardContent className="overflow-x-auto">
+              {supplierLoading ? (
+                <div className="space-y-4">
+                  <Skeleton className="h-6 w-40 mb-4" />
+                  <Skeleton className="h-[300px] w-full mb-2" />
+                  <div className="flex gap-2">
+                    <Skeleton className="h-4 w-16" />
+                    <Skeleton className="h-4 w-16" />
+                    <Skeleton className="h-4 w-16" />
+                  </div>
+                </div>
+              ) : (
+                <div className="min-w-[320px]">
+                  <SupplierAnalyticsChart suppliers={filteredSuppliers} />
                 </div>
               )}
             </CardContent>
