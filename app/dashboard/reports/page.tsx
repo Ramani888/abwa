@@ -14,11 +14,15 @@ import { useMemo, useRef, useState } from "react"
 import { exportToCsv } from "@/utils/helpers/report"
 import { Skeleton } from "@/components/ui/skeleton"
 import { formatCurrency } from "@/utils/helpers/general"
+import { PurchaseReportChart } from "@/components/dashboard/purchase-report-chart"
+import { SupplierReportTable } from "@/components/dashboard/supplier-report-table"
 
 export default function ReportsPage() {
   const { customers, loading: customerLoading } = useSelector((state: RootState) => state.customers)
   const { products, loading: productLoading } = useSelector((state: RootState) => state.products)
   const { orders, loading: orderLoading } = useSelector((state: RootState) => state.orders)
+  const { purchaseOrders, loading: purchaseOrderLoading } = useSelector((state: RootState) => state.purchaseOrders)
+  const { supplier, loading: supplierLoading } = useSelector((state: RootState) => state.suppliers)
 
   const [selectedPeriod, setSelectedPeriod] = useState("current-month")
   const [activeTab, setActiveTab] = useState("sales")
@@ -46,18 +50,45 @@ export default function ReportsPage() {
     return orders
   }
 
+  // Helper to filter purchase orders by period
+  function filterPurchaseOrders(period: string) {
+    const now = new Date()
+    if (!purchaseOrders) return []
+    if (period === "current-month") {
+      return purchaseOrders.filter(po => {
+        const date = new Date(po?.captureDate ?? po?.createdAt ?? "")
+        return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear()
+      })
+    }
+    if (period === "last-month") {
+      const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+      return purchaseOrders.filter(po => {
+        const date = new Date(po?.captureDate ?? po?.createdAt ?? "")
+        return date.getMonth() === lastMonth.getMonth() && date.getFullYear() === lastMonth.getFullYear()
+      })
+    }
+    // Add more period filters as needed
+    return purchaseOrders
+  }
+
   // Filter orders for selected period and last month
   const currentOrders = useMemo(() => filterOrders(selectedPeriod), [orders, selectedPeriod])
   const lastMonthOrders = useMemo(() => filterOrders(
     selectedPeriod === "current-month" ? "last-month" : "current-month"
   ), [orders, selectedPeriod])
 
-  // Calculate stats for selected period
+  // Filter purchase orders for selected period and last month
+  const currentPurchaseOrders = useMemo(() => filterPurchaseOrders(selectedPeriod), [purchaseOrders, selectedPeriod])
+  const lastMonthPurchaseOrders = useMemo(() => filterPurchaseOrders(
+    selectedPeriod === "current-month" ? "last-month" : "current-month"
+  ), [purchaseOrders, selectedPeriod])
+
+  // Calculate stats for selected period (sales)
   const totalSales = currentOrders.reduce((sum, order) => sum + (order.total || 0), 0)
   const totalOrders = currentOrders.length
   const avgOrderValue = totalOrders > 0 ? totalSales / totalOrders : 0
 
-  // Calculate stats for previous period
+  // Calculate stats for previous period (sales)
   const lastPeriodSales = lastMonthOrders.reduce((sum, order) => sum + (order.total || 0), 0)
   const lastPeriodOrders = lastMonthOrders.length
   const lastPeriodAvgOrderValue = lastPeriodOrders > 0 ? lastPeriodSales / lastPeriodOrders : 0
@@ -70,11 +101,31 @@ export default function ReportsPage() {
   const conversionRate = totalCustomers > 0 ? (totalOrders / totalCustomers) * 100 : 0
   const lastPeriodConversionRate = lastPeriodTotalCustomers > 0 ? (lastPeriodOrders / lastPeriodTotalCustomers) * 100 : 0
 
-  // Calculate changes
+  // Calculate changes (sales)
   const salesChange = lastPeriodSales === 0 ? 0 : ((totalSales - lastPeriodSales) / lastPeriodSales) * 100
   const ordersChange = lastPeriodOrders === 0 ? 0 : ((totalOrders - lastPeriodOrders) / lastPeriodOrders) * 100
   const avgOrderValueChange = lastPeriodAvgOrderValue === 0 ? 0 : ((avgOrderValue - lastPeriodAvgOrderValue) / lastPeriodAvgOrderValue) * 100
   const conversionRateChange = lastPeriodConversionRate === 0 ? 0 : ((conversionRate - lastPeriodConversionRate) / lastPeriodConversionRate) * 100
+
+  // Calculate stats for selected period (purchase)
+  const totalPurchaseAmount = currentPurchaseOrders.reduce((sum, po) => sum + (po.total || 0), 0)
+  const totalPurchaseOrders = currentPurchaseOrders.length
+  const avgPurchaseOrderValue = totalPurchaseOrders > 0 ? totalPurchaseAmount / totalPurchaseOrders : 0
+
+  // Calculate stats for previous period (purchase)
+  const lastPeriodPurchaseAmount = lastMonthPurchaseOrders.reduce((sum, po) => sum + (po.total || 0), 0)
+  const lastPeriodPurchaseOrders = lastMonthPurchaseOrders.length
+  const lastPeriodAvgPurchaseOrderValue = lastPeriodPurchaseOrders > 0 ? lastPeriodPurchaseAmount / lastPeriodPurchaseOrders : 0
+
+  // Calculate changes (purchase)
+  const purchaseAmountChange = lastPeriodPurchaseAmount === 0 ? 0 : ((totalPurchaseAmount - lastPeriodPurchaseAmount) / lastPeriodPurchaseAmount) * 100
+  const purchaseOrdersChange = lastPeriodPurchaseOrders === 0 ? 0 : ((totalPurchaseOrders - lastPeriodPurchaseOrders) / lastPeriodPurchaseOrders) * 100
+  const avgPurchaseOrderValueChange = lastPeriodAvgPurchaseOrderValue === 0 ? 0 : ((avgPurchaseOrderValue - lastPeriodAvgPurchaseOrderValue) / lastPeriodAvgPurchaseOrderValue) * 100
+
+  const totalSuppliers = supplier?.length || 1 // Avoid division by zero
+  const purchaseConversionRate = totalSuppliers > 0 ? (totalPurchaseOrders / totalSuppliers) * 100 : 0
+  const lastPeriodPurchaseConversionRate = totalSuppliers > 0 ? (lastPeriodPurchaseOrders / totalSuppliers) * 100 : 0
+  const purchaseConversionRateChange = lastPeriodPurchaseConversionRate === 0 ? 0 : ((purchaseConversionRate - lastPeriodPurchaseConversionRate) / lastPeriodPurchaseConversionRate) * 100
 
   function handleExport() {
     if (activeTab === "products" && productExportRef.current) {
@@ -116,6 +167,37 @@ export default function ReportsPage() {
           "Orders Change",
           "Avg Order Value Change",
           "Conversion Rate Change",
+        ]
+      )
+    } else if (activeTab === "purchase") {
+      // Example: Export purchase summary as CSV
+      exportToCsv(
+        `purchase-summary-${selectedPeriod}.csv`,
+        [
+          {
+            totalPurchaseAmount,
+            totalPurchaseOrders,
+            avgPurchaseOrderValue,
+            purchaseAmountChange: purchaseAmountChange.toFixed(1) + "%",
+            purchaseOrdersChange: purchaseOrdersChange.toFixed(1) + "%",
+            avgPurchaseOrderValueChange: avgPurchaseOrderValueChange.toFixed(1) + "%",
+          },
+        ],
+        [
+          "totalPurchaseAmount",
+          "totalPurchaseOrders",
+          "avgPurchaseOrderValue",
+          "purchaseAmountChange",
+          "purchaseOrdersChange",
+          "avgPurchaseOrderValueChange",
+        ],
+        [
+          "Total Purchase Amount",
+          "Total Purchase Orders",
+          "Average Purchase Order Value",
+          "Purchase Amount Change",
+          "Purchase Orders Change",
+          "Avg Purchase Order Value Change",
         ]
       )
     }
@@ -186,6 +268,14 @@ export default function ReportsPage() {
           <TabsTrigger value="customers" className="flex items-center min-w-[140px] justify-center">
             <Users className="mr-2 h-4 w-4" />
             Customer Reports
+          </TabsTrigger>
+          <TabsTrigger value="purchase" className="flex items-center min-w-[140px] justify-center">
+            <BarChart3 className="mr-2 h-4 w-4" />
+            Purchase Reports
+          </TabsTrigger>
+          <TabsTrigger value="suppliers" className="flex items-center min-w-[140px] justify-center">
+            <Users className="mr-2 h-4 w-4" />
+            Supplier Reports
           </TabsTrigger>
         </TabsList>
         <TabsContent value="sales" className="space-y-4">
@@ -385,6 +475,112 @@ export default function ReportsPage() {
                   <CustomerReportTable
                     selectedPeriod={selectedPeriod}
                     exportRef={customerExportRef}
+                  />
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        <TabsContent value="purchase" className="space-y-4">
+          <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+            {/* Purchase summary cards */}
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Purchases</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{formatCurrency(totalPurchaseAmount)}</div>
+                <p className="text-xs text-muted-foreground">
+                  {purchaseAmountChange >= 0 ? "+" : ""}
+                  {purchaseAmountChange.toFixed(1)}% from last period
+                </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Purchase Orders</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{formatCurrency(totalPurchaseOrders, false, false)}</div>
+                <p className="text-xs text-muted-foreground">
+                  {totalPurchaseOrders - lastPeriodPurchaseOrders >= 0 ? "+" : ""}
+                  {(totalPurchaseOrders - lastPeriodPurchaseOrders)} since last period
+                </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Average Purchase Order Value</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{formatCurrency(avgPurchaseOrderValue)}</div>
+                <p className="text-xs text-muted-foreground">
+                  {avgPurchaseOrderValueChange >= 0 ? "+" : ""}
+                  {avgPurchaseOrderValueChange.toFixed(1)}% from last period
+                </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Purchase Conversion Rate</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{purchaseConversionRate.toFixed(1)}%</div>
+                <p className="text-xs text-muted-foreground">
+                  {purchaseConversionRateChange >= 0 ? "+" : ""}
+                  {purchaseConversionRateChange.toFixed(1)}% from last period
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+          <Card>
+            <CardHeader>
+              <CardTitle>Purchase Overview</CardTitle>
+              <CardDescription>Monthly purchase performance for the current period</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="w-full overflow-x-auto">
+                <PurchaseReportChart selectedPeriod={selectedPeriod} />
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        <TabsContent value="suppliers" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Supplier Analysis</CardTitle>
+              <CardDescription>Supplier purchase patterns and supply metrics</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="w-full overflow-x-auto">
+                {supplierLoading ? (
+                  <div>
+                    <Skeleton className="h-6 w-40 mb-4" />
+                    {/* Table header skeleton */}
+                    <div className="flex gap-4 mb-2">
+                      <Skeleton className="h-4 w-24" />
+                      <Skeleton className="h-4 w-24" />
+                      <Skeleton className="h-4 w-24" />
+                      <Skeleton className="h-4 w-24" />
+                      <Skeleton className="h-4 w-24" />
+                      <Skeleton className="h-4 w-24" />
+                    </div>
+                    {/* Table rows skeleton */}
+                    {[...Array(5)].map((_, i) => (
+                      <div className="flex gap-4 mb-2" key={i}>
+                        <Skeleton className="h-4 w-24" />
+                        <Skeleton className="h-4 w-24" />
+                        <Skeleton className="h-4 w-24" />
+                        <Skeleton className="h-4 w-24" />
+                        <Skeleton className="h-4 w-24" />
+                        <Skeleton className="h-4 w-24" />
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <SupplierReportTable
+                    selectedPeriod={selectedPeriod}
+                    exportRef={null}
                   />
                 )}
               </div>
