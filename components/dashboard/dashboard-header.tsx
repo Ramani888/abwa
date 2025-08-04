@@ -10,7 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { ShoppingBag, User, Settings, LogOut, Bell, Menu, Crown, WifiIcon } from "lucide-react"
+import { ShoppingBag, User, Settings, LogOut, Bell, Menu, Crown, WifiIcon, Wallet } from "lucide-react"
 import { usePathname } from "next/navigation"
 import { useState } from "react"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
@@ -118,6 +118,12 @@ export function DashboardHeader() {
                 <Link href="/dashboard/settings">
                   <Settings className="mr-2 h-4 w-4" />
                   Settings
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/dashboard/expense">
+                  <Wallet className="mr-2 h-4 w-4" />
+                  Expense
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />

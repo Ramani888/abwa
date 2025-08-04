@@ -193,3 +193,22 @@ export const paymentStatuses = [
   { label: "Overpaid", value: "overpaid", description: "Paid more than required (rare but may occur)" },
   // { label: "Refunded", value: "refunded", description: "Payment has been returned (for returns/cancellations)" }
 ];
+
+export const expenseTypes = [
+  { label: "Rent", value: "rent", description: "Monthly shop or office rent" },
+  { label: "Electricity Bill", value: "electricity", description: "Electric power charges for the shop" },
+  { label: "Water Bill", value: "water", description: "Water utility charges" },
+  { label: "Internet/Phone", value: "internet", description: "Internet or phone recharge bills" },
+  { label: "Petrol/Diesel", value: "fuel", description: "Fuel expense for delivery or transport" },
+  { label: "Vehicle Maintenance", value: "vehicle_maintenance", description: "Repair and servicing of delivery vehicles" },
+  { label: "Salary", value: "salary", description: "Monthly salary paid to employees or staff" },
+  { label: "Labor Charges", value: "labor", description: "Temporary or daily labor wages" },
+  { label: "Office Supplies", value: "office_supplies", description: "Stationery, papers, ink, and related items" },
+  { label: "Repairs & Maintenance", value: "repairs", description: "Repair of shop items, furniture, or equipment" },
+  { label: "Advertisement", value: "advertisement", description: "Marketing expenses like flyers, banners, WhatsApp ads" },
+  { label: "Bank Charges", value: "bank_charges", description: "Charges deducted by bank for services" },
+  { label: "Interest Paid", value: "interest", description: "Interest paid on loans or credit lines" },
+  { label: "GST / Tax Payment", value: "tax", description: "Payment of taxes or GST dues" },
+  { label: "Courier / Transport", value: "transport", description: "Cost of transporting goods or courier charges" },
+  { label: "Miscellaneous", value: "misc", description: "General expenses not categorized above" }
+];

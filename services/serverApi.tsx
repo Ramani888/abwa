@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { ISupplier, ISupplierPayment } from "@/types/supplier";
 import { IOrder } from "@/types/order";
 import { IPurchaseOrder } from "@/types/purchaseOrder";
+import { IExpense } from "@/types/expense";
 
 const serverUrl = 'https://abb-i6cd.vercel.app/api';
 // const serverUrl = 'http://localhost:3010/api';
@@ -294,4 +295,21 @@ export const serverUpdateNotification = async (_id: string) => {
 
 export const serverDeleteNotification = async (_id: string) => {
   return await serverRequest(`/notification?_id=${_id}`, "DELETE", null, true);
+}
+
+/// Expense ///
+export const serverGetExpense = async () => {
+  return await serverRequest(`/expense`, "GET", null, true);
+}
+
+export const serverAddExpense = async (data: IExpense) => {
+  return await serverRequest(`/expense`, "POST", data, true);
+}
+
+export const serverUpdateExpense = async (data: IExpense) => {
+  return await serverRequest(`/expense`, "PUT", data, true);
+}
+
+export const serverDeleteExpense = async (_id: string) => {
+  return await serverRequest(`/expense?_id=${_id}`, "DELETE", null, true);
 }
