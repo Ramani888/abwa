@@ -21,6 +21,7 @@ import { AppDispatch } from "@/lib/store"
 import { formatCurrency, formatIndianNumber } from "@/utils/helpers/general"
 import { Dialog, DialogContent, DialogHeader, DialogFooter, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { RootState } from "@/lib/store"
+import { useNotification } from "@/components/notification-provider"
 
 const paymentModeIcons: Record<string, React.ReactNode> = {
   card: <CreditCard className="absolute left-2.5 top-3 h-4 w-4 text-muted-foreground" />,
@@ -33,6 +34,7 @@ const paymentModeIcons: Record<string, React.ReactNode> = {
 export default function NewSupplierPaymentPage() {
   const router = useRouter()
   const dispatch = useDispatch<AppDispatch>()
+  const { refreshNotifications } = useNotification()
   const [supplierData, setSupplierData] = useState<any[]>([])
   const [selectedSupplier, setSelectedSupplier] = useState("")
   const [loading, setLoading] = useState(false);
@@ -126,6 +128,7 @@ export default function NewSupplierPaymentPage() {
       }
       const res = await serverAddSupplierPayment(dataToSubmit);
       if (res?.success) {
+        refreshNotifications();
         router.push("/dashboard/supplier-payment");
       }
     } catch (error) {

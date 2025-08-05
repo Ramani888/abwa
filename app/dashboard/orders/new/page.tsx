@@ -23,6 +23,7 @@ import { formatCurrency } from "@/utils/helpers/general"
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { PaymentStatus, PaymentType } from "@/utils/consts/order"
 import { getPaymentType } from "@/utils/helpers/order"
+import { useNotification } from "@/components/notification-provider"
 
 export default function NewOrderPage() {
   const dispatch = useDispatch<AppDispatch>()
@@ -66,6 +67,7 @@ export default function NewOrderPage() {
   const [gatewayTransactionId, setGatewayTransactionId] = useState("")
   const [showConfirm, setShowConfirm] = useState(false)
   const router = useRouter()
+  const { refreshNotifications } = useNotification();
 
   const filteredCustomers = customerData?.filter(
     (customer) =>
@@ -283,6 +285,7 @@ export default function NewOrderPage() {
         if (paymentStatus !== PaymentStatus?.Unpaid) {
           await serverAddCustomerPayment({...paymentData, refOrderId: res?.data?._id?.toString()});
         }
+        refreshNotifications();
         router.push("/dashboard/orders")
       }
       dispatch(getOrders())

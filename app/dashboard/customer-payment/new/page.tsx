@@ -21,10 +21,12 @@ import { AppDispatch, RootState } from "@/lib/store"
 import { formatCurrency, formatIndianNumber } from "@/utils/helpers/general"
 import { Dialog, DialogContent, DialogHeader, DialogFooter, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { ICustomerPayment } from "@/types/customer"
+import { useNotification } from "@/components/notification-provider"
 
 export default function NewCustomerPaymentPage() {
   const router = useRouter()
   const dispatch = useDispatch<AppDispatch>()
+  const { refreshNotifications } = useNotification()
   const { customerPayment, loading: customerPaymentLoading } = useSelector((state: RootState) => state.customerPayment)
   const { orders, loading: ordersLoading } = useSelector((state: RootState) => state.orders)
 
@@ -101,6 +103,7 @@ export default function NewCustomerPaymentPage() {
       }
       const res = await serverAddCustomerPayment(dataToSubmit);
       if (res?.success) {
+        refreshNotifications();
         router.push("/dashboard/customer-payment")
       }
     } catch (error) {
